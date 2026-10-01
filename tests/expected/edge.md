@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/edge.html
 
-Observation `380e7bda` · 2026-09-22T13:55:42+00:00 · criteria v1 · screenshot `153eacff906e27a0`  
+Observation `380e7bda` · 2026-09-22T13:55:42+00:00 · criteria v2 · screenshot `153eacff906e27a0`  
 13 surfaces · 5 fail · 1 review · 0 hint · 16 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.

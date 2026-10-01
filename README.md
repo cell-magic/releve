@@ -115,7 +115,7 @@ commented with the reading it should produce. The recorded observations
 and expected reports sit beside them, so any change in judgement shows up
 as a diff to review.
 
-## Criteria (v1)
+## Criteria (v2)
 
 | id | checks | source |
 |---|---|---|
@@ -134,7 +134,7 @@ as a diff to review.
 | autoplay | no sound starts by itself | RGAA 4.10 · WCAG 1.4.2 |
 | unique-ids | element ids are unique | RGAA 8.2 |
 | ai-disclosure | conversational AI is disclosed | AI Act art. 50(1) |
-| image-weight | images are not larger than shown | RGESN; 2× threshold is the tool's |
+| image-weight | bitmap images are not larger than shown | RGESN; 2× threshold is the tool's |
 | image-format | heavy images use a modern format | RGESN; 30 kB threshold is the tool's |
 
 Each criterion is one pure function in `kernel/src/Releve/Criteria.hs`.

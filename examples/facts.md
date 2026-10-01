@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/fixture.html
 
-Observation `ee10a85e` · 2026-09-22T13:55:45+00:00 · criteria v1 · screenshot `981c89df7885b7a7`  
+Observation `ee10a85e` · 2026-09-22T13:55:45+00:00 · criteria v2 · screenshot `981c89df7885b7a7`  
 29 surfaces · 13 fail · 5 review · 2 hint · 19 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.

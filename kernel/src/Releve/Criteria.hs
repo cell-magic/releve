@@ -16,7 +16,7 @@ import Releve.Colour
 import Releve.Types
 
 version :: Text
-version = "1"
+version = "2"
 
 criteria :: [Criterion]
 criteria =
@@ -151,8 +151,10 @@ imageAlt o = orNA "images" (map img (surfacesOf "img" o) ++ map graphic (surface
       any (`isSuffixOf` l) [".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif", ".svg"] || any (`isPrefixOf` l) ["img_", "dsc"]
 
 imageWeight, imageFormat :: Observation -> [Mark]
-imageWeight o = orNA "images" (mapMaybe judge [s | s <- surfaces o, kind s == "img"])
+imageWeight o = orNA "bitmap images" (mapMaybe judge [s | s <- surfaces o, kind s == "img", not (vector s)])
   where
+    -- A vector image has no pixel size to exceed.
+    vector s = mime s == Just "image/svg+xml" || maybe False (T.isSuffixOf ".svg" . T.toLower . T.takeWhile (/= '?')) (src s)
     judge s = do
       (nw, nh) <- natural s >>= dims
       (w, h) <- shown s
