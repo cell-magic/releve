@@ -1,0 +1,4 @@
+dist-newstyle/
+__pycache__/
+shots/
+*.corpus

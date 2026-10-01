@@ -1,0 +1,40 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr> -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<!-- A page with known defects, used to check the tool against expected findings. -->
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title></title>
+  <style>
+    body { font: 16px/1.5 sans-serif; margin: 0; }
+    .pale { color: #999; }
+    .ok { color: #333; }
+    .banner { background: url("data:image/gif;base64,R0lGODlhAQABAAAAACw=") #222; color: #fff; }
+    .wide { width: 600px; }
+  </style>
+</head>
+<body>
+  <header><nav><a href="/">Accueil</a> <a href="/x"><img src="logo.png" alt=""></a></nav></header>
+  <h1>Relevé fixture</h1>
+  <h3>Skipped a level</h3>
+  <p class="pale">Pale text that fails contrast.</p>
+  <p class="ok">Dark text that passes contrast.</p>
+  <div class="banner">Text over a background image.</div>
+  <img src="big.png" width="100" height="50">
+  <img src="IMG_2031.jpg" alt="IMG_2031.jpg" width="80" height="80">
+  <a href="/more">en savoir plus</a>
+  <button></button>
+  <button>Envoyer</button>
+  <form>
+    <input type="email" placeholder="Votre e-mail">
+    <label for="n">Nom</label> <input id="n" type="text">
+  </form>
+  <iframe src="about:blank"></iframe>
+  <video src="clip.mp4" autoplay></video>
+  <span id="dup">a</span><span id="dup">b</span>
+  <div class="wide">Fixed-width block that overflows a narrow screen.</div>
+  <svg role="img" width="10" height="10"><rect width="10" height="10"/></svg>
+</body>
+</html>

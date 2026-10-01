@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
+# SPDX-License-Identifier: EUPL-1.2
+# Builds releve on Linux, macOS and Windows, runs the kernel tests, checks the
+# licence headers and the observer's conduct, and attaches the binaries to
+# every tagged release (git tag v0.2.0 && git push --tags).
+name: build
+on:
+  push:
+  pull_request:
+  release:
+    types: [published]
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: haskell-actions/setup@v2
+        with:
+          ghc-version: "9.6"
+          cabal-version: "3.10"
+      - run: cabal update
+      - run: cabal install --install-method=copy --installdir=dist --overwrite-policy=always
+      - name: tests
+        shell: bash
+        run: RELEVE="$PWD/dist/releve" tests/run.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: releve-${{ matrix.os }}
+          path: dist/releve*
+      - if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/releve*
+  conduct:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install playwright reuse && playwright install --with-deps chromium
+      - run: reuse lint
+      - run: python tests/conduct.py

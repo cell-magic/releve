@@ -1,0 +1,23 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr> -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<!-- Edge cases that once produced wrong findings. Each comment states the expected reading. -->
+<html lang="fr">
+<head><meta charset="utf-8"><title>Edge cases</title></head>
+<body><main>
+  <h1>Edge cases</h1>
+  <!-- Two identical links in identical structures: two distinct findings, two ids. -->
+  <section><div><ul><li>a</li><li><a href="/x"><img src="logo.png"></a></li></ul></div></section>
+  <section><div><ul><li>b</li><li><a href="/y"><img src="logo.png"></a></li></ul></div></section>
+  <!-- Invisible text: not observed at all. -->
+  <p style="opacity:0">Fades in on scroll</p>
+  <!-- Half-transparent text: REVIEW, not FAIL. -->
+  <p style="opacity:.5">Half faded</p>
+  <!-- Page text containing a double slash: must not be read as a note. -->
+  <p style="color:#aaa">Horaires // fermé le lundi</p>
+  <!-- A link acting as a button: counted once, as a button. -->
+  <a href="#" role="button" aria-label="Ouvrir le menu"></a>
+  <!-- Disabled control text: exempt from contrast. -->
+  <button disabled style="color:#ccc">Indisponible</button>
+</main></body>
+</html>
