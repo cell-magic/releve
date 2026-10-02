@@ -37,6 +37,16 @@ def site(robots):
                 body, code = f"<meta http-equiv=refresh content='0;url={REDIRECTS['/away']}'>", 200
             elif self.path == "/calm":
                 body, code = PAGE.format("Un instant de calme", "Calme"), 200
+            elif self.path == "/late":
+                body, code = f"<title>Late</title><script>setTimeout(() => location = '{REDIRECTS['/away']}', 1200)</script>", 200
+            elif self.path == "/renamed":
+                body, code = "<title>Renamed</title><script>history.pushState({}, '', '/private/renamed')</script>", 200
+            elif self.path == "/popup":
+                body, code = "<title>Popup</title><script>window.open('/private/popup')</script>", 200
+            elif self.path == "/autopost":
+                body, code = "<title>Post</title><form method=post action=/posted></form><script>document.forms[0].submit()</script>", 200
+            elif self.path == "/form":
+                body, code = PAGE.format("Contact", "<iframe title=check src='/cdn-cgi/challenge-platform/widget'></iframe>"), 200
             else:
                 body, code = PAGE.format("Page", self.path), 200
             self.send_response(code)
@@ -67,7 +77,7 @@ def hits(port, path):
     return [e for e in log if e[0] == port and e[2] == path]
 
 
-open_, a = site("User-agent: *\nAllow: /\n")
+open_, a = site("User-agent: *\nDisallow: /private/\n")
 closed, b = site("User-agent: *\nDisallow: /\n")
 REDIRECTS.update({"/near": f"{open_}/landed", "/away": f"{closed}/elsewhere".replace("127.0.0.1", "localhost")})  # another host
 checks = []
@@ -118,8 +128,18 @@ check("leaves the whole site alone once it pushes back", not out and "said no ea
 out, err, code = observe(open_.removeprefix("http://") + "/bare")
 check("observes web addresses only", not out and "not a web address" in err and not hits(a, "/bare"))
 
-out, err, code = observe(f"{open_}/calm")
-check("takes no ordinary title for a challenge", len(out) == 1)
+out, err, code = observe(f"{open_}/calm", f"{open_}/form")
+check("takes neither an ordinary title nor a widget in a form for a challenge", len(out) == 2)
+
+out, err, code = observe(f"{open_}/late", f"{open_}/renamed")
+check("records no page that leaves for, or renames itself to, a closed address", not out and not hits(b, "/elsewhere"))
+
+out, err, code = observe(f"{open_}/popup")
+check("opens no other window", len(out) == 1 and not hits(a, "/private/popup"))
+
+out, err, code = observe(f"{open_}/autopost")
+check("lets no script submit a form", not out and "submits a form" in err)
+
 
 check("submits nothing", not posts)
 sys.exit(0 if all(checks) else 1)

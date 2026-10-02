@@ -24,7 +24,8 @@ Conduct, enforced here and nowhere else:
     owner never extends to another site.
   - What a page loads into itself (images, scripts, frames) is fetched as any
     browser would fetch it.
-  - Nothing is submitted, no dialog is dismissed, no session is kept.
+  - Nothing is submitted, by the robot or by a page's own script; no window is
+    opened, no dialog is dismissed, no session is kept.
   - The robot names itself and says where its operator can be reached.
 """
 import argparse, hashlib, json, sys, time, urllib.error, urllib.parse, urllib.request, urllib.robotparser
@@ -40,8 +41,10 @@ LIMIT = 2500  # surfaces per page
 
 # Interstitials that stand between a robot and the content. A CAPTCHA inside a
 # form is not one: forms are never submitted.
-GATE_TITLES = ("just a moment", "attention required", "checking your browser", "un instant…", "un instant...")
+GATE_TITLES = ("just a moment", "attention required", "checking your browser", "un instant…", "un instant...",
+               "access to this page has been denied")
 GATE_ADDRESSES = ("/cdn-cgi/challenge-platform", "captcha-delivery.com", "perimeterx", "px-captcha")
+GATE_FRAMES = GATE_ADDRESSES[1:]  # a wall's frame; the first is also the address of a widget inside a form
 PUSHBACK = (429, 503)  # the site, not the page, is saying no
 
 # Hosts of conversational widgets. A match means "look here", not a verdict.
@@ -107,6 +110,7 @@ def observe(browser, url, agent, shots, closed):
     ctx = browser.new_context(viewport=DESKTOP, user_agent=f"Mozilla/5.0 (compatible; {agent})",
                               accept_downloads=False, service_workers="block")
     try:
+        ctx.add_init_script("window.open = () => null")  # one page is observed; it opens no other
         page = ctx.new_page()
         cdp = ctx.new_cdp_session(page)
         cdp.send("Network.enable")
@@ -116,14 +120,15 @@ def observe(browser, url, agent, shots, closed):
         cdp.on("Network.loadingFinished", lambda e: weights.__setitem__(
             e["requestId"], int(e.get("encodedDataLength", 0))))
 
-        # Every document the page itself asks for, by redirect, refresh or script, waits here
-        # until the rules of its address are known. A closed address is never requested.
+        # Every document asked for waits here. The page's own, by redirect, refresh or script, is
+        # requested only where the rules admit its address; a form sent by a script is never sent.
         frame = cdp.send("Page.getFrameTree")["frameTree"]["frame"]["id"]
         barred = []
 
         def gate(e):
             to = e["request"]["url"]
-            why = closed(to) if e["frameId"] == frame else None
+            why = ("a script submits a form" if e["request"]["method"] != "GET"
+                   else closed(to) if e["frameId"] == frame else None)
             if why:
                 barred.append(f"leads to {to}, where {why}")
                 cdp.send("Fetch.failRequest", {"requestId": e["requestId"], "errorReason": "BlockedByClient"})
@@ -145,10 +150,9 @@ def observe(browser, url, agent, shots, closed):
             page.wait_for_load_state("networkidle", timeout=15000)
         except BrowserError:
             pass
-        if barred:
-            raise Refused(barred[0])
-        addresses = " ".join([page.url] + [f.url for f in page.frames]).lower()
-        if page.title().strip().lower().startswith(GATE_TITLES) or any(g in addresses for g in GATE_ADDRESSES):
+        frames = " ".join(f.url for f in page.frames[1:]).lower()
+        if (page.title().strip().lower().startswith(GATE_TITLES) or any(g in page.url.lower() for g in GATE_ADDRESSES)
+                or any(g in frames for g in GATE_FRAMES)):
             raise Refused("a challenge stands before the content", whole=True)
 
         page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
@@ -162,6 +166,11 @@ def observe(browser, url, agent, shots, closed):
         page.wait_for_timeout(400)
         data["page"]["reflow"] = page.evaluate("document.documentElement.scrollWidth")
         final = page.url
+        # What was read must be the page asked for, or one the rules admit: a page that tried to
+        # leave for a closed address, at any moment, or renamed itself to one, is not recorded.
+        why = barred[0] if barred else closed(final) and f"moves to {final}, where {closed(final)}"
+        if why:
+            raise Refused(why)
     finally:
         ctx.close()
 
@@ -236,7 +245,7 @@ def main():
         browser = pw.chromium.launch()
         for url in args.urls:
             origin, site = place(url) or (None, None)
-            why = refusal(url, args.mandate) or shut.get(site)
+            why = shut.get(site) or refusal(url, args.mandate)
             if why:
                 leave(url, why)
                 continue

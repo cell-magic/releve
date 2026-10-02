@@ -184,7 +184,10 @@ configuration, and `tests/conduct.py` checks each of them:
 - What a page loads into itself (images, scripts, frames) is fetched as
   any browser would fetch it; `robots.txt` is consulted for pages, not for
   their parts.
-- It submits no forms, dismisses no dialogs, keeps no session, and names
+- A page that tries to leave for a closed address at any moment, or sends
+  a form by its own script, is not recorded; the form is never sent.
+- It submits no forms, opens no windows, dismisses no dialogs, keeps no
+  session, and names
   itself (`releve-observe/0.3`) with its operator's contact address.
 
 It keeps only what judgement needs: text excerpts of at most 80

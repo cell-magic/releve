@@ -9,12 +9,17 @@ the same verdicts as under 0.2.
   redirect, refresh or script, is requested only if `robots.txt` admits its
   address. A mandate covers the site it was given for (whatever the scheme,
   port or `www`), never another.
+- **Nothing is sent, nothing is opened.** A form submitted by a page's own
+  script is stopped before it leaves; `window.open` opens nothing. A page that
+  tries to leave for a closed address, or renames itself to one, is not
+  recorded.
 - **A site that pushes back is left alone.** After a 429, a 503 or a challenge
   page, the rest of that site's pages are skipped for the run.
 - **Web addresses only.** An address without `http://` or `https://` is
   refused; before, it reached the browser without a look at `robots.txt`.
 - **Challenge pages** are recognised by how their title begins, not by any
-  title that contains "un instant".
+  title that contains "un instant"; a challenge widget inside a form is not
+  a wall.
 - **A reviewer's edit is never dropped.** A finding's line that can no longer
   be read (a note after the id, an unknown verdict word) makes `correct`
   refuse the whole document and say which line. A note may contain ` // `.
