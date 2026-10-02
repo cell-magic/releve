@@ -12,6 +12,7 @@ module Releve.Corpus (Record (..), sha, next, verify, load, append) where
 import qualified Crypto.Hash.SHA256 as SHA
 import Data.Aeson
 import Data.Aeson.Types (parseEither)
+import Data.Bifunctor (first)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy as BL
@@ -66,12 +67,13 @@ parse l = do
   pure (Record s p h raw e)
   where header = withObject "record" $ \o -> (,,) <$> o .: "seq" <*> o .: "prev" <*> o .: "hash"
 
-load :: FilePath -> IO [Record]
+-- | The records of a corpus file, or the first line that cannot be read.
+load :: FilePath -> IO (Either String [Record])
 load path = do
   exists <- doesFileExist path
-  if not exists then pure [] else do
+  if not exists then pure (Right []) else do
     ls <- filter (not . B.null) . map (BC.dropWhileEnd (== '\r')) . BC.lines <$> B.readFile path
-    pure [either (\m -> error (path <> ":" <> show i <> ": " <> m)) id (parse l) | (i, l) <- zip [1 :: Int ..] ls]
+    pure (sequence [first (\m -> path <> ", line " <> show i <> ": " <> m) (parse l) | (i, l) <- zip [1 :: Int ..] ls])
 
 append :: FilePath -> Record -> IO ()
 append path r = B.appendFile path (line r <> "\n")

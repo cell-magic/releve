@@ -1,0 +1,4 @@
+# SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
+# SPDX-License-Identifier: EUPL-1.2
+# One pinned version: the browser that renders is part of the reading.
+playwright==1.56.0

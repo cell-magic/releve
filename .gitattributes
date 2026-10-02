@@ -1,1 +1,2 @@
 *.jsonl -text
+tests/expected/*.md -text

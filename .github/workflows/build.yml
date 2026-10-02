@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: EUPL-1.2
 # Builds releve on Linux, macOS and Windows, runs the kernel tests, checks the
 # licence headers and the observer's conduct, and attaches the binaries to
-# every tagged release (git tag v0.2.0 && git push --tags).
+# every published release, one file per system: releve-linux, releve-macos,
+# releve-windows.exe.
 name: build
 on:
   push:
@@ -23,17 +24,25 @@ jobs:
           cabal-version: "3.10"
       - run: cabal update
       - run: cabal install --install-method=copy --installdir=dist --overwrite-policy=always
-      - name: tests
+      - run: python tests/run.py
+        env:
+          RELEVE: dist/releve
+      - name: name the binary after its system
         shell: bash
-        run: RELEVE="$PWD/dist/releve" tests/run.sh
+        run: |
+          case "${{ runner.os }}" in
+            Windows) mv dist/releve.exe dist/releve-windows.exe ;;
+            macOS)   mv dist/releve dist/releve-macos ;;
+            *)       mv dist/releve dist/releve-linux ;;
+          esac
       - uses: actions/upload-artifact@v4
         with:
           name: releve-${{ matrix.os }}
-          path: dist/releve*
+          path: dist/releve-*
       - if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/releve*
+          files: dist/releve-*
   conduct:
     runs-on: ubuntu-latest
     steps:
@@ -41,6 +50,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install playwright reuse && playwright install --with-deps chromium
+      - run: pip install -r observe/requirements.txt reuse && playwright install --with-deps chromium
       - run: reuse lint
       - run: python tests/conduct.py

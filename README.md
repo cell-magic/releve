@@ -86,8 +86,8 @@ constraints, and of what it would take to reconcile them.
 Requirements: Python ≥ 3.10 with Playwright, and GHC ≥ 9.2 with cabal.
 
 ```sh
-pip install playwright && playwright install chromium
-cabal install                     # builds `releve`
+pip install -r observe/requirements.txt && playwright install chromium
+cabal install                     # builds `releve`; or take a built one from the Releases page
 
 python observe/observe.py https://example.org --contact https://you.example/robot | releve ingest corpus.jsonl
 releve facts corpus.jsonl > facts.md       # proofread, edit
@@ -102,12 +102,15 @@ read what the robot does and reach whoever runs it. `releve facts` takes an obse
 to the latest; `--all` gives the latest report of every page in one
 document, which `releve correct` reads back section by section.
 
+Everything is UTF-8 with line feeds, on every system. Windows PowerShell 5
+re-encodes what passes through `|` and `>`: use `cmd`, or PowerShell 7.
+
 ## Tests
 
 ```sh
-tests/run.sh          # the kernel against recorded pages: no browser, no network
-tests/observe.sh      # re-record the test pages after changing the observer
-tests/conduct.py      # the observer against local sites that say no
+python tests/run.py            # the kernel against recorded pages: no browser, no network
+python tests/run.py --record   # re-record the test pages after changing the observer
+python tests/conduct.py        # the observer against local sites that say no
 ```
 
 `tests/pages/` holds pages with known defects and edge cases, each
@@ -171,8 +174,11 @@ configuration, and `tests/conduct.py` checks each of them:
   longer if `robots.txt` asks.
 - A page that answers with an error, or puts a challenge or CAPTCHA before
   its content, is left alone at once: no retry, no workaround.
+- A redirect is followed only where `robots.txt` admits the address it
+  leads to; a closed address is never requested. The leave of one site's
+  owner never extends to another site.
 - It submits no forms, dismisses no dialogs, keeps no session, and names
-  itself (`releve-observe/0.2`) with its operator's contact address.
+  itself (`releve-observe/0.3`) with its operator's contact address.
 
 It keeps only what judgement needs: text excerpts of at most 80
 characters, and screenshots only when asked, stored locally. A corpus

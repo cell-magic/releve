@@ -40,7 +40,9 @@ data Network = Network
 data Observation = Observation
   { url :: Text, at :: Text, agent :: Text, page :: Page, network :: Network
   , surfaces :: [Surface], shot :: Maybe Text
-  , mandate :: Maybe Text  -- ^ the owner's written leave to observe despite robots.txt
+  , mandate :: Maybe Text    -- ^ the owner's written leave to observe despite robots.txt
+  , requested :: Maybe Text  -- ^ the address asked for, which a redirect may have left behind
+  , browser :: Maybe Text    -- ^ what rendered the page: rendering is part of the reading
   } deriving (Show, Generic, FromJSON)
 
 instance ToJSON Observation where

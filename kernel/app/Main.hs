@@ -13,7 +13,7 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import System.Environment (getArgs)
 import System.Exit (exitWith, ExitCode (..))
-import System.IO (hPutStrLn, hSetEncoding, stderr, stdin, stdout, utf8)
+import System.IO (hPutStrLn, hSetEncoding, hSetNewlineMode, noNewlineTranslation, stderr, stdin, stdout, universalNewlineMode, utf8)
 import Releve.Corpus
 import Releve.Criteria (criteria, version)
 import Releve.Kernel
@@ -31,16 +31,23 @@ usage = unlines
   , "  releve verify CORPUS                  check the corpus seals"
   , "  releve criteria                       list the criteria and their sources" ]
 
+-- | The same bytes on every system: UTF-8, and line feeds alone on the way out.
+plain :: IO ()
+plain = do
+  mapM_ (`hSetEncoding` utf8) [stdin, stdout, stderr]
+  hSetNewlineMode stdin universalNewlineMode
+  hSetNewlineMode stdout noNewlineTranslation
+
 main :: IO ()
-main = mapM_ (`hSetEncoding` utf8) [stdin, stdout, stderr] >> getArgs >>= \args -> case args of
+main = plain >> getArgs >>= \args -> case args of
   ["ingest", c] -> ingest c
   ["facts", c] -> withState c $ \st -> maybe (die "no observations") (TIO.putStr . facts st) (resolve st Nothing)
   ["facts", c, "--all"] -> withState c $ \st -> TIO.putStr (T.intercalate "\n---\n\n" (map (facts st) (latest st)))
   ["facts", c, ref] -> withState c $ \st -> maybe (die "no such observation") (TIO.putStr . facts st) (resolve st (Just (T.pack ref)))
   ["correct", c] -> correct c
   ["atlas", c] -> withState c $ \st -> forM_ (observations st) (BL.putStrLn . encode . atlas st)
-  ["verify", c] -> load c >>= \rs -> case verify rs of
-    Right n -> putStrLn ("sealed · " <> show n <> " records")
+  ["verify", c] -> records c >>= \rs -> case verify rs of
+    Right n -> putStrLn ("sealed · " <> show n <> (if n == 1 then " record" else " records"))
     Left n -> die ("broken at record " <> show n)
   ["criteria"] -> do
     putStrLn ("criteria v" <> T.unpack version)
@@ -50,13 +57,16 @@ main = mapM_ (`hSetEncoding` utf8) [stdin, stdout, stderr] >> getArgs >>= \args 
 die :: String -> IO a
 die m = hPutStrLn stderr ("releve: " <> m) >> exitWith (ExitFailure 1)
 
+records :: FilePath -> IO [Record]
+records c = load c >>= either (die . (<> "; the corpus is damaged there, restore it from a copy")) pure
+
 sealed :: FilePath -> IO [Record]
 sealed c = do
-  rs <- load c
+  rs <- records c
   either (\n -> die ("corpus broken at record " <> show n <> "; refusing to write")) (const (pure rs)) (verify rs)
 
 withState :: FilePath -> (State -> IO ()) -> IO ()
-withState c k = load c >>= either die k . build
+withState c k = records c >>= either die k . build
 
 ingest :: FilePath -> IO ()
 ingest c = do

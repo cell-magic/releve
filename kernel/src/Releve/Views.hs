@@ -26,6 +26,7 @@ facts st o = T.unlines $
   [ "# Relevé · " <> url b, ""
   , "Observation `" <> oId o <> "` · " <> at b <> " · criteria v" <> version
       <> maybe "" (\h -> " · screenshot `" <> T.take 16 h <> "`") (shot b)
+      <> maybe "" (" · " <>) (browser b)
       <> maybe "" (\m -> " · under mandate " <> esc m) (mandate b) <> "  "
   , T.intercalate " · " (T.pack (show (length (surfaces b))) <> " surfaces" : [count v | v <- [Fail, Review, Hint, Pass]])
       <> " · " <> since, ""
@@ -116,7 +117,8 @@ corrections st doc = do
 
 atlas :: State -> Obs -> Value
 atlas st o = object
-  [ "observation" .= oId o, "url" .= url b, "at" .= at b, "criteria" .= version
+  [ "observation" .= oId o, "url" .= url b, "requested" .= fromMaybe (url b) (requested b)
+  , "at" .= at b, "criteria" .= version, "browser" .= browser b
   , "shape" .= mapMaybe token (sortOn order (surfaces b))
   , "footprint" .= object ["elements" .= e, "requests" .= r, "kilobytes" .= kb, "thirdParties" .= hs]
   , "change" .= object
