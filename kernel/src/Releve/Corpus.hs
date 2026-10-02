@@ -72,8 +72,8 @@ load :: FilePath -> IO (Either String [Record])
 load path = do
   exists <- doesFileExist path
   if not exists then pure (Right []) else do
-    ls <- filter (not . B.null) . map (BC.dropWhileEnd (== '\r')) . BC.lines <$> B.readFile path
-    pure (sequence [first (\m -> path <> ", line " <> show i <> ": " <> m) (parse l) | (i, l) <- zip [1 :: Int ..] ls])
+    ls <- zip [1 :: Int ..] . map (BC.dropWhileEnd (== '\r')) . BC.lines <$> B.readFile path
+    pure (sequence [first (\m -> path <> ", line " <> show i <> ": " <> m) (parse l) | (i, l) <- ls, not (B.null l)])
 
 append :: FilePath -> Record -> IO ()
 append path r = B.appendFile path (line r <> "\n")

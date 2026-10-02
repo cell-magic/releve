@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/fixture.html
 
-Observation `49369a67` · 2026-10-02T09:12:59+00:00 · criteria v2 · screenshot `981c89df7885b7a7` · Chromium 141.0.7390.37  
+Observation `18071c68` · 2026-10-02T09:49:01+00:00 · criteria v2 · screenshot `981c89df7885b7a7` · Chromium 141.0.7390.37  
 29 surfaces · 13 fail · 5 review · 2 hint · 19 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.

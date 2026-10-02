@@ -72,7 +72,8 @@ line:
 
 To correct it, change the verdict word, add a note after `//`, and pipe
 the file back through `releve correct`. Lines left untouched record
-nothing.
+nothing. A line changed in a way that cannot be read is refused, and
+nothing is recorded: a decision is never dropped in silence.
 
 **atlas** is JSON lines, one per observation: the page's shape (its
 landmarks, headings and controls in reading order), its footprint, what
@@ -172,11 +173,17 @@ configuration, and `tests/conduct.py` checks each of them:
   recorded in every observation it covers.
 - It fetches one page at a time, at least one second apart per site,
   longer if `robots.txt` asks.
+- It observes web addresses only (http, https).
 - A page that answers with an error, or puts a challenge or CAPTCHA before
-  its content, is left alone at once: no retry, no workaround.
-- A redirect is followed only where `robots.txt` admits the address it
-  leads to; a closed address is never requested. The leave of one site's
-  owner never extends to another site.
+  its content, is left alone at once: no retry, no workaround. When the
+  answer is the site pushing back (429, 503, a challenge), the whole site
+  is left alone for the rest of the run.
+- Wherever a page leads the browser, by redirect, refresh or script, the
+  address is requested only if `robots.txt` admits it. The leave of one
+  site's owner never extends to another site.
+- What a page loads into itself (images, scripts, frames) is fetched as
+  any browser would fetch it; `robots.txt` is consulted for pages, not for
+  their parts.
 - It submits no forms, dismisses no dialogs, keeps no session, and names
   itself (`releve-observe/0.3`) with its operator's contact address.
 

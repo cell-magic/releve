@@ -29,7 +29,8 @@ facts st o = T.unlines $
       <> maybe "" (" · " <>) (browser b)
       <> maybe "" (\m -> " · under mandate " <> esc m) (mandate b) <> "  "
   , T.intercalate " · " (T.pack (show (length (surfaces b))) <> " surfaces" : [count v | v <- [Fail, Review, Hint, Pass]])
-      <> " · " <> since, ""
+      <> " · " <> since
+      <> (if truncated (page b) == Just True then " · page too large: only its first surfaces were read" else ""), ""
   , "Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement."
   , "To correct a line, change its verdict word or add a note after `//`, then run `releve correct`."
   ]
@@ -75,9 +76,13 @@ facts st o = T.unlines $
 plural :: Int -> Text -> Text
 plural n w = T.pack (show n) <> " " <> w <> (if n == 1 then "" else "s")
 
--- | Backslash-escape Markdown punctuation in text that came from a page.
+-- | Text that came from a page, made safe for one line of Markdown:
+--   punctuation backslash-escaped, line breaks turned into spaces.
 esc :: Text -> Text
-esc = T.concatMap (\c -> if c `elem` ("\\`*_[]</" :: String) then T.pack ['\\', c] else T.singleton c)
+esc = T.concatMap $ \c -> case c of
+  _ | c `elem` ("\\`*_[]</" :: String) -> T.pack ['\\', c]
+    | c `elem` ("\n\r\x2028\x2029\x85" :: String) -> " "
+    | otherwise -> T.singleton c
 
 unesc :: Text -> Text
 unesc t = case T.uncons t of
@@ -99,26 +104,30 @@ corrections st doc = do
           let ref = T.takeWhile (/= '`') (T.drop 1 (snd (T.breakOn "`" l)))
           o <- maybe (Left ("unknown observation " <> ref)) Right (resolve st (Just ref))
           pure (Just (o, M.fromList [(fId f, f) | f <- assess st o]), True, cs)
-      | Just (o, known) <- cur, Just c <- edit o known l = pure (cur, found, c : cs)
+      | Just (o, known) <- cur = case reading known l of
+          Just (f, v, n) | v == fVerdict f && n == fNote f -> pure (cur, found, cs)
+                         | otherwise -> pure (cur, found, Correction (oId o) (fId f) v n (fSeen f) : cs)
+          -- A finding's line that no longer reads as one is an edit about to be lost: say so, record nothing.
+          Nothing | any (\i -> ("{" <> i <> "}") `T.isInfixOf` l) (M.keys known) ->
+                      Left ("this line cannot be read; keep its form, - **VERDICT** … // note {id}\n  " <> l)
+                  | otherwise -> pure (cur, found, cs)
       | otherwise = pure (cur, found, cs)
-    edit o known l = do
+    reading known l = do
       rest <- T.stripPrefix "- **" l
       v <- readWord (T.takeWhile (/= '*') rest)
       let (body, idPart) = T.breakOnEnd " {" l
-      i <- T.stripSuffix "}" (T.strip idPart)
-      f <- M.lookup i known
-      let n = case T.breakOnEnd " // " (T.dropEnd 2 body) of
-                ("", _) -> Nothing
-                (_, x) -> let x' = T.strip (unesc x) in if T.null x' then Nothing else Just x'
-      if v == fVerdict f && n == fNote f then Nothing
-        else Just (Correction (oId o) i v n (fSeen f))
+      f <- T.stripSuffix "}" (T.strip idPart) >>= (`M.lookup` known)
+      let n = case T.strip (unesc (T.drop 4 (snd (T.breakOn " // " (T.dropEnd 2 body))))) of
+                "" -> Nothing
+                x -> Just x
+      pure (f, v, n)
 
 -- atlas -------------------------------------------------------------------
 
 atlas :: State -> Obs -> Value
 atlas st o = object
   [ "observation" .= oId o, "url" .= url b, "requested" .= fromMaybe (url b) (requested b)
-  , "at" .= at b, "criteria" .= version, "browser" .= browser b
+  , "at" .= at b, "criteria" .= version, "browser" .= browser b, "truncated" .= (truncated (page b) == Just True)
   , "shape" .= mapMaybe token (sortOn order (surfaces b))
   , "footprint" .= object ["elements" .= e, "requests" .= r, "kilobytes" .= kb, "thirdParties" .= hs]
   , "change" .= object

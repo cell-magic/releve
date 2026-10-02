@@ -100,7 +100,7 @@
     const add = (kind, extra) => surfaces.push(Object.assign({ kind }, base, extra));
 
     if (tag === "img")
-      add("img", { alt: el.hasAttribute("alt") ? el.getAttribute("alt") : null, src: el.currentSrc || el.src,
+      add("img", { alt: el.hasAttribute("alt") ? txt(el.getAttribute("alt")) : null, src: el.currentSrc || el.src,
                    natural: [el.naturalWidth, el.naturalHeight] });
     else if ((tag === "svg" && role === "img") || (role === "img" && tag !== "svg"))
       add("graphic", { name: accName(el) });
@@ -113,9 +113,9 @@
       add("button", { name: accName(el) });
     if ((tag === "input" && !["hidden", "submit", "reset", "button", "image"].includes(el.type))
         || tag === "select" || tag === "textarea" || role === "textbox" || role === "combobox")
-      add("control", { name: accName(el), itype: el.type || tag, placeholder: el.getAttribute("placeholder") });
+      add("control", { name: accName(el), itype: el.type || tag, placeholder: el.hasAttribute("placeholder") ? clip(el.getAttribute("placeholder")) : null });
     if (/^h[1-6]$/.test(tag) || role === "heading")
-      add("heading", { level: role === "heading" ? parseInt(el.getAttribute("aria-level") || "2") : +tag[1],
+      add("heading", { level: role === "heading" ? parseInt(el.getAttribute("aria-level")) || 2 : +tag[1],
                        text: clip(el.innerText) });
     const lm = role && LANDMARKS.has(role) ? role : ROLES[tag];
     if (lm) add("landmark", { role: lm });
@@ -148,8 +148,8 @@
   return {
     page: {
       lang: document.documentElement.getAttribute("lang"),
-      title: document.title,
-      viewport: vp ? vp.getAttribute("content") : null,
+      title: txt(document.title),
+      viewport: vp ? txt(vp.getAttribute("content")) : null,
       dom: document.getElementsByTagName("*").length,
       dupIds: [...ids].filter(([, n]) => n > 1),
       disclosure, truncated,

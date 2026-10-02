@@ -29,7 +29,12 @@ usage = unlines
   , "  releve correct CORPUS < facts.md      record a person's edits to a report"
   , "  releve atlas CORPUS                   every observation as study data (JSON lines)"
   , "  releve verify CORPUS                  check the corpus seals"
-  , "  releve criteria                       list the criteria and their sources" ]
+  , "  releve criteria                       list the criteria and their sources"
+  , "  releve --version" ]
+
+-- | The release, as in releve.cabal; tests/run.py holds the two together.
+release :: String
+release = "0.3.0"
 
 -- | The same bytes on every system: UTF-8, and line feeds alone on the way out.
 plain :: IO ()
@@ -47,11 +52,13 @@ main = plain >> getArgs >>= \args -> case args of
   ["correct", c] -> correct c
   ["atlas", c] -> withState c $ \st -> forM_ (observations st) (BL.putStrLn . encode . atlas st)
   ["verify", c] -> records c >>= \rs -> case verify rs of
-    Right n -> putStrLn ("sealed · " <> show n <> (if n == 1 then " record" else " records"))
+    Right n -> putStrLn ("sealed · " <> show n <> (if n == 1 then " record" else " records")
+                           <> concat [" · head " <> T.unpack (T.take 8 (rHash (last rs))) | not (null rs)])
     Left n -> die ("broken at record " <> show n)
   ["criteria"] -> do
     putStrLn ("criteria v" <> T.unpack version)
     forM_ criteria $ \k -> TIO.putStrLn (T.justifyLeft 15 ' ' (cId k) <> T.justifyLeft 40 ' ' (cTitle k) <> cRef k)
+  ["--version"] -> putStrLn ("releve " <> release <> " · criteria v" <> T.unpack version)
   _ -> hPutStrLn stderr usage >> exitWith (ExitFailure 2)
 
 die :: String -> IO a

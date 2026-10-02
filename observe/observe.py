@@ -14,11 +14,16 @@ Conduct, enforced here and nowhere else:
     written leave (--mandate) overrides it, and the leave is recorded.
   - Pages are fetched one at a time, at least PAUSE seconds apart per site,
     longer if robots.txt asks.
+  - Only web addresses (http, https) are observed.
   - A page that answers with an error, or puts a CAPTCHA or challenge before its
-    content, is left alone at once: no retry, no workaround.
-  - A redirect is followed only where robots.txt admits the address it leads
-    to: a closed address is never requested. The leave of one site's owner
-    never extends to another site.
+    content, is left alone at once: no retry, no workaround. When the answer is
+    the site pushing back (429, 503, a challenge), the whole site is left alone
+    for the rest of the run.
+  - Wherever a page leads the browser, by redirect, refresh or script, the
+    address is requested only if robots.txt admits it. The leave of one site's
+    owner never extends to another site.
+  - What a page loads into itself (images, scripts, frames) is fetched as any
+    browser would fetch it.
   - Nothing is submitted, no dialog is dismissed, no session is kept.
   - The robot names itself and says where its operator can be reached.
 """
@@ -35,8 +40,9 @@ LIMIT = 2500  # surfaces per page
 
 # Interstitials that stand between a robot and the content. A CAPTCHA inside a
 # form is not one: forms are never submitted.
-GATES = ("just a moment", "attention required", "checking your browser", "un instant",
-         "/cdn-cgi/challenge-platform", "captcha-delivery.com", "perimeterx", "px-captcha")
+GATE_TITLES = ("just a moment", "attention required", "checking your browser", "un instant…", "un instant...")
+GATE_ADDRESSES = ("/cdn-cgi/challenge-platform", "captcha-delivery.com", "perimeterx", "px-captcha")
+PUSHBACK = (429, 503)  # the site, not the page, is saying no
 
 # Hosts of conversational widgets. A match means "look here", not a verdict.
 WIDGETS = {
@@ -57,7 +63,22 @@ EXTRACT = Path(__file__).with_name("extract.js").read_text(encoding="utf-8")
 
 
 class Refused(Exception):
-    """The site said no, in one of the ways a robot must hear."""
+    """The site said no, in one of the ways a robot must hear. `whole`: no to the robot, not to one page."""
+    def __init__(self, why, whole=False):
+        super().__init__(why)
+        self.whole = whole
+
+
+def place(url):
+    """The origin and the site of a web address, or None. A site is a host, whatever the scheme, port or www."""
+    try:
+        p = urllib.parse.urlsplit(url)
+        p.port
+    except ValueError:
+        return None
+    if p.scheme not in ("http", "https") or not p.hostname:
+        return None
+    return f"{p.scheme}://{p.netloc}", p.hostname.removeprefix("www.")
 
 
 def robots(origin, agent):
@@ -95,22 +116,22 @@ def observe(browser, url, agent, shots, closed):
         cdp.on("Network.loadingFinished", lambda e: weights.__setitem__(
             e["requestId"], int(e.get("encodedDataLength", 0))))
 
-        # Each redirect of the page itself is held until the rules of where it leads are known.
+        # Every document the page itself asks for, by redirect, refresh or script, waits here
+        # until the rules of its address are known. A closed address is never requested.
         frame = cdp.send("Page.getFrameTree")["frameTree"]["frame"]["id"]
         barred = []
 
-        def hop(e):
-            to = next((h["value"] for h in e.get("responseHeaders", []) if h["name"].lower() == "location"), None)
-            to = to and urllib.parse.urljoin(e["request"]["url"], to)
-            why = to and e["frameId"] == frame and 300 <= e.get("responseStatusCode", 0) < 400 and closed(to)
+        def gate(e):
+            to = e["request"]["url"]
+            why = closed(to) if e["frameId"] == frame else None
             if why:
-                barred.append(f"redirects to {to}, where {why}")
+                barred.append(f"leads to {to}, where {why}")
                 cdp.send("Fetch.failRequest", {"requestId": e["requestId"], "errorReason": "BlockedByClient"})
             else:
                 cdp.send("Fetch.continueRequest", {"requestId": e["requestId"]})
 
-        cdp.on("Fetch.requestPaused", hop)
-        cdp.send("Fetch.enable", {"patterns": [{"resourceType": "Document", "requestStage": "Response"}]})
+        cdp.on("Fetch.requestPaused", gate)
+        cdp.send("Fetch.enable", {"patterns": [{"resourceType": "Document"}]})
 
         try:
             answer = page.goto(url, wait_until="load", timeout=45000)
@@ -119,14 +140,16 @@ def observe(browser, url, agent, shots, closed):
                 raise Refused(barred[0]) from None
             raise
         if answer and answer.status >= 400:
-            raise Refused(f"answered {answer.status}")
+            raise Refused(f"answered {answer.status}", whole=answer.status in PUSHBACK)
         try:
             page.wait_for_load_state("networkidle", timeout=15000)
         except BrowserError:
             pass
-        signs = " ".join([page.title(), page.url] + [f.url for f in page.frames]).lower()
-        if any(g in signs for g in GATES):
-            raise Refused("a challenge stands before the content")
+        if barred:
+            raise Refused(barred[0])
+        addresses = " ".join([page.url] + [f.url for f in page.frames]).lower()
+        if page.title().strip().lower().startswith(GATE_TITLES) or any(g in addresses for g in GATE_ADDRESSES):
+            raise Refused("a challenge stands before the content", whole=True)
 
         page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
         page.wait_for_timeout(800)
@@ -188,23 +211,21 @@ def main():
                     help="reference of the site owner's written leave to observe despite robots.txt")
     args = ap.parse_args()
     agent = f"{AGENT}; +{args.contact}"
-    sites, last, status = {}, {}, 0
-    sys.stdout.reconfigure(encoding="utf-8")  # one encoding on every system: releve reads UTF-8
-
-    def origin(url):
-        parts = urllib.parse.urlsplit(url)
-        return f"{parts.scheme}://{parts.netloc}" if parts.scheme in ("http", "https") else None
+    rules, last, shut, status = {}, {}, {}, 0
+    for stream in (sys.stdout, sys.stderr):  # the same bytes on every system: UTF-8, line feeds alone
+        stream.reconfigure(encoding="utf-8", newline="\n")
 
     def refusal(url, mandated):
-        """Why this address is closed to the robot, or None. Only web addresses have rules."""
-        o = origin(url)
-        if o is None:
-            return None
-        if o not in sites:
-            sites[o] = robots(o, agent)
-        if sites[o] is None:
+        """Why this address is closed to the robot, or None."""
+        where = place(url)
+        if where is None:
+            return "not a web address"
+        origin = where[0]
+        if origin not in rules:
+            rules[origin] = robots(origin, agent)
+        if rules[origin] is None:
             return "robots.txt unreachable"
-        return None if mandated or sites[o].can_fetch(AGENT, url) else "robots.txt refuses"
+        return None if mandated or rules[origin].can_fetch(AGENT, url) else "robots.txt refuses"
 
     def leave(url, why):
         nonlocal status
@@ -214,29 +235,26 @@ def main():
     with sync_playwright() as pw:
         browser = pw.chromium.launch()
         for url in args.urls:
-            o = origin(url)
-            why = refusal(url, args.mandate)
+            origin, site = place(url) or (None, None)
+            why = refusal(url, args.mandate) or shut.get(site)
             if why:
                 leave(url, why)
                 continue
-            if o:
-                wait = max(PAUSE, sites[o].crawl_delay(AGENT) or 0)
-                time.sleep(max(0, wait - (time.monotonic() - last.get(o, -1e9))))
-            try:
-                record = observe(browser, url, agent, args.shots, lambda to: refusal(to, args.mandate and origin(to) == o))
+            wait = max(PAUSE, rules[origin].crawl_delay(AGENT) or 0)
+            time.sleep(max(0, wait - (time.monotonic() - last.get(site, -1e9))))
+            try:  # the mandate covers the site it was given for, wherever on that site the page leads
+                record = observe(browser, url, agent, args.shots,
+                                 lambda to: refusal(to, args.mandate and (place(to) or (None, None))[1] == site))
             except Refused as r:
                 leave(url, str(r))
+                if r.whole:
+                    shut[site] = f"the site said no earlier in this run ({r})"
                 continue
             except BrowserError as e:
                 leave(url, "could not load: " + str(e).splitlines()[0])
                 continue
             finally:
-                last[o] = time.monotonic()
-            landed = record["url"]  # a script can move a page too, past the rule above
-            why = landed != url and refusal(landed, args.mandate and origin(landed) == o)
-            if why:
-                leave(url, f"moves to {landed}, where {why}")
-                continue
+                last[site] = time.monotonic()
             if args.mandate:
                 record["mandate"] = args.mandate
             print(json.dumps(record, ensure_ascii=False), flush=True)

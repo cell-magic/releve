@@ -13,7 +13,7 @@ CONTACT = "https://example.org/robot"
 PAGE = "<!doctype html><html lang=en><title>{}</title><main><h1>{}</h1></main></html>"
 ANSWERS = {"/locked": 401, "/busy": 429, "/gone": 404}
 REDIRECTS = {}  # path -> address, filled once the sites are up
-log = []  # (port, method, path, user agent, time)
+log, posts = [], []  # requests as (port, method, path, user agent, time); anything submitted
 
 
 def site(robots):
@@ -33,6 +33,10 @@ def site(robots):
                 body, code = PAGE.format("Just a moment...", "Checking"), 200
             elif self.path == "/script":
                 body, code = f"<script>location = '{REDIRECTS['/away']}'</script>", 200
+            elif self.path == "/refresh":
+                body, code = f"<meta http-equiv=refresh content='0;url={REDIRECTS['/away']}'>", 200
+            elif self.path == "/calm":
+                body, code = PAGE.format("Un instant de calme", "Calme"), 200
             else:
                 body, code = PAGE.format("Page", self.path), 200
             self.send_response(code)
@@ -41,7 +45,7 @@ def site(robots):
             self.wfile.write(body.encode())
 
         def do_POST(self):
-            log.append((self.server.server_port, "POST", self.path, "", monotonic()))
+            posts.append(self.path)
             self.send_response(405)
             self.end_headers()
 
@@ -65,7 +69,7 @@ def hits(port, path):
 
 open_, a = site("User-agent: *\nAllow: /\n")
 closed, b = site("User-agent: *\nDisallow: /\n")
-REDIRECTS.update({"/near": f"{open_}/landed", "/away": f"{closed}/elsewhere"})
+REDIRECTS.update({"/near": f"{open_}/landed", "/away": f"{closed}/elsewhere".replace("127.0.0.1", "localhost")})  # another host
 checks = []
 
 
@@ -103,8 +107,19 @@ check("never requests a closed address a redirect leads to", not out and "robots
 out, err, code = observe(f"{open_}/away", mandate="LETTRE-2026-10-01")
 check("a mandate for one site does not open another", not out and not hits(b, "/elsewhere"))
 
-out, err, code = observe(f"{open_}/script")
-check("records nothing when a script moves the page to a closed address", not out and "robots.txt refuses" in err)
+for path in ("/script", "/refresh"):
+    out, err, code = observe(open_ + path)
+    check(f"never requests a closed address {path} leads to", not out and "robots.txt refuses" in err and not hits(b, "/elsewhere"))
 
-check("submits nothing", not [e for e in log if e[1] != "GET"])
+log.clear()
+out, err, code = observe(f"{open_}/busy", f"{open_}/after")
+check("leaves the whole site alone once it pushes back", not out and "said no earlier" in err and not hits(a, "/after"))
+
+out, err, code = observe(open_.removeprefix("http://") + "/bare")
+check("observes web addresses only", not out and "not a web address" in err and not hits(a, "/bare"))
+
+out, err, code = observe(f"{open_}/calm")
+check("takes no ordinary title for a challenge", len(out) == 1)
+
+check("submits nothing", not posts)
 sys.exit(0 if all(checks) else 1)

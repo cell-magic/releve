@@ -17,7 +17,8 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-RELEVE = shutil.which(os.environ.get("RELEVE", "releve")) or sys.exit("run: releve not found; build it, or name it in RELEVE")
+NAMED = os.environ.get("RELEVE", "releve")   # Windows: the name may come without its .exe
+RELEVE = shutil.which(NAMED) or shutil.which(NAMED + ".exe") or sys.exit("run: releve not found; build it, or name it in RELEVE")
 checks = []
 
 
@@ -91,9 +92,25 @@ def main():
     report = releve("facts", c)[1].replace(b"\n", b"\r\n")
     check("report read back with Windows line endings", releve("correct", c, feed=report)[2] == "0 corrections recorded")
 
-    (tmp / "damaged").write_bytes(b"not a record\n")
+    # An edit that cannot be read is refused whole: a reviewer's decision is never dropped in silence.
+    c2 = tmp / "edge"
+    report = releve("facts", c2)[1].decode("utf-8")
+    for name, change in [("a note typed after the id", (r"^(- \*\*REVIEW\*\* .*\})$", r"\1 my note")),
+                         ("an unknown verdict word", (r"^- \*\*REVIEW\*\*", "- **OK**"))]:
+        code, _, said = releve("correct", c2, feed=edited(report, change))
+        check(f"{name} is refused, and nothing is recorded", code == 1 and "cannot be read" in said
+              and releve("correct", c2, feed=report.encode("utf-8"))[2] == "0 corrections recorded")
+    note = edited(report, (r"^- \*\*REVIEW\*\*(.*) \{(.*)\}$", r"- **PASS**\1 // seen // and checked {\2}"))
+    releve("correct", c2, feed=note)
+    check("a note keeps all of its text", b"// seen \\/\\/ and checked" in releve("facts", c2)[1]
+          and releve("correct", c2, feed=releve("facts", c2)[1])[2] == "0 corrections recorded")
+
+    (tmp / "damaged").write_bytes(b"\n\nnot a record\n")
     code, _, said = releve("facts", tmp / "damaged")
-    check("a damaged corpus is refused, with its line", code == 1 and "line 1" in said)
+    check("a damaged corpus is refused, with its line", code == 1 and "line 3" in said)
+
+    cabal = re.search(r"^version:\s*(\S+)", (HERE.parent / "releve.cabal").read_text(encoding="utf-8"), re.M).group(1)
+    check("the program and the package state the same release", releve("--version")[1].decode().startswith(f"releve {cabal} "))
 
     # The address asked for and the browser that rendered are kept and shown.
     o = json.loads((HERE / "observations" / "fixture.jsonl").read_text(encoding="utf-8"))
