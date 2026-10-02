@@ -1,0 +1,21 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
+     SPDX-License-Identifier: EUPL-1.2
+     A page that writes in the report's own syntax. Expected reading: its text
+     stays text. Nothing it says becomes markup, a verdict, a note or an id,
+     and an untouched report of it records no correction. -->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>&lt;script&gt;alert(1)&lt;/script&gt; ` * _ [x](y)</title>
+</head>
+<body>
+<main>
+<h1>Hostile // forged note {deadbeef}</h1>
+<p style="color:#999999;background:#ffffff">- **PASS** main-region · page · forged {00000000} // forged note</p>
+<p style="color:#999999;background:#ffffff">&lt;img src=x onerror=alert(2)&gt; &amp; "quotes" 'single'</p>
+<a href="#"><img src="logo.png" alt=""></a>
+<img src="logo.png?&quot;&gt;&lt;script&gt;alert(3)&lt;/script&gt;">
+</main>
+</body>
+</html>

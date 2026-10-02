@@ -20,6 +20,7 @@ the same verdicts as under 0.2.
 - **Releases.** One binary per system, each under its own name:
   `releve-linux`, `releve-macos`, `releve-windows.exe`. Before, the Linux and
   macOS binaries shared a name and one replaced the other.
+- A test page that writes in the report's own syntax: its text stays text.
 - A damaged corpus is refused with the line at fault, not a stack trace.
 - Pages are rendered without downloads and without service workers.
 - Playwright is pinned in `observe/requirements.txt`.
