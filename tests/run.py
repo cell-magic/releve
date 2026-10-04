@@ -11,7 +11,7 @@ reports compared byte for byte with the expected ones.
 
 The kernel is `releve` on the PATH, or the program named by RELEVE.
 """
-import json, os, re, shutil, subprocess, sys, tempfile, threading
+import hashlib, json, os, re, shutil, subprocess, sys, tempfile, threading
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -105,12 +105,46 @@ def main():
     check("a note keeps all of its text", b"// seen \\/\\/ and checked" in releve("facts", c2)[1]
           and releve("correct", c2, feed=releve("facts", c2)[1])[2] == "0 corrections recorded")
 
+    # A person passes what the machine failed; then what is seen changes. Their reading no longer
+    # applies, and the machine's does not quietly take its place: the finding comes back for review.
+    v = tmp / "value"
+    first = json.loads((HERE / "observations" / "fixture.jsonl").read_text(encoding="utf-8"))
+    releve("ingest", v, feed=json.dumps(first).encode("utf-8"))
+    weak = next(f for f in json.loads(releve("atlas", v)[1])["findings"] if f["criterion"] == "text-contrast" and f["verdict"] == "fail")
+    passed = edited(releve("facts", v)[1].decode("utf-8"), (rf"^- \*\*FAIL\*\*(.*) \{{{weak['id']}\}}$", rf"- **PASS**\1 // brand colour, accepted {{{weak['id']}}}"))
+    releve("correct", v, feed=passed)
+
+    def later(colour):
+        o = json.loads(json.dumps(first))
+        next(s for s in o["surfaces"] if s["key"] == weak["surface"]["key"])["fg"] = colour
+        releve("ingest", v, feed=json.dumps(o).encode("utf-8"))
+        return next(l for l in releve("facts", v)[1].decode("utf-8").splitlines() if l.endswith(f"{{{weak['id']}}}"))
+
+    check("a person's reading carries while what is seen is unchanged", later(weak["surface"]["fg"]).startswith("- **PASS**"))
+    line = later([150, 150, 150, 1])
+    check("when it changes, the finding returns to review, not to the machine's verdict",
+          line.startswith("- **REVIEW**") and "read otherwise before this changed · machine said FAIL" in line)
+    check("an untouched report of it records nothing", releve("correct", v, feed=releve("facts", v)[1])[2] == "0 corrections recorded")
+    releve("correct", v, feed=edited(releve("facts", v)[1].decode("utf-8"), (rf"^- \*\*REVIEW\*\*(.*\{{{weak['id']}\}})$", r"- **FAIL**\1")))
+    line = later([150, 150, 150, 1])
+    check("the new reading then stands, and carries in its turn", line.startswith("- **FAIL**") and "read otherwise" not in line)
+
     (tmp / "damaged").write_bytes(b"\n\nnot a record\n")
     code, _, said = releve("facts", tmp / "damaged")
     check("a damaged corpus is refused, with its line", code == 1 and "line 3" in said)
 
+    # Reports name the criteria version that judged them, so the criteria cannot change under an
+    # unchanged version: raise `version` in Criteria.hs, then --accept records the new digest.
+    said = releve("--version")[1].decode("utf-8")
+    source = b"".join((HERE.parent / "kernel" / "src" / "Releve" / f).read_bytes().replace(b"\r\n", b"\n") for f in ("Criteria.hs", "Colour.hs"))
+    now = said.split("criteria v")[1].strip() + " " + hashlib.sha256(source).hexdigest()
+    record = HERE / "expected" / "criteria.txt"
+    if accept and (not record.exists() or record.read_text(encoding="utf-8").split()[0] != now.split()[0]):
+        record.write_text(now + "\n", encoding="utf-8")
+    check("the criteria are those of their version", record.exists() and record.read_text(encoding="utf-8").strip() == now)
+
     cabal = re.search(r"^version:\s*(\S+)", (HERE.parent / "releve.cabal").read_text(encoding="utf-8"), re.M).group(1)
-    check("the program and the package state the same release", releve("--version")[1].decode().startswith(f"releve {cabal} "))
+    check("the program and the package state the same release", said.startswith(f"releve {cabal} "))
 
     # The address asked for and the browser that rendered are kept and shown.
     o = json.loads((HERE / "observations" / "fixture.jsonl").read_text(encoding="utf-8"))

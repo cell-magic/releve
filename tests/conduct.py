@@ -2,8 +2,9 @@
 # SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
 # SPDX-License-Identifier: EUPL-1.2
 """The observer's conduct, checked against local sites that say no in every
-way a robot must hear. Needs Python, Playwright and Chromium; no network."""
-import json, subprocess, sys, threading
+way a robot must hear; and its measure, against a page whose weight is known.
+Needs Python, Playwright and Chromium; no network."""
+import base64, json, subprocess, sys, threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from time import monotonic
@@ -13,6 +14,14 @@ CONTACT = "https://example.org/robot"
 PAGE = "<!doctype html><html lang=en><title>{}</title><main><h1>{}</h1></main></html>"
 ANSWERS = {"/locked": 401, "/busy": 429, "/gone": 404}
 REDIRECTS = {}  # path -> address, filled once the sites are up
+PIXEL = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==")
+# Five requests for a reader at 1280 px who scrolls to the end: the page, the wide image, the
+# redirect and where it lands, the lazy image. The inline image is no request; the narrow image
+# is fetched only by the observer's own 320 px pass.
+WEIGHED = """<!doctype html><html lang=en><title>Weighed</title><meta name=viewport content="width=device-width">
+<main><h1>Weighed</h1><picture><source media="(max-width: 400px)" srcset="/img/narrow.png"><img src="/img/wide.png" alt=""></picture>
+<img alt="" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+<div style="height:6000px"></div><img loading=lazy src="/img/lazy.png" alt="" width=40 height=40><img src="/hop.png" alt=""></main></html>"""
 log, posts = [], []  # requests as (port, method, path, user agent, time); anything submitted
 
 
@@ -25,8 +34,16 @@ def site(robots):
                 self.send_header("Location", REDIRECTS[self.path])
                 self.end_headers()
                 return
+            if self.path.startswith("/img/"):
+                self.send_response(200)
+                self.send_header("Content-Type", "image/png")
+                self.end_headers()
+                self.wfile.write(PIXEL)
+                return
             if self.path == "/robots.txt":
                 body, code = robots, 200
+            elif self.path == "/weighed":
+                body, code = WEIGHED, 200
             elif self.path in ANSWERS:
                 body, code = "no", ANSWERS[self.path]
             elif self.path == "/gate":
@@ -79,7 +96,7 @@ def hits(port, path):
 
 open_, a = site("User-agent: *\nDisallow: /private/\n")
 closed, b = site("User-agent: *\nDisallow: /\n")
-REDIRECTS.update({"/near": f"{open_}/landed", "/away": f"{closed}/elsewhere".replace("127.0.0.1", "localhost")})  # another host
+REDIRECTS.update({"/hop.png": f"{open_}/img/hopped.png", "/near": f"{open_}/landed", "/away": f"{closed}/elsewhere".replace("127.0.0.1", "localhost")})  # another host
 checks = []
 
 
@@ -140,6 +157,10 @@ check("opens no other window", len(out) == 1 and not hits(a, "/private/popup"))
 out, err, code = observe(f"{open_}/autopost")
 check("lets no script submit a form", not out and "submits a form" in err)
 
+
+out, err, code = observe(f"{open_}/weighed")
+check("weighs the page as a reader's browser loads it, not what its own measuring adds",
+      len(out) == 1 and out[0]["network"]["requests"] == 5 and out[0]["network"]["transfer"] > 5 * len(PIXEL))
 
 check("submits nothing", not posts)
 sys.exit(0 if all(checks) else 1)

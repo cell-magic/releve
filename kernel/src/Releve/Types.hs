@@ -91,4 +91,6 @@ data Criterion = Criterion
 data Finding = Finding
   { fId :: Text, fCrit :: Criterion, fMachine :: Verdict, fVerdict :: Verdict
   , fNote :: Maybe Text, fSurface :: Maybe Surface, fSeen :: Text, fChange :: Maybe Text
-  , fNew :: Bool, fAge :: Int }
+  , fNew :: Bool, fAge :: Int
+  , fLapsed :: Bool  -- ^ a person read it otherwise before what is seen changed
+  }

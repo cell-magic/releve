@@ -58,6 +58,7 @@ facts st o = T.unlines $
       , maybe "" ((" → " <>) . esc) (fChange f)
       , if fNew f then " · new" else ""
       , if fAge f > 0 then " · standing " <> T.pack (show (fAge f)) else ""
+      , if fLapsed f then " · read otherwise before this changed" else ""
       , if fVerdict f /= fMachine f then " · machine said " <> word (fMachine f) else ""
       , maybe "" ((" // " <>) . esc) (fNote f)
       , " {", fId f, "}" ]
@@ -156,5 +157,5 @@ atlas st o = object
       _ -> Nothing
     finding f = object
       [ "id" .= fId f, "criterion" .= cId (fCrit f), "machine" .= fMachine f, "verdict" .= fVerdict f
-      , "note" .= fNote f, "seen" .= fSeen f, "change" .= fChange f, "new" .= fNew f, "age" .= fAge f
+      , "note" .= fNote f, "seen" .= fSeen f, "change" .= fChange f, "new" .= fNew f, "age" .= fAge f, "lapsed" .= fLapsed f
       , "surface" .= fSurface f ]

@@ -1,5 +1,24 @@
 # Changes
 
+## 0.3.1
+
+Criteria stay at v2. Three corrections, each from an outside reading of the code.
+
+- **A person's reading is never silently replaced.** A correction carries
+  while what is seen reads the same. When it changes (the page did, or a
+  release words the finding otherwise), a reading that differed from the
+  machine's used to vanish and the machine's verdict returned unremarked.
+  The finding now comes back as `REVIEW`, marked "read otherwise before this
+  changed", until a person reads it again.
+- **The footprint is the page's, not the observer's.** Requests and bytes are
+  closed before the screenshot and the 320 px pass, which could fetch images
+  of their own; redirect hops are counted; `data:` addresses are not
+  requests. On a test page of known weight the count was 6 and is now the
+  true 5.
+- **The criteria cannot change under an unchanged version.** The tests keep a
+  digest of the criteria beside their version number and refuse one without
+  the other.
+
 ## 0.3.0
 
 Judgement is unchanged: criteria stay at v2, and the recorded test pages give

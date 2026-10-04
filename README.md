@@ -36,10 +36,12 @@ page ──observe──▶ observation ──releve ingest──▶ corpus   (a
    rendered tree, computed colours composited against their actual
    backgrounds, bytes measured on the wire, the layout re-measured at 320 px.
 2. **Record once, judge purely.** An observation is written once. Judgement
-   is a pure function of the corpus, so the same corpus yields the same
-   report today and in five years, and new criteria can be run against old
-   observations. No model is trained or consulted: every verdict comes
-   from a rule written in plain code.
+   is a pure function of the corpus and of the judge, so the same corpus
+   read by the same release yields the same report today and in five
+   years, and new criteria can be run against old observations. Every
+   report names the criteria version that judged it, and the tests refuse
+   criteria that changed under an unchanged version. No model is trained
+   or consulted: every verdict comes from a rule written in plain code.
 3. **Overwrite nothing.** The corpus only grows. Each record seals the one
    before it (SHA-256), so any alteration is detectable (`releve verify`).
    Reports are never stored; they are recomputed.
@@ -52,8 +54,11 @@ page ──observe──▶ observation ──releve ingest──▶ corpus   (a
    be lighter. The tool does not guess.
 6. **Corrections are events, not edits.** A person's reading of a finding is
    appended to the corpus like any observation. It holds for that page from
-   then on, for as long as the observed value is unchanged. Where the person
-   and the machine disagree, both verdicts are kept.
+   then on, for as long as what is seen reads the same. Where the person
+   and the machine disagree, both verdicts are kept. When what is seen
+   changes, because the page did or because the judge words it otherwise,
+   a reading that differed from the machine's no longer applies, and the
+   machine's does not quietly replace it: the finding returns as `REVIEW`.
 7. **Change is what matters.** When a page is observed again, findings on
    surfaces new since the last observation are marked, and each open finding
    says how many observations it has stood through.
@@ -159,7 +164,11 @@ Adding one means writing one function; nothing else changes.
   a page can make an unchanged element appear new.
 - The footprint is measured, not scored: document nodes, requests,
   kilobytes and third-party hosts, comparable only under the same
-  measurement conditions.
+  measurement conditions. It is the page as a reader's browser loads it at
+  1280 px, scrolled once to its end: every redirect hop is a request, a
+  `data:` address is not, and what the measuring itself fetches (the
+  screenshot, the 320 px pass) is left out. Document nodes include those
+  inside inline SVG, which some other tools leave out.
 - Rule references are indicative; the rule texts prevail.
 
 ## Conduct

@@ -71,23 +71,30 @@ assess st o = [ mk i c m | (i, c, m) <- judged (oBody o) ]
     earlier = [ [i | (i, v) <- applied st p, open v] | p <- before ]
     mk i c m =
       let fix = correction st o i (mSeen m)
-          v = maybe (mVerdict m) verdict fix
+          lapsed = null fix && maybe False ((/= mVerdict m) . verdict) (listToMaybe (readings st o i))
+          v | lapsed = Review
+            | otherwise = maybe (mVerdict m) verdict fix
           fresh = not (null before) && maybe False ((`notElem` lastKeys) . key) (mSurface m)
           age = if open v then length (takeWhile (i `elem`) earlier) else 0
-      in Finding i c (mVerdict m) v (fix >>= note) (mSurface m) (mSeen m) (mChange m) fresh age
+      in Finding i c (mVerdict m) v (fix >>= note) (mSurface m) (mSeen m) (mChange m) fresh age lapsed
     open v = v `elem` [Fail, Review, Hint]
 
 -- | Each finding's verdict after a person's corrections, without history.
 applied :: State -> Obs -> [(Text, Verdict)]
 applied st o = [ (i, maybe (mVerdict m) verdict (correction st o i (mSeen m))) | (i, _, m) <- judged (oBody o) ]
 
+-- | A person's readings of a finding, on this observation and on earlier ones
+--   of the same page: the nearest observation first; within it, the latest.
+readings :: State -> Obs -> Text -> [Correction]
+readings st o i = map snd (sortOn fst [ ((d, negate n), c) | (n, c) <- fixes st, finding c == i, Just d <- [lookup (obs c) scope] ])
+  where scope = zip (oId o : map oId (previous st o)) [0 :: Int ..]
+
 -- | The correction that governs a finding: one made on this observation, or
---   on an earlier one of the same page while the observed value is unchanged.
---   The nearest observation wins; within it, the latest correction.
+--   the nearest earlier one made while what is seen read the same.
+--
+--   What is seen can change because the page changed, or because the judge
+--   words it differently. Either way an earlier reading that differed from the
+--   machine's no longer applies, and the machine's must not quietly replace
+--   it: `assess` hands such a finding back to a person, as a Review.
 correction :: State -> Obs -> Text -> Text -> Maybe Correction
-correction st o i s = snd <$> listToMaybe (sortOn fst candidates)
-  where
-    scope = zip (oId o : map oId (previous st o)) [0 :: Int ..]
-    candidates =
-      [ ((d, negate n), c) | (n, c) <- fixes st, finding c == i
-      , Just d <- [lookup (obs c) scope], d == 0 || seen c == s ]
+correction st o i s = listToMaybe [ c | c <- readings st o i, obs c == oId o || seen c == s ]

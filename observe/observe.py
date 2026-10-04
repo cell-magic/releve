@@ -114,7 +114,8 @@ def observe(browser, url, agent, shots, closed):
         page = ctx.new_page()
         cdp = ctx.new_cdp_session(page)
         cdp.send("Network.enable")
-        responses, weights = {}, {}
+        responses, weights, hops = {}, {}, []
+        cdp.on("Network.requestWillBeSent", lambda e: "redirectResponse" in e and hops.append(e["redirectResponse"]))
         cdp.on("Network.responseReceived", lambda e: responses.__setitem__(
             e["requestId"], (e["response"]["url"], e["response"].get("mimeType", ""))))
         cdp.on("Network.loadingFinished", lambda e: weights.__setitem__(
@@ -159,6 +160,16 @@ def observe(browser, url, agent, shots, closed):
         page.wait_for_timeout(800)
         page.evaluate("window.scrollTo(0, 0)")
         page.wait_for_timeout(300)
+        try:
+            page.wait_for_load_state("networkidle", timeout=5000)
+        except BrowserError:
+            pass
+        # The footprint is the page as a reader's browser loads it at this width, scrolled once to
+        # its end, every redirect hop counted. It closes here: what the measuring itself fetches
+        # (the screenshot, the narrow pass) is not the page's, and a data: address is not a request.
+        fetched = [(u, mime, weights.get(rid, 0)) for rid, (u, mime) in responses.items()] \
+            + [(h["url"], h.get("mimeType", ""), int(h.get("encodedDataLength", 0))) for h in hops]
+        fetched = [f for f in fetched if f[0].startswith(("http://", "https://"))]
 
         data = page.evaluate(EXTRACT, {"limit": LIMIT, "phrases": DISCLOSURE})
         shot = page.screenshot(full_page=True)
@@ -175,13 +186,9 @@ def observe(browser, url, agent, shots, closed):
         ctx.close()
 
     host = urllib.parse.urlsplit(final).hostname or ""
-    images, thirds = {}, set()
-    for rid, (u, mime) in responses.items():
-        h = urllib.parse.urlsplit(u).hostname or ""
-        if h and h != host and not h.endswith("." + host):
-            thirds.add(h)
-        if mime.startswith("image/"):
-            images[u] = (mime, weights.get(rid, 0))
+    hosts = {urllib.parse.urlsplit(u).hostname or "" for u, _, _ in fetched}
+    thirds = {h for h in hosts if h and h != host and not h.endswith("." + host)}
+    images = {u: (mime, size) for u, mime, size in fetched if mime.startswith("image/")}
 
     widgets = []
     for s in data["surfaces"]:
@@ -204,7 +211,7 @@ def observe(browser, url, agent, shots, closed):
     return {
         "url": final, "requested": url, "at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "agent": AGENT, "browser": f"Chromium {browser.version}", "page": data["page"],
-        "network": {"requests": len(responses), "transfer": sum(weights.values()),
+        "network": {"requests": len(fetched), "transfer": sum(size for _, _, size in fetched),
                     "thirdParties": sorted(thirds)},
         "surfaces": data["surfaces"] + widgets, "shot": digest,
     }
