@@ -209,6 +209,30 @@ JSON, structured by headings and lists, with verdicts given as words and
 never as colours alone. It sends no telemetry and makes no network
 requests of its own beyond loading the pages it is asked to observe.
 
+## How it was made
+
+relevé was written with a generative AI model, and says so. The code, the
+tests and this text were produced by Claude, a model made by Anthropic
+(Opus 5 for release 0.1 in September 2026, Opus 5.5 since), in sessions
+directed by Anna Teterkina. She set what the tool is for, the constraints
+it works under and the standard it is held to; within them the design and
+the wording are the model's. She maintains it and answers for it.
+
+Each commit names the model, summarises the instruction it answered, and
+is the model's output as written. The prompts themselves are kept by the
+maintainer. Before 0.3 the code was read twice by a separate instance of
+the model, and what it found was corrected.
+
+No part was knowingly taken from other software. The output has not been
+compared against existing code.
+
+The published history begins at 0.2. Release 0.1 scored the footprint with
+reference tables whose licence this one cannot carry; they were removed,
+and the commits that held them are not published.
+
+None of this touches how the tool works: when relevé observes and judges,
+no model runs.
+
 ## Licence
 
 European Union Public Licence 1.2 (`LICENSE`). Every file states its
