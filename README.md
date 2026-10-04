@@ -219,7 +219,7 @@ it works under and the standard it is held to; within them the design and
 the wording are the model's. She maintains it and answers for it.
 
 Each commit names the model, summarises the instruction it answered, and
-is the model's output as written. The prompts themselves are kept by the
+is the model's output as written; `CLAUDE.md` holds the rule. The prompts themselves are kept by the
 maintainer. Before 0.3 the code was read twice by a separate instance of
 the model, and what it found was corrected.
 
