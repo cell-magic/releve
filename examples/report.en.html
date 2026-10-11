@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relevé · http://localhost:8765/fixture.html</title>
+<style>
+html { color: #1a1a1a; background: #fff; }
+body { margin: 0; font: 1rem/1.6 system-ui, sans-serif; }
+main { max-width: 42rem; margin: 0 auto; padding: 1rem 1rem 4rem; }
+h1, h2, h3, h4 { line-height: 1.25; font-weight: 600; }
+h1 { font-size: 1.75rem; overflow-wrap: anywhere; } h2 { font-size: 1.375rem; margin-top: 2.5rem; overflow-wrap: anywhere; } h3 { font-size: 1.125rem; margin-top: 2rem; } h4 { font-size: 1rem; margin-top: 1.5rem; }
+a { color: #1f3a8a; } a:focus-visible { outline: 2px solid #1f3a8a; outline-offset: 2px; }
+li { margin-bottom: .6rem; overflow-wrap: anywhere; }
+code { font: .875rem/1.4 ui-monospace, monospace; color: #5c6066; }
+.meta { color: #5c6066; font-size: .9375rem; }
+dt { font-weight: 600; } dd { margin: 0 0 .5rem; }
+table { border-collapse: collapse; width: 100%; } th, td { text-align: left; padding: .4rem .5rem .4rem 0; border-bottom: 1px solid #c8cacd; overflow-wrap: anywhere; } tbody th { font-weight: normal; }
+
+</style>
+</head>
+<body>
+<main>
+<h1>Relevé · http://localhost:8765/fixture.html</h1>
+<p>Automated observation of one rendered page, by rule. It is not a conformity audit: a rule decides what a rule can, and puts the rest to a person.</p>
+<h2>Method</h2>
+<p>A browser opened each page as a reader's would, at 1280 px and again at 320 px, and recorded what it showed: the names assistive technology is given, the colours as rendered, the bytes that travelled. 44 criteria then read that record. Each is a rule in plain code; no trained model takes part, so the same record gives the same report.</p>
+<dl>
+<dt>To mend</dt><dd>a stated rule is broken; the remedy is given.</dd>
+<dt>To check</dt><dd>the rule has found what only a person can decide, and shows it.</dd>
+<dt>Could be lighter</dt><dd>nothing is broken; fewer bytes would do the same.</dd>
+</dl>
+
+<p class="meta">Observed on 11 October 2026, 17:41 UTC · Chromium 141.0.7390.37</p>
+<p><strong>13 to mend · 8 to check · 3 could be lighter · 31 checks pass</strong></p>
+<h2>To mend (13)</h2>
+<h3>The page has a title</h3>
+<p>The title is what a browser tab, a bookmark, a search result and a screen reader's first words show of the page. <span class="meta">RGAA 8.5 · WCAG 2.4.2 · light work</span></p>
+<ul>
+<li>the page has no title<br><strong>Change: </strong>add a &lt;title&gt; that names the page</li>
+</ul>
+<h3>The page states its language</h3>
+<p>The declared language sets the voice a screen reader speaks with, the hyphenation, and the translation a browser offers. <span class="meta">RGAA 8.3 · WCAG 3.1.1 · light work</span></p>
+<ul>
+<li>no lang on &lt;html&gt;<br><strong>Change: </strong>set lang on &lt;html&gt;, e.g. lang=&quot;fr&quot;</li>
+</ul>
+<h3>Zoom is not blocked</h3>
+<p>A reader who needs larger text enlarges the page; a viewport that forbids it removes the one adjustment they have. <span class="meta">RGAA 10.4 · WCAG 1.4.4 · light work</span></p>
+<ul>
+<li>viewport “width=device-width, initial-scale=1, maximum-scale=1”<br><strong>Change: </strong>remove maximum-scale and user-scalable</li>
+</ul>
+<h3>Images carry a text alternative</h3>
+<p>The text alternative is what an image says where it cannot be seen: to a screen reader, to a search engine, on a slow connection. <span class="meta">RGAA 1.1–1.3 · WCAG 1.1.1 · light work</span></p>
+<ul>
+<li>no alt attribute<br><strong>Change: </strong>add alt; alt=&quot;&quot; if the image is decorative<br><code>body &gt; img:nth-of-type(1)</code></li>
+<li>role=img without a name<br><strong>Change: </strong>add aria-label or &lt;title&gt;<br><code>body &gt; svg</code></li>
+</ul>
+<h3>Text contrasts with its background</h3>
+<p>Contrast decides whether text is read in sunlight, on a worn screen, by eyes that have aged or that see colours differently. <span class="meta">RGAA 3.2 · WCAG 1.4.3 · light work</span></p>
+<ul>
+<li>#999999 on #ffffff · 2.84:1, needs 4.50:1 · “Pale text that fails contrast.”<br><strong>Change: </strong>use #767676<br><code>body &gt; p.pale:nth-of-type(1)</code></li>
+</ul>
+<h3>Links have a name</h3>
+<p>A link's name is all a reader has when links are listed out of their context, which is how assistive technology offers them. <span class="meta">RGAA 6.1–6.2 · WCAG 2.4.4 · light work</span></p>
+<ul>
+<li>link without a name<br><strong>Change: </strong>give the link text, an image alt, or aria-label<br><code>body &gt; header &gt; nav &gt; a:nth-of-type(2)</code></li>
+</ul>
+<h3>Buttons have a name</h3>
+<p>A button without a name is announced as “button”, and nothing says what it does. <span class="meta">RGAA 11.9 · WCAG 4.1.2 · light work</span></p>
+<ul>
+<li>button without a name<br><strong>Change: </strong>give the button text or aria-label<br><code>body &gt; button:nth-of-type(1)</code></li>
+</ul>
+<h3>Form fields have a label</h3>
+<p>A label says what a field expects, stays when typing begins, and enlarges the area a finger or a pointer can aim at. <span class="meta">RGAA 11.1 · WCAG 1.3.1 · light work</span></p>
+<ul>
+<li>no label; placeholder “Votre e-mail” only<br><strong>Change: </strong>associate a &lt;label&gt;, or add aria-label<br><code>body &gt; form &gt; input:nth-of-type(1)</code></li>
+</ul>
+<h3>Frames have a title</h3>
+<p>A frame holds another document; its title says which, before the reader enters it. <span class="meta">RGAA 2.1 · WCAG 4.1.2 · light work</span></p>
+<ul>
+<li>frame without a title<br><strong>Change: </strong>add a title that says what the frame holds<br><code>body &gt; iframe</code></li>
+</ul>
+<h3>No sound starts by itself</h3>
+<p>Sound that starts alone covers the voice of a screen reader, which is how its user hears the page. <span class="meta">RGAA 4.10 · WCAG 1.4.2 · light work</span></p>
+<ul>
+<li>plays sound on load<br><strong>Change: </strong>add muted, or remove autoplay<br><code>body &gt; video</code></li>
+</ul>
+<h3>Element ids are unique</h3>
+<p>Labels, descriptions and in-page links point at an element by its id; a repeated id makes them point at the wrong one. <span class="meta">RGAA 8.2 · light work</span></p>
+<ul>
+<li>id “dup” used 2 times<br><strong>Change: </strong>give each element its own id</li>
+</ul>
+<h3>No horizontal scrolling at 320 px</h3>
+<p>At 320 px wide, the width of a small phone or of a desktop page enlarged four times, content is read by scrolling one way only. <span class="meta">RGAA 10.11 · WCAG 1.4.10 · RGESN 2.5 · heavy work</span></p>
+<ul>
+<li>content is 600 px wide in a 320 px viewport<br><strong>Change: </strong>remove horizontal scrolling at 320 px</li>
+</ul>
+<h2>To check (8)</h2>
+<h3>The main content is marked</h3>
+<p>A marked main region lets a reader go straight to the content, past what every page repeats. <span class="meta">RGAA 9.2 · 12.6 · WCAG 2.4.1 · light work</span></p>
+<ul>
+<li>no main landmark<br><strong>Change: </strong>wrap the main content in &lt;main&gt;</li>
+</ul>
+<h3>Images carry a text alternative</h3>
+<p>The text alternative is what an image says where it cannot be seen: to a screen reader, to a search engine, on a slow connection. <span class="meta">RGAA 1.1–1.3 · WCAG 1.1.1 · light work</span></p>
+<ul>
+<li>alt “IMG_2031.jpg” looks like a file name<br><strong>Change: </strong>describe what the image shows<br><code>body &gt; img:nth-of-type(2)</code></li>
+</ul>
+<h3>Text contrasts with its background</h3>
+<p>Contrast decides whether text is read in sunlight, on a worn screen, by eyes that have aged or that see colours differently. <span class="meta">RGAA 3.2 · WCAG 1.4.3 · light work</span></p>
+<ul>
+<li>text over a background image · “Text over a background image.”<br><code>body &gt; div.banner:nth-of-type(1)</code></li>
+</ul>
+<h3>Links have a name</h3>
+<p>A link's name is all a reader has when links are listed out of their context, which is how assistive technology offers them. <span class="meta">RGAA 6.1–6.2 · WCAG 2.4.4 · light work</span></p>
+<ul>
+<li>link “en savoir plus” depends on its context<br><strong>Change: </strong>name the destination<br><code>body &gt; a</code></li>
+</ul>
+<h3>Fields for personal data state their purpose</h3>
+<p>A declared purpose lets the browser fill a field for the reader: less typing, fewer errors, and help for those who struggle with either. <span class="meta">RGAA 11.13 · WCAG 1.3.5 · light work</span></p>
+<ul>
+<li>the field “email” declares no purpose<br><strong>Change: </strong>if it asks for the visitor's own data, add autocomplete=&quot;email&quot;<br><code>body &gt; form &gt; input:nth-of-type(1)</code></li>
+<li>the field “Nom” declares no purpose<br><strong>Change: </strong>if it asks for the visitor's own data, add autocomplete=&quot;family-name&quot;<br><code>#n</code></li>
+</ul>
+<h3>Heading levels follow each other</h3>
+<p>Headings are the page's table of contents: assistive technology lists them and jumps between them, level by level. <span class="meta">RGAA 9.1 · WCAG 1.3.1 · some work</span></p>
+<ul>
+<li>h1 then h3 “Skipped a level”<br><strong>Change: </strong>h2<br><code>body &gt; h3</code></li>
+</ul>
+<h3>Videos carry captions</h3>
+<p>Captions carry speech and sound to those who do not hear them, and to anyone reading with the sound off. <span class="meta">RGAA 4.3 · WCAG 1.2.2 · heavy work</span></p>
+<ul>
+<li>video without a caption track<br><strong>Change: </strong>if it carries speech, add &lt;track kind=&quot;captions&quot;&gt;<br><code>body &gt; video</code></li>
+</ul>
+<h2>Could be lighter (3)</h2>
+<h3>Nothing plays by itself</h3>
+<p>Media that starts by itself is downloaded and decoded for readers who did not ask for it. <span class="meta">RGESN 4.1 · light work</span></p>
+<ul>
+<li>starts by itself<br><strong>Change: </strong>let the reader start it<br><code>body &gt; video</code></li>
+</ul>
+<h3>Images are not larger than shown</h3>
+<p>Pixels that are never displayed still travel, are decoded and held in memory, on the reader's connection and battery. <span class="meta">RGESN 6.4 · threshold 2× (tool) · light work</span></p>
+<ul>
+<li>600×300 px shown at 100×50<br><strong>Change: </strong>serve at most 200×100 px<br><code>body &gt; img:nth-of-type(1)</code></li>
+</ul>
+<h3>Heavy images use a modern format</h3>
+<p>Recent formats carry the same picture in a fraction of the bytes. <span class="meta">RGESN 5.1 · threshold 30 kB (tool) · light work</span></p>
+<ul>
+<li>image/png, 529 kB<br><strong>Change: </strong>serve AVIF or WebP<br><code>body &gt; img:nth-of-type(1)</code></li>
+</ul>
+<h2>Criterion by criterion</h2>
+<ul>
+<li>The page has a title · 0 of 1 pass</li>
+<li>The page states its language · 0 of 1 pass</li>
+<li>The page declares its document type · 1 of 1 pass</li>
+<li>Zoom is not blocked · 0 of 1 pass</li>
+<li>No horizontal scrolling at 320 px · 0 of 1 pass</li>
+<li>The main content is marked · 0 of 1 pass</li>
+<li>A link leads to the main content · nothing to judge: no main landmark to lead to</li>
+<li>Heading levels follow each other · 1 of 2 pass</li>
+<li>What looks like a heading is one · 1 of 1 pass</li>
+<li>What looks like a list is one · 1 of 1 pass</li>
+<li>No element is used as a gap · 1 of 1 pass</li>
+<li>Appearance is left to the style sheet · 1 of 1 pass</li>
+<li>Images carry a text alternative · 1 of 4 pass</li>
+<li>Text contrasts with its background · 10 of 12 pass</li>
+<li>Links have a name · 1 of 3 pass</li>
+<li>Links to different places differ in name · 1 of 1 pass</li>
+<li>Buttons have a name · 1 of 2 pass</li>
+<li>The visible label is in the name · nothing to judge: no name given by the code over a visible label</li>
+<li>Form fields have a label · 1 of 2 pass</li>
+<li>Groups of fields have a legend · nothing to judge: no group of fields on the page</li>
+<li>Choices of one question are grouped · nothing to judge: no radio buttons on the page</li>
+<li>Fields for personal data state their purpose · 0 of 2 pass</li>
+<li>Data tables declare their headers · nothing to judge: no tables on the page</li>
+<li>Frames have a title · 0 of 1 pass</li>
+<li>No sound starts by itself · 0 of 1 pass</li>
+<li>Videos carry captions · 0 of 1 pass</li>
+<li>Element ids are unique · 0 of 1 pass</li>
+<li>The keyboard follows the order of the page · 1 of 1 pass</li>
+<li>Nothing hidden takes the focus · 1 of 1 pass</li>
+<li>No window opens by itself · 1 of 1 pass</li>
+<li>The page does not reload or leave on a timer · nothing to judge: no timed refresh declared</li>
+<li>Conversational AI is disclosed · nothing to judge: no conversational widget detected</li>
+<li>Images made by AI say so · nothing to judge: no image states its origin</li>
+<li>Nothing is asked of the device on arrival · 1 of 1 pass</li>
+<li>Third parties wait for consent · 1 of 1 pass</li>
+<li>Nothing plays by itself · 0 of 1 pass</li>
+<li>The page has an end · 1 of 1 pass</li>
+<li>Fonts are few and light · nothing to judge: no font is downloaded</li>
+<li>Text travels compressed · nothing to judge: read from this machine: how it is served is not judged</li>
+<li>What does not change is kept by the browser · nothing to judge: read from this machine: how it is served is not judged</li>
+<li>The page travels by current protocols · nothing to judge: read from this machine: how it is served is not judged</li>
+<li>Images far down the page wait to be reached · nothing to judge: no image below the second screen</li>
+<li>Images are not larger than shown · 2 of 3 pass</li>
+<li>Heavy images use a modern format · 2 of 3 pass</li>
+</ul>
+<h2>Footprint</h2>
+<p>33 elements in the document · 5 requests · 531 kB transferred · 0 third-party hosts</p>
+<h2>The reading</h2>
+<p>A measure, not a verdict. The page gives its reader 17 things to take in. Its markup says which of them can be taken independently: a heading opens a section, a list holds items, a table's headers free its cells. What it does not declare independent has to be taken in order.</p>
+<dl>
+<dt>Shown and not said</dt><dd>5: what the eye is given and assistive technology is not.</dd>
+<dt>Said and not shown</dt><dd>0: what is given to assistive technology alone, such as a link past the menu.</dd>
+<dt>Depth</dt><dd>16: the longest run the markup obliges. Without structure it would be 17.</dd>
+<dt>One at a time, by ear</dt><dd>12 steps: each thing that is said, one after the other.</dd>
+<dt>Up to 4 at a time</dt><dd>17 steps as the page stands; 16 with nothing failing. A page of this size and depth takes between 16 and 16.</dd>
+<dt>What the page says</dt><dd>126 bytes of text, by an estimate; 4319 bytes travel for each.</dd>
+</dl>
+<p class="meta">The reader who holds up to 4 is a convention, as a reference device is in a test of speed: it takes what comes first on the page, and fewer things at once where the page fails them.</p>
+<h2>What was not looked at</h2>
+<p>These rules touch 36 of the 106 criteria of the RGAA 4.1.2, 14 of the 78 of the RGESN 2024, and 4 paragraphs of article 50 of the AI Act. To touch a criterion is not to settle it: most ask for a person's judgement, or for a declaration of the owner's, beyond what a rule can see.</p>
+<p>One page was observed at one moment and at two widths. What appears only after an action (a menu opened, a form sent, a dialogue), what stands behind a login, and what lies inside frames from other sites were not observed.</p>
+<p class="meta">relevé 0.4.0 · criteria v4</p>
+</main>
+</body>
+</html>

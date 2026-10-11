@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>relevé · the criteria</title>
+<style>
+html { color: #1a1a1a; background: #fff; }
+body { margin: 0; font: 1rem/1.6 system-ui, sans-serif; }
+main { max-width: 42rem; margin: 0 auto; padding: 1rem 1rem 4rem; }
+h1, h2, h3, h4 { line-height: 1.25; font-weight: 600; }
+h1 { font-size: 1.75rem; overflow-wrap: anywhere; } h2 { font-size: 1.375rem; margin-top: 2.5rem; overflow-wrap: anywhere; } h3 { font-size: 1.125rem; margin-top: 2rem; } h4 { font-size: 1rem; margin-top: 1.5rem; }
+a { color: #1f3a8a; } a:focus-visible { outline: 2px solid #1f3a8a; outline-offset: 2px; }
+li { margin-bottom: .6rem; overflow-wrap: anywhere; }
+code { font: .875rem/1.4 ui-monospace, monospace; color: #5c6066; }
+.meta { color: #5c6066; font-size: .9375rem; }
+dt { font-weight: 600; } dd { margin: 0 0 .5rem; }
+table { border-collapse: collapse; width: 100%; } th, td { text-align: left; padding: .4rem .5rem .4rem 0; border-bottom: 1px solid #c8cacd; overflow-wrap: anywhere; } tbody th { font-weight: normal; }
+
+</style>
+</head>
+<body>
+<main>
+<h1>The criteria</h1>
+<p>44 rules, each in plain code. For each: what it checks, what that is for, and the text it comes from. They touch 36 of the 106 criteria of the RGAA 4.1.2, 14 of the 78 of the RGESN 2024, and 4 paragraphs of article 50 of the AI Act.</p>
+<h2 id="page-title">The page has a title</h2>
+<p>The title is what a browser tab, a bookmark, a search result and a screen reader's first words show of the page.</p>
+<p class="meta">RGAA 8.5 · WCAG 2.4.2 · <code>page-title</code></p>
+<h2 id="page-lang">The page states its language</h2>
+<p>The declared language sets the voice a screen reader speaks with, the hyphenation, and the translation a browser offers.</p>
+<p class="meta">RGAA 8.3 · WCAG 3.1.1 · <code>page-lang</code></p>
+<h2 id="doctype">The page declares its document type</h2>
+<p>The doctype asks the browser to lay the page out by the standard; without it, rendering falls back on the quirks of the 1990s.</p>
+<p class="meta">RGAA 8.1 · <code>doctype</code></p>
+<h2 id="zoom">Zoom is not blocked</h2>
+<p>A reader who needs larger text enlarges the page; a viewport that forbids it removes the one adjustment they have.</p>
+<p class="meta">RGAA 10.4 · WCAG 1.4.4 · <code>zoom</code></p>
+<h2 id="reflow">No horizontal scrolling at 320 px</h2>
+<p>At 320 px wide, the width of a small phone or of a desktop page enlarged four times, content is read by scrolling one way only.</p>
+<p class="meta">RGAA 10.11 · WCAG 1.4.10 · RGESN 2.5 · <code>reflow</code></p>
+<h2 id="main-region">The main content is marked</h2>
+<p>A marked main region lets a reader go straight to the content, past what every page repeats.</p>
+<p class="meta">RGAA 9.2 · 12.6 · WCAG 2.4.1 · <code>main-region</code></p>
+<h2 id="skip-link">A link leads to the main content</h2>
+<p>A first link to the main content spares a keyboard user every repeated link, on every page.</p>
+<p class="meta">RGAA 12.7 · WCAG 2.4.1 · <code>skip-link</code></p>
+<h2 id="heading-order">Heading levels follow each other</h2>
+<p>Headings are the page's table of contents: assistive technology lists them and jumps between them, level by level.</p>
+<p class="meta">RGAA 9.1 · WCAG 1.3.1 · <code>heading-order</code></p>
+<h2 id="heading-look">What looks like a heading is one</h2>
+<p>Text that looks like a heading and is not marked as one titles the page for the eye only.</p>
+<p class="meta">RGAA 9.1 · WCAG 1.3.1 · thresholds (tool) · <code>heading-look</code></p>
+<h2 id="list-look">What looks like a list is one</h2>
+<p>A marked list announces how many items it holds and lets a reader move from one to the next.</p>
+<p class="meta">RGAA 9.3 · WCAG 1.3.1 · <code>list-look</code></p>
+<h2 id="empty-blocks">No element is used as a gap</h2>
+<p>An element that holds nothing is still announced, or counted, by assistive technology: spacing belongs to the style sheet.</p>
+<p class="meta">RGAA 8.9 · WCAG 1.3.1 · <code>empty-blocks</code></p>
+<h2 id="presentation">Appearance is left to the style sheet</h2>
+<p>Appearance written into the markup cannot be adapted by a reader's own styles; left to the style sheet, it can.</p>
+<p class="meta">RGAA 10.1 · WCAG 1.3.1 · <code>presentation</code></p>
+<h2 id="image-alt">Images carry a text alternative</h2>
+<p>The text alternative is what an image says where it cannot be seen: to a screen reader, to a search engine, on a slow connection.</p>
+<p class="meta">RGAA 1.1–1.3 · WCAG 1.1.1 · <code>image-alt</code></p>
+<h2 id="text-contrast">Text contrasts with its background</h2>
+<p>Contrast decides whether text is read in sunlight, on a worn screen, by eyes that have aged or that see colours differently.</p>
+<p class="meta">RGAA 3.2 · WCAG 1.4.3 · <code>text-contrast</code></p>
+<h2 id="link-name">Links have a name</h2>
+<p>A link's name is all a reader has when links are listed out of their context, which is how assistive technology offers them.</p>
+<p class="meta">RGAA 6.1–6.2 · WCAG 2.4.4 · <code>link-name</code></p>
+<h2 id="link-distinct">Links to different places differ in name</h2>
+<p>Two links with one name and two destinations cannot be told apart in a list of links.</p>
+<p class="meta">RGAA 6.1 · WCAG 2.4.4 · <code>link-distinct</code></p>
+<h2 id="button-name">Buttons have a name</h2>
+<p>A button without a name is announced as “button”, and nothing says what it does.</p>
+<p class="meta">RGAA 11.9 · WCAG 4.1.2 · <code>button-name</code></p>
+<h2 id="label-in-name">The visible label is in the name</h2>
+<p>Someone who speaks to their device says what they see; the command works only if the visible words are in the name the code gives.</p>
+<p class="meta">RGAA 6.1 · 11.2 · 11.9 · WCAG 2.5.3 · <code>label-in-name</code></p>
+<h2 id="control-label">Form fields have a label</h2>
+<p>A label says what a field expects, stays when typing begins, and enlarges the area a finger or a pointer can aim at.</p>
+<p class="meta">RGAA 11.1 · WCAG 1.3.1 · <code>control-label</code></p>
+<h2 id="group-legend">Groups of fields have a legend</h2>
+<p>A legend names the question that a set of choices answers; without it each choice is announced alone.</p>
+<p class="meta">RGAA 11.6 · WCAG 1.3.1 · <code>group-legend</code></p>
+<h2 id="field-group">Choices of one question are grouped</h2>
+<p>Choices that belong to one question are grouped so that they are announced, and understood, together.</p>
+<p class="meta">RGAA 11.5 · WCAG 1.3.1 · <code>field-group</code></p>
+<h2 id="autocomplete">Fields for personal data state their purpose</h2>
+<p>A declared purpose lets the browser fill a field for the reader: less typing, fewer errors, and help for those who struggle with either.</p>
+<p class="meta">RGAA 11.13 · WCAG 1.3.5 · <code>autocomplete</code></p>
+<h2 id="table-headers">Data tables declare their headers</h2>
+<p>Header cells are what lets a cell be announced with its column and its row; without them a table is a run of values.</p>
+<p class="meta">RGAA 5.3 · 5.6–5.8 · WCAG 1.3.1 · <code>table-headers</code></p>
+<h2 id="frame-title">Frames have a title</h2>
+<p>A frame holds another document; its title says which, before the reader enters it.</p>
+<p class="meta">RGAA 2.1 · WCAG 4.1.2 · <code>frame-title</code></p>
+<h2 id="autoplay">No sound starts by itself</h2>
+<p>Sound that starts alone covers the voice of a screen reader, which is how its user hears the page.</p>
+<p class="meta">RGAA 4.10 · WCAG 1.4.2 · <code>autoplay</code></p>
+<h2 id="media-captions">Videos carry captions</h2>
+<p>Captions carry speech and sound to those who do not hear them, and to anyone reading with the sound off.</p>
+<p class="meta">RGAA 4.3 · WCAG 1.2.2 · <code>media-captions</code></p>
+<h2 id="unique-ids">Element ids are unique</h2>
+<p>Labels, descriptions and in-page links point at an element by its id; a repeated id makes them point at the wrong one.</p>
+<p class="meta">RGAA 8.2 · <code>unique-ids</code></p>
+<h2 id="tab-order">The keyboard follows the order of the page</h2>
+<p>The keyboard follows the order of the code; a positive tabindex takes an element out of that order and puts it first.</p>
+<p class="meta">RGAA 12.8 · WCAG 2.4.3 · <code>tab-order</code></p>
+<h2 id="hidden-focus">Nothing hidden takes the focus</h2>
+<p>Content hidden from assistive technology and still reached by the keyboard leaves the reader on something that is not announced.</p>
+<p class="meta">RGAA 10.8 · WCAG 4.1.2 · <code>hidden-focus</code></p>
+<h2 id="no-popup">No window opens by itself</h2>
+<p>A window that opens by itself moves the reader somewhere they did not choose, and may not be noticed at all.</p>
+<p class="meta">RGAA 13.2 · WCAG 3.2.1 · <code>no-popup</code></p>
+<h2 id="refresh">The page does not reload or leave on a timer</h2>
+<p>A page that reloads or leaves on a timer takes the reader's place, and their time, away from them.</p>
+<p class="meta">RGAA 13.1 · WCAG 2.2.1 · <code>refresh</code></p>
+<h2 id="ai-disclosure">Conversational AI is disclosed</h2>
+<p>A person has to know when the other party to a conversation is a machine: the AI Act requires that they be told.</p>
+<p class="meta">AI Act art. 50(1) · <code>ai-disclosure</code></p>
+<h2 id="ai-image">Images made by AI say so</h2>
+<p>An image generated or altered by an AI system has to be disclosed as such to those who see it; the file itself often says where it comes from.</p>
+<p class="meta">AI Act art. 50(2) · 50(4) · <code>ai-image</code></p>
+<h2 id="asks-on-arrival">Nothing is asked of the device on arrival</h2>
+<p>A request for location, camera or notifications before the reader has done anything is answered without knowing why it is asked.</p>
+<p class="meta">RGESN 4.13 · 6.6 · AI Act art. 50(3) · <code>asks-on-arrival</code></p>
+<h2 id="third-parties">Third parties wait for consent</h2>
+<p>Each third party is a connection to another company's servers, opened for every reader before they have said anything.</p>
+<p class="meta">RGESN 4.4 · <code>third-parties</code></p>
+<h2 id="media-autoplay">Nothing plays by itself</h2>
+<p>Media that starts by itself is downloaded and decoded for readers who did not ask for it.</p>
+<p class="meta">RGESN 4.1 · <code>media-autoplay</code></p>
+<h2 id="endless">The page has an end</h2>
+<p>A page that grows each time its end is reached has none: its weight is whatever the reader's patience allows, and its footer is never reached.</p>
+<p class="meta">RGESN 4.2 · threshold one screen, twice (tool) · <code>endless</code></p>
+<h2 id="fonts">Fonts are few and light</h2>
+<p>Each font file is fetched before the text it sets shows as designed; two fonts in four variants, or 400 kB, is the reference's limit.</p>
+<p class="meta">RGESN 4.8 · <code>fonts</code></p>
+<h2 id="compression">Text travels compressed</h2>
+<p>Text compresses to a third of its size or less; sent as it is, the rest travels for nothing.</p>
+<p class="meta">RGESN 6.3 · threshold 1 kB (tool) · <code>compression</code></p>
+<h2 id="caching">What does not change is kept by the browser</h2>
+<p>A file the browser may keep is not fetched again on the next page, nor on the next visit.</p>
+<p class="meta">RGESN 6.2 · <code>caching</code></p>
+<h2 id="protocol">The page travels by current protocols</h2>
+<p>HTTP/2 and 3 carry a page's files over one connection; TLS 1.3 opens it in fewer exchanges; IPv6 reaches readers without address translation.</p>
+<p class="meta">RGESN 3.3 · 6.7 · <code>protocol</code></p>
+<h2 id="lazy-images">Images far down the page wait to be reached</h2>
+<p>An image far below the screen is paid for by every reader and seen by those who scroll to it.</p>
+<p class="meta">RGESN 6.5 · threshold two screens (tool) · <code>lazy-images</code></p>
+<h2 id="image-weight">Images are not larger than shown</h2>
+<p>Pixels that are never displayed still travel, are decoded and held in memory, on the reader's connection and battery.</p>
+<p class="meta">RGESN 6.4 · threshold 2× (tool) · <code>image-weight</code></p>
+<h2 id="image-format">Heavy images use a modern format</h2>
+<p>Recent formats carry the same picture in a fraction of the bytes.</p>
+<p class="meta">RGESN 5.1 · threshold 30 kB (tool) · <code>image-format</code></p>
+<p class="meta">relevé 0.4.0 · criteria v4</p>
+</main>
+</body>
+</html>

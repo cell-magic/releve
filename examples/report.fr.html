@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relevé · http://localhost:8765/fixture.html</title>
+<style>
+html { color: #1a1a1a; background: #fff; }
+body { margin: 0; font: 1rem/1.6 system-ui, sans-serif; }
+main { max-width: 42rem; margin: 0 auto; padding: 1rem 1rem 4rem; }
+h1, h2, h3, h4 { line-height: 1.25; font-weight: 600; }
+h1 { font-size: 1.75rem; overflow-wrap: anywhere; } h2 { font-size: 1.375rem; margin-top: 2.5rem; overflow-wrap: anywhere; } h3 { font-size: 1.125rem; margin-top: 2rem; } h4 { font-size: 1rem; margin-top: 1.5rem; }
+a { color: #1f3a8a; } a:focus-visible { outline: 2px solid #1f3a8a; outline-offset: 2px; }
+li { margin-bottom: .6rem; overflow-wrap: anywhere; }
+code { font: .875rem/1.4 ui-monospace, monospace; color: #5c6066; }
+.meta { color: #5c6066; font-size: .9375rem; }
+dt { font-weight: 600; } dd { margin: 0 0 .5rem; }
+table { border-collapse: collapse; width: 100%; } th, td { text-align: left; padding: .4rem .5rem .4rem 0; border-bottom: 1px solid #c8cacd; overflow-wrap: anywhere; } tbody th { font-weight: normal; }
+
+</style>
+</head>
+<body>
+<main>
+<h1>Relevé · http://localhost:8765/fixture.html</h1>
+<p>Observation automatisée d'une page rendue, par des règles. Ce n'est pas un audit de conformité : une règle tranche ce qu'une règle peut trancher, et soumet le reste à une personne.</p>
+<h2>Méthode</h2>
+<p>Un navigateur a ouvert chaque page comme le ferait celui d'un lecteur, à 1280 px puis à 320 px, et a consigné ce qu'elle montrait : les noms donnés aux technologies d'assistance, les couleurs telles que rendues, les octets transférés. 44 critères ont ensuite lu ce relevé. Chacun est une règle en code clair ; aucun modèle entraîné n'intervient, de sorte que le même relevé donne le même rapport.</p>
+<dl>
+<dt>À corriger</dt><dd>une règle énoncée n'est pas respectée ; le remède est indiqué.</dd>
+<dt>À vérifier</dt><dd>la règle a trouvé ce que seule une personne peut trancher, et le montre.</dd>
+<dt>Pourrait être allégé</dt><dd>rien n'est enfreint ; moins d'octets feraient autant.</dd>
+</dl>
+
+<p class="meta">Observée le 11 octobre 2026, 17:41 UTC · Chromium 141.0.7390.37</p>
+<p><strong>13 à corriger · 8 à vérifier · 3 à alléger · 31 contrôles passent</strong></p>
+<h2>À corriger (13)</h2>
+<h3>La page a un titre</h3>
+<p>Le titre est ce que montrent de la page un onglet, un favori, un résultat de recherche et les premiers mots d'un lecteur d'écran. <span class="meta">RGAA 8.5 · WCAG 2.4.2 · travail léger</span></p>
+<ul>
+<li>la page n'a pas de titre<br><strong>À changer : </strong>ajouter un &lt;title&gt; qui nomme la page</li>
+</ul>
+<h3>La page déclare sa langue</h3>
+<p>La langue déclarée règle la voix d'un lecteur d'écran, la césure, et la traduction que propose le navigateur. <span class="meta">RGAA 8.3 · WCAG 3.1.1 · travail léger</span></p>
+<ul>
+<li>pas d'attribut lang sur &lt;html&gt;<br><strong>À changer : </strong>déclarer lang sur &lt;html&gt;, par exemple lang=&quot;fr&quot;</li>
+</ul>
+<h3>L'agrandissement n'est pas bloqué</h3>
+<p>Qui a besoin d'un texte plus grand agrandit la page ; un viewport qui l'interdit retire le seul réglage disponible. <span class="meta">RGAA 10.4 · WCAG 1.4.4 · travail léger</span></p>
+<ul>
+<li>viewport « width=device-width, initial-scale=1, maximum-scale=1 »<br><strong>À changer : </strong>retirer maximum-scale et user-scalable</li>
+</ul>
+<h3>Les images portent une alternative textuelle</h3>
+<p>L'alternative textuelle est ce que dit une image là où elle ne peut être vue : à un lecteur d'écran, à un moteur de recherche, sur une connexion lente. <span class="meta">RGAA 1.1–1.3 · WCAG 1.1.1 · travail léger</span></p>
+<ul>
+<li>pas d'attribut alt<br><strong>À changer : </strong>ajouter alt ; alt=&quot;&quot; si l'image est décorative<br><code>body &gt; img:nth-of-type(1)</code></li>
+<li>role=img sans nom<br><strong>À changer : </strong>ajouter aria-label ou &lt;title&gt;<br><code>body &gt; svg</code></li>
+</ul>
+<h3>Le texte contraste avec son fond</h3>
+<p>Le contraste décide si un texte se lit au soleil, sur un écran fatigué, par des yeux qui ont vieilli ou qui voient autrement les couleurs. <span class="meta">RGAA 3.2 · WCAG 1.4.3 · travail léger</span></p>
+<ul>
+<li>#999999 sur #ffffff · 2,84:1, seuil 4,50:1 · « Pale text that fails contrast. »<br><strong>À changer : </strong>utiliser #767676<br><code>body &gt; p.pale:nth-of-type(1)</code></li>
+</ul>
+<h3>Les liens ont un intitulé</h3>
+<p>L'intitulé d'un lien est tout ce dont dispose un lecteur quand les liens sont listés hors de leur contexte, comme le proposent les technologies d'assistance. <span class="meta">RGAA 6.1–6.2 · WCAG 2.4.4 · travail léger</span></p>
+<ul>
+<li>lien sans intitulé<br><strong>À changer : </strong>donner au lien un texte, un alt d'image ou un aria-label<br><code>body &gt; header &gt; nav &gt; a:nth-of-type(2)</code></li>
+</ul>
+<h3>Les boutons ont un intitulé</h3>
+<p>Un bouton sans intitulé est annoncé « bouton », et rien ne dit ce qu'il fait. <span class="meta">RGAA 11.9 · WCAG 4.1.2 · travail léger</span></p>
+<ul>
+<li>bouton sans intitulé<br><strong>À changer : </strong>donner au bouton un texte ou un aria-label<br><code>body &gt; button:nth-of-type(1)</code></li>
+</ul>
+<h3>Les champs de formulaire ont une étiquette</h3>
+<p>L'étiquette dit ce qu'attend un champ, demeure quand la saisie commence, et agrandit la zone que vise un doigt ou un pointeur. <span class="meta">RGAA 11.1 · WCAG 1.3.1 · travail léger</span></p>
+<ul>
+<li>pas d'étiquette ; seulement un texte indicatif, « Votre e-mail »<br><strong>À changer : </strong>associer un &lt;label&gt;, ou ajouter aria-label<br><code>body &gt; form &gt; input:nth-of-type(1)</code></li>
+</ul>
+<h3>Les cadres ont un titre</h3>
+<p>Un cadre contient un autre document ; son titre dit lequel, avant que le lecteur y entre. <span class="meta">RGAA 2.1 · WCAG 4.1.2 · travail léger</span></p>
+<ul>
+<li>cadre sans titre<br><strong>À changer : </strong>ajouter un title qui dit ce que contient le cadre<br><code>body &gt; iframe</code></li>
+</ul>
+<h3>Aucun son ne démarre seul</h3>
+<p>Un son qui démarre seul couvre la voix du lecteur d'écran, par laquelle son utilisateur entend la page. <span class="meta">RGAA 4.10 · WCAG 1.4.2 · travail léger</span></p>
+<ul>
+<li>du son démarre au chargement<br><strong>À changer : </strong>ajouter muted, ou retirer autoplay<br><code>body &gt; video</code></li>
+</ul>
+<h3>Les id des éléments sont uniques</h3>
+<p>Étiquettes, descriptions et liens internes désignent un élément par son id ; un id répété les fait désigner le mauvais. <span class="meta">RGAA 8.2 · travail léger</span></p>
+<ul>
+<li>id « dup » utilisé 2 fois<br><strong>À changer : </strong>donner à chaque élément son propre id</li>
+</ul>
+<h3>Pas de défilement horizontal à 320 px</h3>
+<p>À 320 px de large, largeur d'un petit téléphone ou d'une page agrandie quatre fois, le contenu se lit en ne défilant que dans un sens. <span class="meta">RGAA 10.11 · WCAG 1.4.10 · RGESN 2.5 · travail lourd</span></p>
+<ul>
+<li>le contenu mesure 600 px de large dans une fenêtre de 320 px<br><strong>À changer : </strong>supprimer le défilement horizontal à 320 px</li>
+</ul>
+<h2>À vérifier (8)</h2>
+<h3>Le contenu principal est balisé</h3>
+<p>Une zone principale balisée permet d'aller droit au contenu, au-delà de ce que chaque page répète. <span class="meta">RGAA 9.2 · 12.6 · WCAG 2.4.1 · travail léger</span></p>
+<ul>
+<li>pas de zone principale balisée<br><strong>À changer : </strong>placer le contenu principal dans &lt;main&gt;</li>
+</ul>
+<h3>Les images portent une alternative textuelle</h3>
+<p>L'alternative textuelle est ce que dit une image là où elle ne peut être vue : à un lecteur d'écran, à un moteur de recherche, sur une connexion lente. <span class="meta">RGAA 1.1–1.3 · WCAG 1.1.1 · travail léger</span></p>
+<ul>
+<li>alt « IMG_2031.jpg » ressemble à un nom de fichier<br><strong>À changer : </strong>décrire ce que montre l'image<br><code>body &gt; img:nth-of-type(2)</code></li>
+</ul>
+<h3>Le texte contraste avec son fond</h3>
+<p>Le contraste décide si un texte se lit au soleil, sur un écran fatigué, par des yeux qui ont vieilli ou qui voient autrement les couleurs. <span class="meta">RGAA 3.2 · WCAG 1.4.3 · travail léger</span></p>
+<ul>
+<li>texte sur une image de fond · « Text over a background image. »<br><code>body &gt; div.banner:nth-of-type(1)</code></li>
+</ul>
+<h3>Les liens ont un intitulé</h3>
+<p>L'intitulé d'un lien est tout ce dont dispose un lecteur quand les liens sont listés hors de leur contexte, comme le proposent les technologies d'assistance. <span class="meta">RGAA 6.1–6.2 · WCAG 2.4.4 · travail léger</span></p>
+<ul>
+<li>le lien « en savoir plus » dépend de son contexte<br><strong>À changer : </strong>nommer la destination<br><code>body &gt; a</code></li>
+</ul>
+<h3>Les champs de données personnelles déclarent leur finalité</h3>
+<p>Une finalité déclarée permet au navigateur de remplir le champ pour le lecteur : moins de saisie, moins d'erreurs, et une aide pour qui peine à l'une ou l'autre. <span class="meta">RGAA 11.13 · WCAG 1.3.5 · travail léger</span></p>
+<ul>
+<li>le champ « email » ne déclare aucune finalité<br><strong>À changer : </strong>s'il demande une donnée du visiteur lui-même, ajouter autocomplete=&quot;email&quot;<br><code>body &gt; form &gt; input:nth-of-type(1)</code></li>
+<li>le champ « Nom » ne déclare aucune finalité<br><strong>À changer : </strong>s'il demande une donnée du visiteur lui-même, ajouter autocomplete=&quot;family-name&quot;<br><code>#n</code></li>
+</ul>
+<h3>Les niveaux de titre se suivent</h3>
+<p>Les titres sont la table des matières de la page : les technologies d'assistance les listent et sautent de l'un à l'autre, niveau par niveau. <span class="meta">RGAA 9.1 · WCAG 1.3.1 · travail moyen</span></p>
+<ul>
+<li>h1 puis h3 « Skipped a level »<br><strong>À changer : </strong>h2<br><code>body &gt; h3</code></li>
+</ul>
+<h3>Les vidéos portent des sous-titres</h3>
+<p>Les sous-titres portent la parole et les sons à qui ne les entend pas, et à quiconque lit sans le son. <span class="meta">RGAA 4.3 · WCAG 1.2.2 · travail lourd</span></p>
+<ul>
+<li>vidéo sans piste de sous-titres<br><strong>À changer : </strong>si elle porte de la parole, ajouter &lt;track kind=&quot;captions&quot;&gt;<br><code>body &gt; video</code></li>
+</ul>
+<h2>Pourrait être allégé (3)</h2>
+<h3>Rien ne se lance seul</h3>
+<p>Un média qui se lance seul est téléchargé et décodé pour des lecteurs qui ne l'ont pas demandé. <span class="meta">RGESN 4.1 · travail léger</span></p>
+<ul>
+<li>se lance seul<br><strong>À changer : </strong>laisser le lecteur le lancer<br><code>body &gt; video</code></li>
+</ul>
+<h3>Les images ne dépassent pas leur taille d'affichage</h3>
+<p>Les pixels jamais affichés voyagent, sont décodés et gardés en mémoire quand même, sur la connexion et la batterie du lecteur. <span class="meta">RGESN 6.4 · seuil 2× (outil) · travail léger</span></p>
+<ul>
+<li>600×300 px affichée en 100×50<br><strong>À changer : </strong>servir au plus 200×100 px<br><code>body &gt; img:nth-of-type(1)</code></li>
+</ul>
+<h3>Les images lourdes utilisent un format récent</h3>
+<p>Les formats récents portent la même image en une fraction des octets. <span class="meta">RGESN 5.1 · seuil 30 ko (outil) · travail léger</span></p>
+<ul>
+<li>image/png, 529 ko<br><strong>À changer : </strong>servir en AVIF ou en WebP<br><code>body &gt; img:nth-of-type(1)</code></li>
+</ul>
+<h2>Critère par critère</h2>
+<ul>
+<li>La page a un titre · 0 sur 1 passent</li>
+<li>La page déclare sa langue · 0 sur 1 passent</li>
+<li>La page déclare son type de document · 1 sur 1 passent</li>
+<li>L'agrandissement n'est pas bloqué · 0 sur 1 passent</li>
+<li>Pas de défilement horizontal à 320 px · 0 sur 1 passent</li>
+<li>Le contenu principal est balisé · 0 sur 1 passent</li>
+<li>Un lien mène au contenu principal · rien à juger : pas de zone principale où mener</li>
+<li>Les niveaux de titre se suivent · 1 sur 2 passent</li>
+<li>Ce qui a l'air d'un titre en est un · 1 sur 1 passent</li>
+<li>Ce qui a l'air d'une liste en est une · 1 sur 1 passent</li>
+<li>Aucun élément ne sert d'espace · 1 sur 1 passent</li>
+<li>L'apparence est confiée à la feuille de styles · 1 sur 1 passent</li>
+<li>Les images portent une alternative textuelle · 1 sur 4 passent</li>
+<li>Le texte contraste avec son fond · 10 sur 12 passent</li>
+<li>Les liens ont un intitulé · 1 sur 3 passent</li>
+<li>Des liens vers des lieux différents diffèrent d'intitulé · 1 sur 1 passent</li>
+<li>Les boutons ont un intitulé · 1 sur 2 passent</li>
+<li>L'intitulé visible figure dans le nom · rien à juger : aucun nom donné par le code par-dessus un intitulé visible</li>
+<li>Les champs de formulaire ont une étiquette · 1 sur 2 passent</li>
+<li>Les groupes de champs ont une légende · rien à juger : aucun groupe de champs dans la page</li>
+<li>Les choix d'une même question sont regroupés · rien à juger : aucun bouton radio dans la page</li>
+<li>Les champs de données personnelles déclarent leur finalité · 0 sur 2 passent</li>
+<li>Les tableaux de données déclarent leurs en-têtes · rien à juger : aucun tableau dans la page</li>
+<li>Les cadres ont un titre · 0 sur 1 passent</li>
+<li>Aucun son ne démarre seul · 0 sur 1 passent</li>
+<li>Les vidéos portent des sous-titres · 0 sur 1 passent</li>
+<li>Les id des éléments sont uniques · 0 sur 1 passent</li>
+<li>Le clavier suit l'ordre de la page · 1 sur 1 passent</li>
+<li>Rien de caché ne prend le focus · 1 sur 1 passent</li>
+<li>Aucune fenêtre ne s'ouvre seule · 1 sur 1 passent</li>
+<li>La page ne se recharge ni ne s'en va après un délai · rien à juger : aucun rafraîchissement temporisé déclaré</li>
+<li>L'IA conversationnelle est signalée · rien à juger : aucun agent conversationnel détecté</li>
+<li>Les images produites par IA le disent · rien à juger : aucune image ne déclare son origine</li>
+<li>Rien n'est demandé à l'appareil à l'arrivée · 1 sur 1 passent</li>
+<li>Les tiers attendent le consentement · 1 sur 1 passent</li>
+<li>Rien ne se lance seul · 0 sur 1 passent</li>
+<li>La page a une fin · 1 sur 1 passent</li>
+<li>Les polices sont peu nombreuses et légères · rien à juger : aucune police n'est téléchargée</li>
+<li>Le texte voyage compressé · rien à juger : lue depuis cette machine : la façon dont elle est servie n'est pas jugée</li>
+<li>Ce qui ne change pas est gardé par le navigateur · rien à juger : lue depuis cette machine : la façon dont elle est servie n'est pas jugée</li>
+<li>La page voyage par des protocoles actuels · rien à juger : lue depuis cette machine : la façon dont elle est servie n'est pas jugée</li>
+<li>Les images loin dans la page attendent d'être atteintes · rien à juger : aucune image sous le deuxième écran</li>
+<li>Les images ne dépassent pas leur taille d'affichage · 2 sur 3 passent</li>
+<li>Les images lourdes utilisent un format récent · 2 sur 3 passent</li>
+</ul>
+<h2>Empreinte</h2>
+<p>33 éléments dans le document · 5 requêtes · 531 ko transférés · 0 hôtes tiers</p>
+<h2>La lecture</h2>
+<p>Une mesure, pas un verdict. La page donne à son lecteur 17 choses à saisir. Son balisage dit lesquelles se saisissent indépendamment : un titre ouvre une section, une liste porte des éléments, les en-têtes d'un tableau libèrent ses cellules. Ce qu'il ne déclare pas indépendant se prend dans l'ordre.</p>
+<dl>
+<dt>Montré et non dit</dt><dd>5 : ce qui est donné à l'œil et non aux technologies d'assistance.</dd>
+<dt>Dit et non montré</dt><dd>0 : ce qui n'est donné qu'aux technologies d'assistance, tel un lien d'évitement.</dd>
+<dt>Profondeur</dt><dd>16 : la plus longue suite que le balisage impose. Sans structure, elle vaudrait 17.</dd>
+<dt>Un à la fois, à l'oreille</dt><dd>12 étapes : chaque chose dite, l'une après l'autre.</dd>
+<dt>Jusqu'à 4 à la fois</dt><dd>17 étapes en l'état ; 16 si rien n'échouait. Une page de cette taille et de cette profondeur en demande entre 16 et 16.</dd>
+<dt>Ce que dit la page</dt><dd>126 octets de texte, par estimation ; 4319 octets voyagent pour chacun.</dd>
+</dl>
+<p class="meta">Le lecteur qui en saisit jusqu'à 4 est une convention, comme l'appareil de référence d'un essai de vitesse : il prend ce qui vient en premier dans la page, et moins de choses à la fois là où la page lui fait défaut.</p>
+<h2>Ce qui n'a pas été regardé</h2>
+<p>Ces règles touchent 36 des 106 critères du RGAA 4.1.2, 14 des 78 du RGESN 2024, et 4 paragraphes de l'article 50 du règlement sur l'IA. Toucher un critère n'est pas le solder : la plupart demandent le jugement d'une personne, ou une déclaration du responsable du site, au-delà de ce qu'une règle peut voir.</p>
+<p>Une page a été observée à un moment donné et à deux largeurs. Ce qui n'apparaît qu'après une action (un menu ouvert, un formulaire envoyé, une boîte de dialogue), ce qui se trouve derrière une connexion, et ce que contiennent les cadres venus d'autres sites n'ont pas été observés.</p>
+<p class="meta">relevé 0.4.0 · critères v4</p>
+</main>
+</body>
+</html>
