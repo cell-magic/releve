@@ -7,6 +7,7 @@ module Releve.Types where
 
 import Control.Applicative ((<|>))
 import Data.Aeson
+import Data.Char (toLower)
 import Data.Text (Text)
 import qualified Data.Text as T
 import GHC.Generics (Generic)
@@ -22,10 +23,29 @@ data Surface = Surface
   , size :: Maybe Double, weight :: Maybe Int, opacity :: Maybe Double
   , src :: Maybe Text, natural :: Maybe [Double], bytes :: Maybe Int, mime :: Maybe Text
   , autoplay :: Maybe Bool, muted :: Maybe Bool, vendor :: Maybe Text
+  , ev :: Maybe Int  -- ^ the event it belongs to
   } deriving (Show, Generic, FromJSON)
 
 instance ToJSON Surface where
   toJSON = genericToJSON defaultOptions { omitNothingFields = True }
+
+-- | One thing the page gives its reader to take in at once: a block of text,
+--   an image, a field, a button, a player, a frame. What it says to assistive
+--   technology, whether it is shown, and where the markup places it.
+data Ev = Ev
+  { eN :: Int, eSel :: Text, eKind :: Text, eShown :: Bool, eSaid :: Text
+  , eQuiet :: Maybe Bool          -- ^ it says nothing, and is declared to
+  , eLevel :: Maybe Int           -- ^ of the heading it is, if it is one
+  , ePath :: [(Text, Int)]        -- ^ the landmarks, lists, tables and forms around it, outermost first
+  , eCell :: Maybe Text, eLabel :: Maybe Int
+  , eBox :: [Double], eSize :: Double, eWeight :: Int
+  } deriving (Show, Generic)
+
+evJSON :: Options
+evJSON = defaultOptions { fieldLabelModifier = map toLower . drop 1, omitNothingFields = True }
+
+instance FromJSON Ev where parseJSON = genericParseJSON evJSON
+instance ToJSON Ev where toJSON = genericToJSON evJSON
 
 data Page = Page
   { lang :: Maybe Text, title :: Maybe Text, viewport :: Maybe Text
@@ -40,6 +60,7 @@ data Network = Network
 data Observation = Observation
   { url :: Text, at :: Text, agent :: Text, page :: Page, network :: Network
   , surfaces :: [Surface], shot :: Maybe Text
+  , events :: Maybe [Ev]     -- ^ the reading sequence; observers before 0.4 did not record it
   , mandate :: Maybe Text    -- ^ the owner's written leave to observe despite robots.txt
   , requested :: Maybe Text  -- ^ the address asked for, which a redirect may have left behind
   , browser :: Maybe Text    -- ^ what rendered the page: rendering is part of the reading

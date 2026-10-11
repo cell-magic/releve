@@ -33,7 +33,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from playwright.sync_api import Error as BrowserError, sync_playwright
 
-AGENT = "releve-observe/0.3"
+AGENT = "releve-observe/0.4"
 PAUSE = 1.0   # seconds between two pages of one site, at least
 DESKTOP = {"width": 1280, "height": 800}
 NARROW = {"width": 320, "height": 800}
@@ -213,7 +213,7 @@ def observe(browser, url, agent, shots, closed):
         "agent": AGENT, "browser": f"Chromium {browser.version}", "page": data["page"],
         "network": {"requests": len(fetched), "transfer": sum(size for _, _, size in fetched),
                     "thirdParties": sorted(thirds)},
-        "surfaces": data["surfaces"] + widgets, "shot": digest,
+        "surfaces": data["surfaces"] + widgets, "events": data["events"], "shot": digest,
     }
 
 
