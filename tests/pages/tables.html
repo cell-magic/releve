@@ -1,0 +1,52 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr> -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<!-- Tables: headers declared, or layout declared.
+
+     table-headers  PASS    2 × 2 with a row of headers: one direction needs no scope
+                    REVIEW  3 × 2 without a header cell
+                    FAIL    headers in rows and in columns, 3 of them without scope or id
+                    PASS    the same with scope on each
+                    PASS    a layout table that says so
+                    FAIL    a layout table that keeps a <th>
+     presentation   FAIL    attribute border, attribute width (on a table), attribute align -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tables</title>
+  <style>body { font: 16px/1.5 sans-serif; color: #222; background: #fff; }</style>
+</head>
+<body>
+  <main>
+    <h1>Tables</h1>
+    <table>
+      <caption>One direction</caption>
+      <tr><th>Page</th><th>Bytes</th></tr>
+      <tr><td>Home</td><td>12000</td></tr>
+    </table>
+    <table>
+      <tr><td>Home</td><td>12000</td></tr>
+      <tr><td>Contact</td><td>9000</td></tr>
+      <tr><td>Terms</td><td>7000</td></tr>
+    </table>
+    <table border="1" width="300">
+      <tr><td></td><th>Bytes</th></tr>
+      <tr><th>Home</th><td>12000</td></tr>
+      <tr><th>Contact</th><td align="right">9000</td></tr>
+    </table>
+    <table>
+      <tr><td></td><th scope="col">Bytes</th></tr>
+      <tr><th scope="row">Home</th><td>12000</td></tr>
+      <tr><th scope="row">Contact</th><td>9000</td></tr>
+    </table>
+    <table role="presentation">
+      <tr><td>Left column</td><td>Right column</td></tr>
+      <tr><td>Below left</td><td>Below right</td></tr>
+    </table>
+    <table role="presentation">
+      <tr><th>Left</th><td>Right</td></tr>
+    </table>
+  </main>
+</body>
+</html>

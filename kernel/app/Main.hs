@@ -57,7 +57,7 @@ main = plain >> getArgs >>= \args -> case args of
     Left n -> die ("broken at record " <> show n)
   ["criteria"] -> do
     putStrLn ("criteria v" <> T.unpack version)
-    forM_ criteria $ \k -> TIO.putStrLn (T.justifyLeft 15 ' ' (cId k) <> T.justifyLeft 40 ' ' (cTitle k) <> cRef k)
+    forM_ criteria $ \k -> TIO.putStrLn (T.justifyLeft 15 ' ' (cId k) <> T.justifyLeft 46 ' ' (en (cTitle k)) <> en (cRef k))
   ["--version"] -> putStrLn ("releve " <> release <> " · criteria v" <> T.unpack version)
   _ -> hPutStrLn stderr usage >> exitWith (ExitFailure 2)
 

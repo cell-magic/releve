@@ -1,0 +1,47 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr> -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<!-- Names: what is shown against what is said, links told apart, the keyboard's path.
+
+     skip-link      PASS    “Skip to the content” leads to #content, the main region
+     label-in-name  PASS    the name “Search the catalogue” holds the visible “Search”
+                    FAIL    the button shows “Send” and is named “Submit the form”
+                    FAIL    the link shows “Prices” and is named “Tarifs 2026”
+                    none    “×” is a symbol; a name given by content is not the code's own
+     link-distinct  REVIEW  “Annual report” twice, to two places (each is marked)
+                    none    “Contact” twice to one place; “read more” is left to link-name
+     tab-order      REVIEW  the link with tabindex="3"
+     hidden-focus   FAIL    the link inside aria-hidden="true"
+     label-in-name on a field: “Your address” is shown, the field is named “E-mail” -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Names</title>
+  <style>body { font: 16px/1.5 sans-serif; color: #222; background: #fff; }</style>
+</head>
+<body>
+  <a href="#content">Skip to the content</a>
+  <nav aria-label="Main">
+    <ul>
+      <li><a href="/contact">Contact</a></li>
+      <li><a href="/contact">Contact</a></li>
+      <li><a href="/prices" aria-label="Tarifs 2026">Prices</a></li>
+    </ul>
+  </nav>
+  <main id="content">
+    <h1>Names</h1>
+    <p><a href="/search" aria-label="Search the catalogue">Search</a></p>
+    <p><button type="button" aria-label="Submit the form">Send</button> <button type="button" aria-label="Close">×</button></p>
+    <ul>
+      <li><a href="/report-2025.pdf">Annual report</a></li>
+      <li><a href="/report-2024.pdf">Annual report</a></li>
+      <li><a href="/a">read more</a></li>
+      <li><a href="/b">read more</a></li>
+    </ul>
+    <p><a href="/first" tabindex="3">Reached first</a></p>
+    <div aria-hidden="true"><a href="/unseen">Reached and not announced</a></div>
+    <p><label for="e">Your address</label> <input id="e" type="email" aria-label="E-mail" autocomplete="email"></p>
+  </main>
+</body>
+</html>

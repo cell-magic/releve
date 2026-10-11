@@ -1,0 +1,58 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr> -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<!-- Structure: what the eye is given and the code does not say.
+
+     main-region    FAIL    2 main landmarks are visible
+     heading-look   REVIEW  “Set large and not marked” (28 px against 16 px)
+                    REVIEW  “Set bold before plain text” (bolder than what follows)
+                    none    a bold sentence that ends with a full stop; large text inside a list item
+     list-look      REVIEW  3 lines in a row begin like list items, from “• First of three”
+                    none    one such line alone; the same marks inside a real list
+     empty-blocks   FAIL    2 empty paragraphs · 1 empty heading
+     presentation   FAIL    <center>, <font>, attribute color, attribute bgcolor
+     refresh        REVIEW  reloads itself every 600 s
+     no-popup       FAIL    tried to open 1 window by itself
+     media-captions REVIEW  the video without a track · PASS the one with captions -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="refresh" content="600">
+  <title>Structure</title>
+  <style>
+    body { font: 16px/1.5 sans-serif; color: #222; background: #fff; }
+    .big { font-size: 28px; }
+    .bold { font-weight: 700; }
+  </style>
+  <script>window.open("/elsewhere");</script>
+</head>
+<body bgcolor="#ffffff">
+  <main>
+    <h1>Structure</h1>
+    <div class="big">Set large and not marked</div>
+    <p>Running text that sets the size of the page: sixteen pixels, and by far the most characters on it.</p>
+    <div class="bold">Set bold before plain text</div>
+    <p>More running text, so that what stands above it heads something.</p>
+    <p class="bold">A bold sentence that ends with a full stop.</p>
+    <p>And what follows it.</p>
+    <ul><li class="big">Large, in a list</li><li>Plain</li></ul>
+    <p>• First of three</p>
+    <p>• Second of three</p>
+    <p>• Third of three</p>
+    <p>Then prose again.</p>
+    <p>- A single dash is a single dash</p>
+    <p>And prose.</p>
+    <ul><li>1. Numbered by hand, inside a list</li><li>2. Still inside a list</li></ul>
+    <p></p>
+    <p>&nbsp;</p>
+    <h2></h2>
+    <center><font color="#222222">Centred by a tag</font></center>
+    <video src="clip.mp4" muted></video>
+    <video src="clip.mp4" muted><track kind="captions" src="clip.vtt" srclang="en"></video>
+  </main>
+  <main>
+    <p>A second main region, visible.</p>
+  </main>
+</body>
+</html>

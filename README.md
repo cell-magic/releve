@@ -124,30 +124,49 @@ commented with the reading it should produce. The recorded observations
 and expected reports sit beside them, so any change in judgement shows up
 as a diff to review.
 
-## Criteria (v2)
+## Criteria (v3)
 
 | id | checks | source |
 |---|---|---|
 | page-title | the page has a title | RGAA 8.5 · WCAG 2.4.2 |
 | page-lang | the page states its language | RGAA 8.3 · WCAG 3.1.1 |
+| doctype | the page declares its document type | RGAA 8.1 |
 | zoom | zoom is not blocked | RGAA 10.4 · WCAG 1.4.4 |
 | reflow | no horizontal scrolling at 320 px | RGAA 10.11 · WCAG 1.4.10 |
-| main-region | the main content is marked | RGAA 12.6 · WCAG 2.4.1 |
+| main-region | the main content is marked | RGAA 9.2 · 12.6 · WCAG 2.4.1 |
+| skip-link | a link leads to the main content | RGAA 12.7 · WCAG 2.4.1 |
 | heading-order | heading levels follow each other | RGAA 9.1 · WCAG 1.3.1 |
+| heading-look | what looks like a heading is one | RGAA 9.1 · WCAG 1.3.1; the thresholds are the tool's |
+| list-look | what looks like a list is one | RGAA 9.3 · WCAG 1.3.1 |
+| empty-blocks | no element is used as a gap | RGAA 8.9 · WCAG 1.3.1 |
+| presentation | appearance is left to the style sheet | RGAA 10.1 · WCAG 1.3.1 |
 | image-alt | images carry a text alternative | RGAA 1.1–1.3 · WCAG 1.1.1 |
 | text-contrast | text contrasts with its background | RGAA 3.2 · WCAG 1.4.3 |
 | link-name | links have a name | RGAA 6.1–6.2 · WCAG 2.4.4 |
+| link-distinct | links to different places differ in name | RGAA 6.1 · WCAG 2.4.4 |
 | button-name | buttons have a name | RGAA 11.9 · WCAG 4.1.2 |
+| label-in-name | the visible label is in the name | RGAA 6.1 · 11.2 · 11.9 · WCAG 2.5.3 |
 | control-label | form fields have a label | RGAA 11.1 · WCAG 1.3.1 |
+| group-legend | groups of fields have a legend | RGAA 11.6 · WCAG 1.3.1 |
+| field-group | choices of one question are grouped | RGAA 11.5 · WCAG 1.3.1 |
+| autocomplete | fields for personal data state their purpose | RGAA 11.13 · WCAG 1.3.5 |
+| table-headers | data tables declare their headers | RGAA 5.3 · 5.6–5.8 · WCAG 1.3.1 |
 | frame-title | frames have a title | RGAA 2.1 · WCAG 4.1.2 |
 | autoplay | no sound starts by itself | RGAA 4.10 · WCAG 1.4.2 |
+| media-captions | videos carry captions | RGAA 4.3 · WCAG 1.2.2 |
 | unique-ids | element ids are unique | RGAA 8.2 |
+| tab-order | the keyboard follows the order of the page | RGAA 12.8 · WCAG 2.4.3 |
+| hidden-focus | nothing hidden takes the focus | RGAA 10.8 · WCAG 4.1.2 |
+| no-popup | no window opens by itself | RGAA 13.2 · WCAG 3.2.1 |
+| refresh | the page does not reload or leave on a timer | RGAA 13.1 · WCAG 2.2.1 |
 | ai-disclosure | conversational AI is disclosed | AI Act art. 50(1) |
-| image-weight | bitmap images are not larger than shown | RGESN; 2× threshold is the tool's |
+| image-weight | images are not larger than shown | RGESN; 2× threshold is the tool's |
 | image-format | heavy images use a modern format | RGESN; 30 kB threshold is the tool's |
 
-Each criterion is one pure function in `kernel/src/Releve/Criteria.hs`.
-Adding one means writing one function; nothing else changes.
+Each criterion is one entry in `kernel/src/Releve/Criteria.hs`: what it
+checks, its source, what it is for, and one pure function. Whatever a
+criterion says, it says in English and in French. Adding one means writing
+one entry; nothing else changes.
 
 ## Scope and limits
 
@@ -198,6 +217,8 @@ configuration, and `tests/conduct.py` checks each of them:
 - It submits no forms, opens no windows, dismisses no dialogs, keeps no
   session, and names
   itself (`releve-observe/0.4`) with its operator's contact address.
+- Of what a page says it keeps extracts of 80 characters at most. What each
+  block of the page says is weighed, in words and in bits, and not kept.
 
 It keeps only what judgement needs: text excerpts of at most 80
 characters, and screenshots only when asked, stored locally. A corpus

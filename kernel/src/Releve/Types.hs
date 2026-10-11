@@ -8,11 +8,34 @@ module Releve.Types where
 import Control.Applicative ((<|>))
 import Data.Aeson
 import Data.Char (toLower)
+import Data.String (IsString (..))
 import Data.Text (Text)
 import qualified Data.Text as T
 import GHC.Generics (Generic)
 
 type RGBA = [Double]  -- r g b in 0..255, alpha in 0..1
+
+-- | The languages reports are written in.
+data Lang = En | Fr deriving (Eq, Show)
+
+-- | The same thing, said in each of them. A literal alone reads the same in
+--   both: a number, a tag, words quoted from the page.
+data Phrase = Phrase { en :: Text, fr :: Text } deriving (Eq, Show)
+
+instance Semigroup Phrase where Phrase a b <> Phrase c d = Phrase (a <> c) (b <> d)
+instance Monoid Phrase where mempty = Phrase "" ""
+instance IsString Phrase where fromString s = Phrase (T.pack s) (T.pack s)
+
+infix 1 //
+(//) :: Text -> Text -> Phrase
+(//) = Phrase
+
+say :: Lang -> Phrase -> Text
+say En = en
+say Fr = fr
+
+both :: Text -> Phrase
+both t = Phrase t t
 
 data Surface = Surface
   { kind :: Text, key :: Text, sel :: Text, order :: Int
@@ -24,6 +47,10 @@ data Surface = Surface
   , src :: Maybe Text, natural :: Maybe [Double], bytes :: Maybe Int, mime :: Maybe Text
   , autoplay :: Maybe Bool, muted :: Maybe Bool, vendor :: Maybe Text
   , ev :: Maybe Int  -- ^ the event it belongs to
+  , by :: Maybe Text, label :: Maybe Text, href :: Maybe Text          -- ^ where the name comes from; the visible label; where a link leads
+  , auto :: Maybe Text, hint :: Maybe Text, set :: Maybe Text, grouped :: Maybe Bool
+  , controls :: Maybe Bool, tracks :: Maybe [Text]
+  , rows :: Maybe Int, cols :: Maybe Int, heads :: Maybe Int, across :: Maybe Bool, bare :: Maybe Int, marks :: Maybe Int
   } deriving (Show, Generic, FromJSON)
 
 instance ToJSON Surface where
@@ -31,9 +58,10 @@ instance ToJSON Surface where
 
 -- | One thing the page gives its reader to take in at once: a block of text,
 --   an image, a field, a button, a player, a frame. What it says to assistive
---   technology, whether it is shown, and where the markup places it.
+--   technology (an extract, its length in words, its weight in bits), whether
+--   it is shown, and where the markup places it.
 data Ev = Ev
-  { eN :: Int, eSel :: Text, eKind :: Text, eShown :: Bool, eSaid :: Text
+  { eN :: Int, eSel :: Text, eKind :: Text, eShown :: Bool, eSaid :: Text, eWords :: Int, eBits :: Double
   , eQuiet :: Maybe Bool          -- ^ it says nothing, and is declared to
   , eLevel :: Maybe Int           -- ^ of the heading it is, if it is one
   , ePath :: [(Text, Int)]        -- ^ the landmarks, lists, tables and forms around it, outermost first
@@ -51,6 +79,10 @@ data Page = Page
   { lang :: Maybe Text, title :: Maybe Text, viewport :: Maybe Text
   , reflow :: Maybe Double, dom :: Int, dupIds :: [(Text, Int)]
   , disclosure :: [Text], truncated :: Maybe Bool
+  -- recorded since observer 0.4; `opened` tells an observation that has them from one that has not
+  , doctype :: Maybe Text, styling :: Maybe [(Text, Int)], empties :: Maybe [(Text, Int)]
+  , tabbed :: Maybe [Text], hiddenFocus :: Maybe [Text], skip :: Maybe Text, before :: Maybe Int, mains :: Maybe Int
+  , refresh :: Maybe Text, opened :: Maybe Int
   } deriving (Show, Generic, FromJSON, ToJSON)
 
 data Network = Network
@@ -104,14 +136,20 @@ instance FromJSON Event where
 
 -- | What one criterion says about one surface.
 data Mark = Mark
-  { mVerdict :: Verdict, mSurface :: Maybe Surface, mSeen :: Text, mChange :: Maybe Text }
+  { mVerdict :: Verdict, mSurface :: Maybe Surface, mSeen :: Phrase, mChange :: Maybe Phrase }
 
+-- | How much work mending it usually is.
+data Effort = Light | Medium | Heavy deriving (Eq, Ord, Show)
+
+-- | A criterion: what it checks, where the rule comes from, what it is for,
+--   and the rule itself.
 data Criterion = Criterion
-  { cId :: Text, cTitle :: Text, cRef :: Text, cJudge :: Observation -> [Mark] }
+  { cId :: Text, cTitle :: Phrase, cRef :: Phrase, cEffort :: Effort, cWhy :: Phrase
+  , cJudge :: Observation -> [Mark] }
 
 data Finding = Finding
   { fId :: Text, fCrit :: Criterion, fMachine :: Verdict, fVerdict :: Verdict
-  , fNote :: Maybe Text, fSurface :: Maybe Surface, fSeen :: Text, fChange :: Maybe Text
+  , fNote :: Maybe Text, fSurface :: Maybe Surface, fSeen :: Phrase, fChange :: Maybe Phrase
   , fNew :: Bool, fAge :: Int
   , fLapsed :: Bool  -- ^ a person read it otherwise before what is seen changed
   }

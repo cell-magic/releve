@@ -27,24 +27,26 @@
     const n = document.getElementById(i); return n ? n.textContent : "";
   }).join(" "));
 
-  function accName(el) {
+  // The name assistive technology is given, and where it comes from.
+  function naming(el) {
+    const from = (by, t) => (t = txt(t)) ? [t, by] : null;
     const lb = el.getAttribute("aria-labelledby");
-    if (lb) { const t = byIds(lb); if (t) return t; }
-    const al = txt(el.getAttribute("aria-label"));
-    if (al) return al;
-    const tag = el.tagName.toLowerCase();
-    if (tag === "img" || (tag === "input" && el.type === "image")) return txt(el.getAttribute("alt")) || txt(el.title);
-    if (tag === "svg") { const t = el.querySelector("title"); return txt(t && t.textContent) || txt(el.title); }
-    if (tag === "iframe" || tag === "frame") return txt(el.title);
+    const given = (lb && from("aria-labelledby", byIds(lb))) || from("aria-label", el.getAttribute("aria-label"));
+    if (given) return given;
+    const tag = el.tagName.toLowerCase(), title = () => from("title", el.title) || ["", null];
+    if (tag === "img" || (tag === "input" && el.type === "image")) return from("alt", el.getAttribute("alt")) || title();
+    if (tag === "svg") { const t = el.querySelector("title"); return from("content", t && t.textContent) || title(); }
+    if (tag === "iframe" || tag === "frame") return title();
     if (tag === "input" && ["submit", "reset", "button"].includes(el.type))
-      return txt(el.value) || (el.type === "button" ? "" : el.type); // browsers label submit/reset by default
+      return from("value", el.value) || [el.type === "button" ? "" : el.type, null]; // browsers label submit/reset by default
     if (["input", "select", "textarea"].includes(tag))
-      return txt(el.labels ? [...el.labels].map(x => x.innerText).join(" ") : "") || txt(el.title);
-    let t = txt(el.innerText);
-    if (!t) t = txt([...el.querySelectorAll("img[alt], [aria-label], svg title")]
-      .map(n => n.getAttribute("alt") || n.getAttribute("aria-label") || n.textContent).join(" "));
-    return t || txt(el.title);
+      return from("label", el.labels ? [...el.labels].map(x => x.innerText).join(" ") : "") || title();
+    return from("content", el.innerText)
+      || from("content", [...el.querySelectorAll("img[alt], [aria-label], svg title")]
+        .map(n => n.getAttribute("alt") || n.getAttribute("aria-label") || n.textContent).join(" "))
+      || title();
   }
+  const accName = el => naming(el)[0];
 
   const cv = document.createElement("canvas"); cv.width = cv.height = 1;
   const cx = cv.getContext("2d", { willReadFrequently: true });
@@ -204,6 +206,23 @@
     }
   }
   stream.forEach((e, i) => { e.n = i; });
+
+  // What each event says, weighed in bits by an adaptive code of the page's own words, read in
+  // order: a word already used costs the logarithm of its rarity so far; a new word costs the
+  // surprise of novelty and five bits a letter. The text itself is kept as an extract only.
+  const used = new Map();
+  let read = 0;
+  const weigh = said => {
+    const words = said.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+    let bits = 0;
+    for (const w of words) {
+      const c = used.get(w), v = used.size;
+      bits += c ? Math.log2((read + v) / c) : (v ? Math.log2((read + v) / v) : 0) + 5 * ([...w].length + 1);
+      used.set(w, (c || 0) + 1);
+      read++;
+    }
+    return [words.length, Math.round(bits * 1000) / 1000];
+  };
   // The event an element belongs to: its own, the first inside it, or the one around it.
   function eventAt(el) {
     let e = eventOf.get(el);
@@ -213,12 +232,12 @@
   }
   const events = stream.map(e => {
     const el = e.el, cs = getComputedStyle(el), r = el.getBoundingClientRect();
-    const said = (e.kind ? e.name : txt(e.words.join(" "))).slice(0, 2000);
+    const said = e.kind ? e.name : txt(e.words.join(" ")), [words, bits] = weigh(said);
     const hd = el.closest("h1, h2, h3, h4, h5, h6, [role=heading]");
     const cell = el.closest("th, td, caption, [role=columnheader], [role=rowheader], [role=cell], [role=gridcell]");
     const label = e.kind === "field" && el.labels && el.labels[0] ? eventAt(el.labels[0]) : null;
     return Object.assign({
-      n: e.n, sel: path(el), kind: e.kind || (e.text ? "text" : "image"), shown: e.shown, said,
+      n: e.n, sel: path(el), kind: e.kind || (e.text ? "text" : "image"), shown: e.shown, said: clip(said), words, bits,
       path: place(el), box: [Math.round(r.x + scrollX), Math.round(r.y + scrollY), Math.round(r.width), Math.round(r.height)],
       size: parseFloat(cs.fontSize), weight: parseInt(cs.fontWeight) || 400,
     }, !said && !e.unsaid ? { quiet: true } : {},
@@ -246,20 +265,48 @@
     const add = (kind, extra) => surfaces.push(Object.assign({ kind }, base, extra));
 
     if (tag === "img")
-      add("img", { alt: el.hasAttribute("alt") ? txt(el.getAttribute("alt")) : null, src: el.currentSrc || el.src,
+      add("img", { alt: el.hasAttribute("alt") ? clip(el.getAttribute("alt")) : null, src: el.currentSrc || el.src,
                    natural: [el.naturalWidth, el.naturalHeight] });
     else if ((tag === "svg" && role === "img") || (role === "img" && tag !== "svg"))
-      add("graphic", { name: accName(el) });
-    if (tag === "iframe" || tag === "frame") add("iframe", { name: accName(el) });
+      add("graphic", { name: clip(accName(el)) });
+    if (tag === "iframe" || tag === "frame") add("iframe", { name: clip(accName(el)) });
     if (tag === "video" || tag === "audio")
-      add("media", { autoplay: el.autoplay, muted: el.muted || el.hasAttribute("muted") });
-    if (((tag === "a" && el.hasAttribute("href")) || role === "link") && role !== "button")
-      add("link", { name: accName(el) });
-    if (tag === "button" || role === "button" || (tag === "input" && ["submit", "reset", "button", "image"].includes(el.type)))
-      add("button", { name: accName(el) });
+      add("media", { autoplay: el.autoplay, muted: el.muted || el.hasAttribute("muted"), itype: tag, controls: el.controls,
+                     tracks: [...el.querySelectorAll("track")].map(t => t.kind) });
+    if (((tag === "a" && el.hasAttribute("href")) || role === "link") && role !== "button") {
+      const [name, by] = naming(el);
+      add("link", { name: clip(name), by, label: clip(el.innerText), href: el.href ? String(el.href).slice(0, 300) : null });
+    }
+    if (tag === "button" || role === "button" || (tag === "input" && ["submit", "reset", "button", "image"].includes(el.type))) {
+      const [name, by] = naming(el);
+      add("button", { name: clip(name), by, label: clip(tag === "input" ? el.value : el.innerText) });
+    }
     if ((tag === "input" && !["hidden", "submit", "reset", "button", "image"].includes(el.type))
-        || tag === "select" || tag === "textarea" || role === "textbox" || role === "combobox")
-      add("control", { name: accName(el), itype: el.type || tag, placeholder: el.hasAttribute("placeholder") ? clip(el.getAttribute("placeholder")) : null });
+        || tag === "select" || tag === "textarea" || role === "textbox" || role === "combobox") {
+      const [name, by] = naming(el);
+      add("control", { name: clip(name), by, label: clip(el.labels ? [...el.labels].map(x => x.innerText).join(" ") : ""),
+                       itype: el.type || tag, placeholder: el.hasAttribute("placeholder") ? clip(el.getAttribute("placeholder")) : null,
+                       auto: el.getAttribute("autocomplete"), hint: clip([el.getAttribute("name"), el.id].filter(Boolean).join(" ")),
+                       set: ["radio", "checkbox"].includes(el.type) ? el.getAttribute("name") : null,
+                       grouped: !!el.closest('fieldset, [role="group"], [role="radiogroup"]') });
+    }
+    if (tag === "fieldset" || role === "group" || role === "radiogroup") {
+      const legend = tag === "fieldset" && [...el.children].find(c => c.tagName === "LEGEND");
+      add("group", { name: clip(naming(el)[1] && /^aria/.test(naming(el)[1]) ? accName(el) : legend && legend.innerText) });
+    }
+    if ((tag === "table" && !el.closest("svg")) || role === "table" || role === "grid") {
+      const mine = q => [...el.querySelectorAll(q)].filter(n => n.closest('table, [role="table"], [role="grid"]') === el);
+      const rows = mine('tr, [role="row"]'), heads = mine('th, [role="columnheader"], [role="rowheader"]');
+      const top = rows[0] ? heads.filter(h => rows[0].contains(h)).length : 0;
+      const caption = mine("caption")[0];
+      add("table", {
+        name: clip(naming(el)[1] && /^aria/.test(naming(el)[1]) ? accName(el) : caption && caption.innerText),
+        rows: rows.length, cols: Math.max(0, ...rows.map(r => [...r.children].reduce((n, c) => n + (c.colSpan || 1), 0))),
+        heads: heads.length, across: top > 0 && heads.length > top,
+        bare: heads.filter(h => !h.hasAttribute("scope") && !h.id && !h.getAttribute("role")).length,
+        marks: mine("caption, thead, tfoot, th, [scope], [headers]").length + (el.hasAttribute("summary") ? 1 : 0),
+      });
+    }
     if (/^h[1-6]$/.test(tag) || role === "heading")
       add("heading", { level: role === "heading" ? parseInt(el.getAttribute("aria-level")) || 2 : +tag[1],
                        text: clip(el.innerText) });
@@ -290,15 +337,63 @@
     .concat([...document.querySelectorAll("iframe[src]")].map(f => f.src))
     .concat([...new Set([...document.querySelectorAll("*")].map(n => n.tagName.toLowerCase()).filter(t => t.includes("-")))]);
 
+  // Markup that only styles: the tags and attributes HTML has left to style sheets.
+  const html5 = !!document.doctype && document.doctype.name.toLowerCase() === "html" && !document.doctype.publicId;
+  const TAGS = ["basefont", "big", "blink", "center", "font", "marquee", "s", "strike", "tt"].concat(html5 ? [] : ["u"]);
+  const ATTRS = ["align", "alink", "background", "bgcolor", "border", "cellpadding", "cellspacing", "char", "charoff", "clear",
+                 "color", "compact", "frameborder", "hspace", "link", "marginheight", "marginwidth", "text", "valign", "vlink", "vspace"];
+  const SIZED = ["img", "object", "embed", "canvas", "svg"];
+  const styling = new Map(), tally = k => styling.set(k, (styling.get(k) || 0) + 1);
+  const all = document.body ? [document.body, ...document.body.querySelectorAll("*")] : [];
+  for (const n of all) {
+    if (n.namespaceURI !== "http://www.w3.org/1999/xhtml") continue;
+    const tag = n.tagName.toLowerCase();
+    if (TAGS.includes(tag)) tally(tag);
+    for (const a of ATTRS) if (n.hasAttribute(a)) tally("@" + a);
+    if (n.hasAttribute("size") && tag !== "select") tally("@size");
+    for (const a of ["width", "height"]) if (n.hasAttribute(a) && !SIZED.includes(tag)) tally("@" + a);
+  }
+
+  // Elements that hold nothing: a paragraph or a heading used as a gap.
+  const bare = n => !txt(n.textContent) && !n.querySelector("img, svg, input, button, select, textarea, iframe, video, audio, object, canvas")
+    && n.getClientRects().length > 0 && !["presentation", "none"].includes(n.getAttribute("role"));
+  const empties = [["p", "p"], ["heading", "h1, h2, h3, h4, h5, h6"]]
+    .map(([k, q]) => [k, [...document.querySelectorAll(q)].filter(bare).length]).filter(([, n]) => n > 0);
+
+  const FOCUS = 'a[href], button:not([disabled]), input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex^="-"])';
+  const some = list => list.slice(0, 20).map(path);
+  const tabbed = some(all.filter(n => parseInt(n.getAttribute("tabindex")) > 0));
+  const hiddenFocus = some([...document.querySelectorAll('[aria-hidden="true"]')]
+    .flatMap(h => [h, ...h.querySelectorAll("*")]).filter(n => n.matches(FOCUS) && n.getClientRects().length > 0 && getComputedStyle(n).visibility !== "hidden"));
+
+  // A link that leads to the main content, or past what stands before it.
+  const mains = [...document.querySelectorAll('main, [role="main"]')].filter(n => n.getClientRects().length > 0);
+  const before = mains[0] ? [...document.querySelectorAll(FOCUS)].filter(n => n.getClientRects().length > 0
+    && (n.compareDocumentPosition(mains[0]) & Node.DOCUMENT_POSITION_FOLLOWING) && !n.contains(mains[0])).length : 0;
+  let skip = null;
+  if (mains[0]) for (const a of [...document.querySelectorAll('a[href^="#"]')].slice(0, 12)) {
+    const id = decodeURIComponent(a.getAttribute("href").slice(1)), t = id && document.getElementById(id);
+    if (t && (a.compareDocumentPosition(mains[0]) & Node.DOCUMENT_POSITION_FOLLOWING)
+        && (t === mains[0] || mains[0].contains(t) || t.contains(mains[0]) || t.nextElementSibling === mains[0])) {
+      skip = clip(accName(a)) || "#" + id;
+      break;
+    }
+  }
+
   const vp = document.querySelector('meta[name="viewport"]');
+  const refresh = document.querySelector('meta[http-equiv="refresh" i]');
   return {
     page: {
       lang: document.documentElement.getAttribute("lang"),
-      title: txt(document.title),
+      title: clip(document.title),
       viewport: vp ? txt(vp.getAttribute("content")) : null,
       dom: document.getElementsByTagName("*").length,
       dupIds: [...ids].filter(([, n]) => n > 1),
       disclosure, truncated,
+      doctype: document.doctype ? txt(document.doctype.name + " " + document.doctype.publicId) : null,
+      styling: [...styling], empties, tabbed, hiddenFocus, skip, before, mains: mains.length,
+      refresh: refresh ? txt(refresh.getAttribute("content")) : null,
+      opened: window.__opened || 0,
     },
     surfaces, events, sources,
   };

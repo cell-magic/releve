@@ -5,18 +5,16 @@
 --   it must be taken, and how many steps that makes. Measured, not judged.
 --
 --   A page is a stream of events: a block of text, an image, a field. Each
---   says something or says nothing; the markup declares which of them can be
---   taken independently; and a reader takes them a few at a time, fewer
---   where the page fails them. Every constant below is a stated convention.
+--   says something or says nothing (the observer weighs it, in bits); the
+--   markup declares which of them can be taken independently; and a reader
+--   takes them a few at a time, fewer where the page fails them. Every
+--   constant below is a stated convention.
 module Releve.Reading (Reading (..), Misfit (..), Shape (..), reading, aperture, ceiling') where
 
-import Data.Char (isAlphaNum)
-import Data.List (foldl', groupBy, nub, sortOn)
-import qualified Data.Map.Strict as M
+import Data.List (groupBy, nub, sortOn)
 import Data.Maybe (listToMaybe, mapMaybe)
 import qualified Data.Set as S
 import Data.Text (Text)
-import qualified Data.Text as T
 import Releve.Types
 
 -- conventions -------------------------------------------------------------
@@ -50,25 +48,6 @@ aperture window misfits = max 1 (min ceiling' (floor (budget / cost)))
     m = fromIntegral misfits / fromIntegral (max 1 window) :: Double
     rate = fromIntegral window / fromIntegral ceiling'
     cost = 1 + sensitivity * m * m * (1 + interference * rate)
-
--- what is said --------------------------------------------------------------
-
--- | The bits each event says, given all that the page said before it. A word
---   already used costs the logarithm of its rarity so far; a new word costs
---   the surprise of novelty and five bits a letter. An adaptive code, read
---   in document order: an estimate, and the same one every time.
-said :: [Ev] -> [Double]
-said = go M.empty 0 . map (T.words . T.map (\c -> if isAlphaNum c then c else ' ') . T.toLower . eSaid)
-  where
-    go _ _ [] = []
-    go seen n (ws : rest) = let (seen', n', b) = foldl' word (seen, n, 0) ws in b : go seen' n' rest
-    word (seen, n, b) w = (M.insertWith (+) w 1 seen, n + 1, b + cost)
-      where
-        v = M.size seen
-        total = fromIntegral (n + v) :: Double
-        cost = case M.lookup w seen of
-          Just c -> logBase 2 (total / fromIntegral (c :: Int))
-          Nothing -> (if v == 0 then 0 else logBase 2 (total / fromIntegral v)) + 5 * fromIntegral (T.length w + 1)
 
 -- what depends on what ------------------------------------------------------
 
@@ -209,7 +188,7 @@ reading es misfits = Reading
     heard = (>= threshold - 1e-9)
     seen e = eShown e && not (eKind e == "image" && eQuiet e == Just True)   -- declared decoration reaches no one
     unsaid (e, b) = seen e && not (heard b) && eQuiet e /= Just True
-    kept = [(e, b) | (e, b) <- zip es (said es), heard b || seen e]
+    kept = [(e, eBits e) | e <- es, heard (eBits e) || seen e]
     count p = length (filter p kept)
     g = tidy (flow (nest [(ePath e, e) | (e, _) <- sortOn (eN . fst) kept]))
     n = maybe 0 volume g

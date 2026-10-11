@@ -60,7 +60,7 @@ judged o = concat [ [(ident c ms m, c, m) | m <- ms] | c <- criteria, let ms = c
     ident c ms m = T.take 8 . sha . encodeUtf8 $ cId c <> ":" <> place ms m
     place ms m = case mSurface m of
       Just s -> key s
-      Nothing | length [() | x <- ms, null (mSurface x)] > 1 -> "page:" <> mSeen m
+      Nothing | length [() | x <- ms, null (mSurface x)] > 1 -> "page:" <> en (mSeen m)
               | otherwise -> "page"
 
 assess :: State -> Obs -> [Finding]
@@ -70,7 +70,7 @@ assess st o = [ mk i c m | (i, c, m) <- judged (oBody o) ]
     lastKeys = maybe [] (map key . surfaces . oBody) (listToMaybe before)
     earlier = [ [i | (i, v) <- applied st p, open v] | p <- before ]
     mk i c m =
-      let fix = correction st o i (mSeen m)
+      let fix = correction st o i (en (mSeen m))
           lapsed = null fix && maybe False ((/= mVerdict m) . verdict) (listToMaybe (readings st o i))
           v | lapsed = Review
             | otherwise = maybe (mVerdict m) verdict fix
@@ -81,7 +81,7 @@ assess st o = [ mk i c m | (i, c, m) <- judged (oBody o) ]
 
 -- | Each finding's verdict after a person's corrections, without history.
 applied :: State -> Obs -> [(Text, Verdict)]
-applied st o = [ (i, maybe (mVerdict m) verdict (correction st o i (mSeen m))) | (i, _, m) <- judged (oBody o) ]
+applied st o = [ (i, maybe (mVerdict m) verdict (correction st o i (en (mSeen m)))) | (i, _, m) <- judged (oBody o) ]
 
 -- | A person's readings of a finding, on this observation and on earlier ones
 --   of the same page: the nearest observation first; within it, the latest.

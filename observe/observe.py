@@ -26,6 +26,8 @@ Conduct, enforced here and nowhere else:
     browser would fetch it.
   - Nothing is submitted, by the robot or by a page's own script; no window is
     opened, no dialog is dismissed, no session is kept.
+  - Of what a page says, extracts of 80 characters at most are kept. What each
+    block says is weighed, in words and in bits, and not kept.
   - The robot names itself and says where its operator can be reached.
 """
 import argparse, hashlib, json, sys, time, urllib.error, urllib.parse, urllib.request, urllib.robotparser
@@ -110,7 +112,8 @@ def observe(browser, url, agent, shots, closed):
     ctx = browser.new_context(viewport=DESKTOP, user_agent=f"Mozilla/5.0 (compatible; {agent})",
                               accept_downloads=False, service_workers="block")
     try:
-        ctx.add_init_script("window.open = () => null")  # one page is observed; it opens no other
+        # One page is observed; it opens no other. What it tried to open by itself is counted.
+        ctx.add_init_script("window.__opened = 0; window.open = () => { window.__opened++; return null; }")
         page = ctx.new_page()
         cdp = ctx.new_cdp_session(page)
         cdp.send("Network.enable")

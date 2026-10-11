@@ -22,6 +22,12 @@ WEIGHED = """<!doctype html><html lang=en><title>Weighed</title><meta name=viewp
 <main><h1>Weighed</h1><picture><source media="(max-width: 400px)" srcset="/img/narrow.png"><img src="/img/wide.png" alt=""></picture>
 <img alt="" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
 <div style="height:6000px"></div><img loading=lazy src="/img/lazy.png" alt="" width=40 height=40><img src="/hop.png" alt=""></main></html>"""
+# A page that says a great deal: every text the observer keeps of it is an extract.
+LONG = "word " * 120
+WORDY = f"""<!doctype html><html lang=en><title>{LONG}</title><main><h1>{LONG}</h1><p>{LONG}</p>
+<a href="/one" aria-label="{LONG}">{LONG}</a><img src="/img/wide.png" alt="{LONG}"><button>{LONG}</button>
+<label>{LONG}<input placeholder="{LONG}" name="{LONG}"></label><fieldset><legend>{LONG}</legend></fieldset>
+<table><caption>{LONG}</caption><tr><th>{LONG}</th></tr></table></main></html>"""
 log, posts = [], []  # requests as (port, method, path, user agent, time); anything submitted
 
 
@@ -44,6 +50,8 @@ def site(robots):
                 body, code = robots, 200
             elif self.path == "/weighed":
                 body, code = WEIGHED, 200
+            elif self.path == "/wordy":
+                body, code = WORDY, 200
             elif self.path in ANSWERS:
                 body, code = "no", ANSWERS[self.path]
             elif self.path == "/gate":
@@ -161,6 +169,11 @@ check("lets no script submit a form", not out and "submits a form" in err)
 out, err, code = observe(f"{open_}/weighed")
 check("weighs the page as a reader's browser loads it, not what its own measuring adds",
       len(out) == 1 and out[0]["network"]["requests"] == 5 and out[0]["network"]["transfer"] > 5 * len(PIXEL))
+
+out, err, code = observe(f"{open_}/wordy")
+kept = [v for o in out for part in [o["page"]] + o["surfaces"] + o["events"] for k, v in part.items()
+        if k in ("title", "text", "name", "label", "alt", "placeholder", "hint", "said", "skip") and isinstance(v, str)]
+check("keeps extracts of 80 characters at most of what a page says", len(out) == 1 and len(kept) > 12 and max(map(len, kept)) <= 80)
 
 check("submits nothing", not posts)
 sys.exit(0 if all(checks) else 1)

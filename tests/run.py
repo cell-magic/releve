@@ -135,7 +135,7 @@ def main():
     blank["page"].update(lang="en", viewport=None, reflow=320, dupIds=[])
 
     def event(n, *path):
-        return {"n": n, "sel": f"e{n}", "kind": "text", "shown": True, "said": f"word{n}", "path": [list(p) for p in path],
+        return {"n": n, "sel": f"e{n}", "kind": "text", "shown": True, "said": f"word{n}", "words": 1, "bits": 30, "path": [list(p) for p in path],
                 "box": [0, 0, 9, 9], "size": 16, "weight": 400}
 
     def readings(pages):

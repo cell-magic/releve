@@ -56,8 +56,8 @@ facts st o = T.unlines $
     place f = (position (cId (fCrit f)), maybe 0 order (fSurface f))
     position c = fromMaybe 0 (lookup c (zip (map cId criteria) [0 :: Int ..]))
     line f = T.concat
-      [ "- **", word (fVerdict f), "** ", cId (fCrit f), " · ", locus f, " · ", esc (fSeen f)
-      , maybe "" ((" → " <>) . esc) (fChange f)
+      [ "- **", word (fVerdict f), "** ", cId (fCrit f), " · ", locus f, " · ", esc (en (fSeen f))
+      , maybe "" ((" → " <>) . esc . en) (fChange f)
       , if fNew f then " · new" else ""
       , if fAge f > 0 then " · standing " <> T.pack (show (fAge f)) else ""
       , if fLapsed f then " · read otherwise before this changed" else ""
@@ -68,7 +68,7 @@ facts st o = T.unlines $
     passes =
       [ "- " <> cId c <> ": " <> summary c | c <- criteria ]
     summary c = case [f | f <- fs, cId (fCrit f) == cId c] of
-      xs | all ((== NA) . fVerdict) xs -> "n/a · " <> esc (maybe "" fSeen (listToMaybe xs))
+      xs | all ((== NA) . fVerdict) xs -> "n/a · " <> esc (maybe "" (en . fSeen) (listToMaybe xs))
          | otherwise -> T.pack (show (length [f | f <- xs, fVerdict f == Pass])) <> " of " <> T.pack (show (length xs)) <> " pass"
     Footprint e r kb hs = footprint b
     weight =
@@ -132,7 +132,7 @@ corrections st doc = do
           pure (Just (o, M.fromList [(fId f, f) | f <- assess st o]), True, cs)
       | Just (o, known) <- cur = case reading known l of
           Just (f, v, n) | v == fVerdict f && n == fNote f -> pure (cur, found, cs)
-                         | otherwise -> pure (cur, found, Correction (oId o) (fId f) v n (fSeen f) : cs)
+                         | otherwise -> pure (cur, found, Correction (oId o) (fId f) v n (en (fSeen f)) : cs)
           -- A finding's line that no longer reads as one is an edit about to be lost: say so, record nothing.
           Nothing | any (\i -> ("{" <> i <> "}") `T.isInfixOf` l) (M.keys known) ->
                       Left ("this line cannot be read; keep its form, - **VERDICT** … // note {id}\n  " <> l)
@@ -187,5 +187,5 @@ atlas st o = object
       _ -> Nothing
     finding f = object
       [ "id" .= fId f, "criterion" .= cId (fCrit f), "machine" .= fMachine f, "verdict" .= fVerdict f
-      , "note" .= fNote f, "seen" .= fSeen f, "change" .= fChange f, "new" .= fNew f, "age" .= fAge f, "lapsed" .= fLapsed f
+      , "note" .= fNote f, "seen" .= en (fSeen f), "change" .= fmap en (fChange f), "new" .= fNew f, "age" .= fAge f, "lapsed" .= fLapsed f
       , "surface" .= fSurface f ]

@@ -1,0 +1,54 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr> -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<!-- Forms: groups, legends, and the purpose a field declares.
+
+     group-legend  PASS    “Delivery” · FAIL the fieldset without a legend · PASS the radiogroup named by aria-label
+     field-group   PASS    “delivery” (2 grouped) · PASS “size” (2 grouped, no legend: group-legend's matter)
+                   REVIEW  “colour”: 3 radio buttons outside any group
+     autocomplete  PASS    autocomplete="email" · PASS "section-a shipping postal-code"
+                   FAIL    autocomplete="e-mail" on an email field → use "email"
+                   REVIEW  the field “First name” (name="firstname") declares none → given-name
+                   REVIEW  type="tel" without autocomplete → tel
+                   none    “Comment” asks for nothing personal; a checkbox named “mobile” is not a text field -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Forms</title>
+  <style>body { font: 16px/1.5 sans-serif; color: #222; background: #fff; }</style>
+</head>
+<body>
+  <main>
+    <h1>Forms</h1>
+    <form action="/none">
+      <fieldset>
+        <legend>Delivery</legend>
+        <label><input type="radio" name="delivery" value="post"> By post</label>
+        <label><input type="radio" name="delivery" value="hand"> By hand</label>
+      </fieldset>
+      <fieldset>
+        <label><input type="radio" name="size" value="s"> Small</label>
+        <label><input type="radio" name="size" value="l"> Large</label>
+      </fieldset>
+      <div role="radiogroup" aria-label="Paper">
+        <label><input type="radio" name="paper" value="white"> White</label>
+        <label><input type="radio" name="paper" value="cream"> Cream</label>
+      </div>
+      <p>
+        <label><input type="radio" name="colour" value="r"> Red</label>
+        <label><input type="radio" name="colour" value="g"> Green</label>
+        <label><input type="radio" name="colour" value="b"> Blue</label>
+      </p>
+      <p><label for="a">E-mail</label> <input id="a" type="email" autocomplete="email"></p>
+      <p><label for="b">Postcode</label> <input id="b" type="text" autocomplete="section-a shipping postal-code"></p>
+      <p><label for="c">Second e-mail</label> <input id="c" type="email" autocomplete="e-mail"></p>
+      <p><label for="d">First name</label> <input id="d" type="text" name="firstname"></p>
+      <p><label for="e">Number to call</label> <input id="e" type="tel"></p>
+      <p><label for="f">Comment</label> <textarea id="f"></textarea></p>
+      <p><label><input type="checkbox" name="mobile"> Show on small screens</label></p>
+      <button type="submit">Send</button>
+    </form>
+  </main>
+</body>
+</html>

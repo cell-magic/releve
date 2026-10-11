@@ -1,7 +1,7 @@
 # Relevé · http://localhost:8765/reading.html
 
-Observation `9d58dd1c` · 2026-10-11T16:47:42+00:00 · criteria v2 · screenshot `b99cd51906b48b4a` · Chromium 141.0.7390.37  
-53 surfaces · 5 fail · 0 review · 0 hint · 54 pass · first observation of this page
+Observation `4c82577f` · 2026-10-11T17:14:37+00:00 · criteria v3 · screenshot `b99cd51906b48b4a` · Chromium 141.0.7390.37  
+54 surfaces · 5 fail · 0 review · 0 hint · 66 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
 To correct a line, change its verdict word or add a note after `//`, then run `releve correct`.
@@ -18,18 +18,35 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 
 - page-title: 1 of 1 pass
 - page-lang: 1 of 1 pass
+- doctype: 1 of 1 pass
 - zoom: 1 of 1 pass
 - reflow: 1 of 1 pass
 - main-region: 1 of 1 pass
+- skip-link: 1 of 1 pass
 - heading-order: 5 of 5 pass
+- heading-look: 1 of 1 pass
+- list-look: 1 of 1 pass
+- empty-blocks: 1 of 1 pass
+- presentation: 1 of 1 pass
 - image-alt: 1 of 2 pass
 - text-contrast: 31 of 35 pass
 - link-name: 4 of 4 pass
+- link-distinct: 1 of 1 pass
 - button-name: 1 of 1 pass
+- label-in-name: n/a · no name given by the code over a visible label
 - control-label: 2 of 2 pass
+- group-legend: n/a · no group of fields on the page
+- field-group: n/a · no radio buttons on the page
+- autocomplete: 1 of 1 pass
+- table-headers: 1 of 1 pass
 - frame-title: n/a · no frames on the page
 - autoplay: n/a · no audio or video on the page
+- media-captions: n/a · no video on the page
 - unique-ids: 1 of 1 pass
+- tab-order: 1 of 1 pass
+- hidden-focus: 1 of 1 pass
+- no-popup: 1 of 1 pass
+- refresh: n/a · no timed refresh declared
 - ai-disclosure: n/a · no conversational widget detected
 - image-weight: 2 of 2 pass
 - image-format: 2 of 2 pass
