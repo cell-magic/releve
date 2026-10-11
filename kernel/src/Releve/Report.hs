@@ -9,7 +9,7 @@ module Releve.Report (report, typography, touched) where
 
 import Data.Char (isDigit)
 import Data.List (nub, sortOn)
-import Data.Maybe (fromMaybe, listToMaybe)
+import Data.Maybe (listToMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Releve.Criteria (criteria, version)
@@ -43,8 +43,10 @@ report l release st = T.unlines $
   ++ (if length pages > 1 then overview else [])
   ++ concatMap page' (zip [1 ..] pages)
   ++ [ "<h2>" <> t ("What was not looked at" // "Ce qui n'a pas été regardé") <> "</h2>"
-     , p (t ("These rules touch " // "Ces règles touchent ") <> esc (num (length touched)) <> t (" of the 106 criteria of the RGAA 4.1.2, one obligation of article 50 of the AI Act, and two measures of sobriety. To touch a criterion is not to settle it: most ask for a person's judgement beyond what a rule can see."
-            // " des 106 critères du RGAA 4.1.2, une obligation de l'article 50 du règlement sur l'IA, et deux mesures de sobriété. Toucher un critère n'est pas le solder : la plupart demandent le jugement d'une personne au-delà de ce qu'une règle peut voir."))
+     , p (t ("These rules touch " <> num (length (touched "RGAA")) <> " of the 106 criteria of the RGAA 4.1.2, " <> num (length (touched "RGESN")) <> " of the 78 of the RGESN 2024, and "
+              <> num (length (touched "art.")) <> " paragraphs of article 50 of the AI Act. To touch a criterion is not to settle it: most ask for a person's judgement, or for a declaration of the owner's, beyond what a rule can see."
+            // "Ces règles touchent " <> num (length (touched "RGAA")) <> " des 106 critères du RGAA 4.1.2, " <> num (length (touched "RGESN")) <> " des 78 du RGESN 2024, et "
+              <> num (length (touched "art.")) <> " paragraphes de l'article 50 du règlement sur l'IA. Toucher un critère n'est pas le solder : la plupart demandent le jugement d'une personne, ou une déclaration du responsable du site, au-delà de ce qu'une règle peut voir."))
      , p (t ("One page was observed at one moment and at two widths. What appears only after an action (a menu opened, a form sent, a dialogue), what stands behind a login, and what lies inside frames from other sites were not observed."
             // "Une page a été observée à un moment donné et à deux largeurs. Ce qui n'apparaît qu'après une action (un menu ouvert, un formulaire envoyé, une boîte de dialogue), ce qui se trouve derrière une connexion, et ce que contiennent les cadres venus d'autres sites n'ont pas été observés."))
      , "<p class=\"meta\">relevé " <> esc release <> " · " <> t ("criteria v" // "critères v") <> esc version <> "</p>"
@@ -162,11 +164,13 @@ report l release st = T.unlines $
 num :: Int -> Text
 num = T.pack . show
 
--- | The RGAA criteria the rules touch, from the sources they state.
-touched :: [Text]
-touched = nub (concatMap (spans . T.words . T.takeWhile (/= 'W') . fromMaybe "" . T.stripPrefix "RGAA" . en . cRef) criteria)
+-- | The criteria of one reference that the rules touch, from the sources they
+--   state: the numbers that follow its name, a span counted whole.
+touched :: Text -> [Text]
+touched ref = nub (concatMap (spans . drop 1 . dropWhile (/= ref) . T.words . en . cRef) criteria)
   where
-    spans ws = concat [ range w | w <- ws, T.any isDigit w ]
+    spans = concatMap range . takeWhile numbered . filter (/= "·")
+    numbered w = T.any isDigit (T.take 1 w)
     range w = case T.splitOn "–" w of
       [a, b] | [ta, na] <- T.splitOn "." a, [_, nb] <- T.splitOn "." b, Just x <- int' na, Just y <- int' nb -> [ta <> "." <> num k | k <- [x .. y]]
       _ -> [w]

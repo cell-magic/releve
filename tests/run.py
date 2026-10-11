@@ -170,6 +170,36 @@ def main():
     check("twelve independent events take three", (r[1]["depth"], r[1]["steps"]) == (1, 3))
     check("a series beside the rest costs nothing until it is the longer", [x["steps"] for x in r[2:]] == [3, 3, 3, 4, 5, 6])
 
+    # How a page travels, judged from the responses that brought it. The test pages are read from
+    # this machine and are not judged on it; these two records stand for a page served in the open.
+    def carried(**r):
+        return dict({"kind": "Image", "mime": "image/avif", "bytes": 9000, "proto": "h2", "encoded": "", "cached": True, "third": False}, **r)
+
+    heavy = [carried(url="https://example.org/", kind="Document", mime="text/html", bytes=30000),
+             carried(url="https://example.org/site.css", kind="Stylesheet", mime="text/css", bytes=12000, proto="http/1.1", encoded="br", cached=False),
+             carried(url="https://static.example.org/logo.avif"),
+             carried(url="https://cdn.other.net/lib.js", kind="Script", mime="text/javascript", bytes=90000, third=True)] \
+        + [carried(url=f"https://example.org/f{i}.woff2", kind="Font", mime="font/woff2", bytes=100000) for i in range(5)]
+    light = [carried(url="https://example.org/", kind="Document", mime="text/html", bytes=30000, encoded="br"),
+             carried(url="https://example.org/site.css", kind="Stylesheet", mime="text/css", bytes=12000, encoded="gzip"),
+             carried(url="https://example.org/f.woff2", kind="Font", mime="font/woff2", bytes=100000)]
+    corpus = tmp / "carried"
+    for name, rs, more in (("heavy", heavy, {"tls": "TLS 1.2", "ipv6": False}), ("light", light, {"tls": "TLS 1.3", "ipv6": True})):
+        o = json.loads(json.dumps(blank))
+        o.update(url=f"https://example.org/{name}", events=[], surfaces=[])
+        o["page"].update(more)
+        o["network"].update(resources=rs, thirdParties=sorted({r["url"].split("/")[2] for r in rs if r["third"]}))
+        releve("ingest", corpus, feed=json.dumps(o).encode("utf-8"))
+    said = releve("facts", corpus, "https://example.org/heavy")[1].decode("utf-8").replace("\\/", "/")
+    check("a page that travels heavily is told how, line by line", all(line in said for line in (
+        "**HINT** fonts · page · 5 font files, 488 kB", "**HINT** compression · page · example.org/ · 29 kB, not compressed",
+        "**HINT** caching · page · example.org/site.css may not be kept by the browser", "**HINT** protocol · page · negotiated TLS 1.2",
+        "1 of its 8 own responses came over HTTP/1", "its name has no IPv6 address", "its own static files come from 2 domains: example.org, static.example.org",
+        "**REVIEW** third-parties · page · 1 third-party host answered before any consent was given: cdn.other.net")))
+    said = releve("facts", corpus, "https://example.org/light")[1].decode("utf-8")
+    check("a page that travels lightly passes each of them", all(f"- {c}: 1 of 1 pass" in said for c in ("fonts", "compression", "caching", "protocol", "third-parties"))
+          and "**HINT**" not in said)
+
     rng, pages = random.Random(20261011), []
 
     def nested(deep, count, path, out):

@@ -1,7 +1,7 @@
 # Relevé · http://localhost:8765/reading.html
 
-Observation `4c82577f` · 2026-10-11T17:14:37+00:00 · criteria v3 · screenshot `b99cd51906b48b4a` · Chromium 141.0.7390.37  
-54 surfaces · 5 fail · 0 review · 0 hint · 66 pass · first observation of this page
+Observation `5608a4d2` · 2026-10-11T17:42:15+00:00 · criteria v4 · screenshot `b99cd51906b48b4a` · Chromium 141.0.7390.37  
+54 surfaces · 5 fail · 0 review · 0 hint · 69 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
 To correct a line, change its verdict word or add a note after `//`, then run `releve correct`.
@@ -48,6 +48,16 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - no-popup: 1 of 1 pass
 - refresh: n/a · no timed refresh declared
 - ai-disclosure: n/a · no conversational widget detected
+- ai-image: n/a · no image states its origin
+- asks-on-arrival: 1 of 1 pass
+- third-parties: 1 of 1 pass
+- media-autoplay: n/a · no audio or video on the page
+- endless: 1 of 1 pass
+- fonts: n/a · no font is downloaded
+- compression: n/a · read from this machine: how it is served is not judged
+- caching: n/a · read from this machine: how it is served is not judged
+- protocol: n/a · read from this machine: how it is served is not judged
+- lazy-images: n/a · no image below the second screen
 - image-weight: 2 of 2 pass
 - image-format: 2 of 2 pass
 

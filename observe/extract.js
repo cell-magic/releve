@@ -265,7 +265,7 @@
     const add = (kind, extra) => surfaces.push(Object.assign({ kind }, base, extra));
 
     if (tag === "img")
-      add("img", { alt: el.hasAttribute("alt") ? clip(el.getAttribute("alt")) : null, src: el.currentSrc || el.src,
+      add("img", { alt: el.hasAttribute("alt") ? clip(el.getAttribute("alt")) : null, src: el.currentSrc || el.src, lazy: el.loading === "lazy",
                    natural: [el.naturalWidth, el.naturalHeight] });
     else if ((tag === "svg" && role === "img") || (role === "img" && tag !== "svg"))
       add("graphic", { name: clip(accName(el)) });
@@ -393,7 +393,7 @@
       doctype: document.doctype ? txt(document.doctype.name + " " + document.doctype.publicId) : null,
       styling: [...styling], empties, tabbed, hiddenFocus, skip, before, mains: mains.length,
       refresh: refresh ? txt(refresh.getAttribute("content")) : null,
-      opened: window.__opened || 0,
+      opened: window.__opened || 0, asked: window.__asked || [],
     },
     surfaces, events, sources,
   };

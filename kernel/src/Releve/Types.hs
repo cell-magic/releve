@@ -51,6 +51,7 @@ data Surface = Surface
   , auto :: Maybe Text, hint :: Maybe Text, set :: Maybe Text, grouped :: Maybe Bool
   , controls :: Maybe Bool, tracks :: Maybe [Text]
   , rows :: Maybe Int, cols :: Maybe Int, heads :: Maybe Int, across :: Maybe Bool, bare :: Maybe Int, marks :: Maybe Int
+  , lazy :: Maybe Bool, origin :: Maybe Text, manifest :: Maybe Bool   -- ^ loaded when reached; what the file says of its making
   } deriving (Show, Generic, FromJSON)
 
 instance ToJSON Surface where
@@ -83,10 +84,21 @@ data Page = Page
   , doctype :: Maybe Text, styling :: Maybe [(Text, Int)], empties :: Maybe [(Text, Int)]
   , tabbed :: Maybe [Text], hiddenFocus :: Maybe [Text], skip :: Maybe Text, before :: Maybe Int, mains :: Maybe Int
   , refresh :: Maybe Text, opened :: Maybe Int
+  , asked :: Maybe [Text], grows :: Maybe [Double], tls :: Maybe Text, ipv6 :: Maybe Bool
   } deriving (Show, Generic, FromJSON, ToJSON)
+
+-- | One response of those that brought the page: what it is, what it weighs,
+--   how it travelled, whether the browser may keep it, whose it is.
+data Resource = Resource
+  { xUrl :: Text, xKind :: Text, xMime :: Text, xBytes :: Int, xProto :: Text, xEncoded :: Text, xCached :: Bool, xThird :: Bool
+  } deriving (Show, Generic)
+
+instance FromJSON Resource where parseJSON = genericParseJSON evJSON
+instance ToJSON Resource where toJSON = genericToJSON evJSON
 
 data Network = Network
   { requests :: Int, transfer :: Int, thirdParties :: [Text]
+  , resources :: Maybe [Resource]  -- ^ recorded since observer 0.4
   } deriving (Show, Generic, FromJSON, ToJSON)
 
 data Observation = Observation

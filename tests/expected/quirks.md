@@ -1,7 +1,7 @@
 # Relevé · http://localhost:8765/quirks.html
 
-Observation `f6c83c1e` · 2026-10-11T17:14:34+00:00 · criteria v3 · screenshot `4d6d183a71bb0913` · Chromium 141.0.7390.37  
-8 surfaces · 2 fail · 1 review · 0 hint · 19 pass · first observation of this page
+Observation `d09dc21e` · 2026-10-11T17:42:12+00:00 · criteria v4 · screenshot `4d6d183a71bb0913` · Chromium 141.0.7390.37  
+8 surfaces · 2 fail · 1 review · 0 hint · 22 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
 To correct a line, change its verdict word or add a note after `//`, then run `releve correct`.
@@ -49,6 +49,16 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - no-popup: 1 of 1 pass
 - refresh: n/a · no timed refresh declared
 - ai-disclosure: n/a · no conversational widget detected
+- ai-image: n/a · no image states its origin
+- asks-on-arrival: 1 of 1 pass
+- third-parties: 1 of 1 pass
+- media-autoplay: n/a · no audio or video on the page
+- endless: 1 of 1 pass
+- fonts: n/a · no font is downloaded
+- compression: n/a · read from this machine: how it is served is not judged
+- caching: n/a · read from this machine: how it is served is not judged
+- protocol: n/a · read from this machine: how it is served is not judged
+- lazy-images: n/a · no image below the second screen
 - image-weight: n/a · no bitmap images on the page
 - image-format: n/a · no weighed images on the page
 

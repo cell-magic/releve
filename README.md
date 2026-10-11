@@ -169,7 +169,7 @@ commented with the reading it should produce. The recorded observations
 and expected reports sit beside them, so any change in judgement shows up
 as a diff to review.
 
-## Criteria (v3)
+## Criteria (v4)
 
 | id | checks | source |
 |---|---|---|
@@ -177,7 +177,7 @@ as a diff to review.
 | page-lang | the page states its language | RGAA 8.3 · WCAG 3.1.1 |
 | doctype | the page declares its document type | RGAA 8.1 |
 | zoom | zoom is not blocked | RGAA 10.4 · WCAG 1.4.4 |
-| reflow | no horizontal scrolling at 320 px | RGAA 10.11 · WCAG 1.4.10 |
+| reflow | no horizontal scrolling at 320 px | RGAA 10.11 · WCAG 1.4.10 · RGESN 2.5 |
 | main-region | the main content is marked | RGAA 9.2 · 12.6 · WCAG 2.4.1 |
 | skip-link | a link leads to the main content | RGAA 12.7 · WCAG 2.4.1 |
 | heading-order | heading levels follow each other | RGAA 9.1 · WCAG 1.3.1 |
@@ -205,8 +205,18 @@ as a diff to review.
 | no-popup | no window opens by itself | RGAA 13.2 · WCAG 3.2.1 |
 | refresh | the page does not reload or leave on a timer | RGAA 13.1 · WCAG 2.2.1 |
 | ai-disclosure | conversational AI is disclosed | AI Act art. 50(1) |
-| image-weight | images are not larger than shown | RGESN; 2× threshold is the tool's |
-| image-format | heavy images use a modern format | RGESN; 30 kB threshold is the tool's |
+| ai-image | images made by AI say so | AI Act art. 50(2) · 50(4) |
+| asks-on-arrival | nothing is asked of the device on arrival | RGESN 4.13 · 6.6 · AI Act art. 50(3) |
+| third-parties | third parties wait for consent | RGESN 4.4 |
+| media-autoplay | nothing plays by itself | RGESN 4.1 |
+| endless | the page has an end | RGESN 4.2; the threshold (one screen, twice) is the tool's |
+| fonts | fonts are few and light | RGESN 4.8 |
+| compression | text travels compressed | RGESN 6.3; the threshold (1 kB) is the tool's |
+| caching | what does not change is kept by the browser | RGESN 6.2 |
+| protocol | the page travels by current protocols | RGESN 3.3 · 6.7 |
+| lazy-images | images far down the page wait to be reached | RGESN 6.5; the threshold (two screens) is the tool's |
+| image-weight | images are not larger than shown | RGESN 6.4; the threshold (2×) is the tool's |
+| image-format | heavy images use a modern format | RGESN 5.1; the threshold (30 kB) is the tool's |
 
 Each criterion is one entry in `kernel/src/Releve/Criteria.hs`: what it
 checks, its source, what it is for, and one pure function. Whatever a
@@ -229,7 +239,8 @@ one entry; nothing else changes.
 - The footprint is measured, not scored: document nodes, requests,
   kilobytes and third-party hosts, comparable only under the same
   measurement conditions. It is the page as a reader's browser loads it at
-  1280 px, scrolled once to its end: every redirect hop is a request, a
+  1280 px, scrolled to its end (and once more if reaching the end made it a
+  screen longer): every redirect hop is a request, a
   `data:` address is not, and what the measuring itself fetches (the
   screenshot, the 320 px pass) is left out. Document nodes include those
   inside inline SVG, which some other tools leave out.
@@ -262,6 +273,9 @@ configuration, and `tests/conduct.py` checks each of them:
 - It submits no forms, opens no windows, dismisses no dialogs, keeps no
   session, and names
   itself (`releve-observe/0.4`) with its operator's contact address.
+- What a page asks of the device on arrival (notifications, location,
+  camera) is noted and not granted. What an image file says of its own
+  making is read from the bytes already fetched; nothing more is requested.
 - Of what a page says it keeps extracts of 80 characters at most. What each
   block of the page says is weighed, in words and in bits, and not kept.
 

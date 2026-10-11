@@ -1,0 +1,36 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr> -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<!-- What image files say of their own making, and what the page asks of the device.
+
+     ai-image         REVIEW  made-by-ai.png: its metadata gives the IPTC source type trainedAlgorithmicMedia
+                      REVIEW  generator.png: a generator's parameters are written in the file
+                      PASS    manifest.png carries a provenance manifest and states no synthetic origin
+                      none    plain.png says nothing
+                      The page words no disclosure: each REVIEW proposes one.
+     asks-on-arrival  REVIEW  notifications · REVIEW location: asked by a script, before any action
+     lazy-images      HINT    the image 3000 px down is loaded on arrival · PASS the one that waits
+     media-autoplay   HINT    the muted video starts by itself (autoplay, for sound, passes: it is muted)
+     endless          PASS    this page ends -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Provenance</title>
+  <style>body { font: 16px/1.5 sans-serif; color: #222; background: #fff; } .far { height: 3000px; }</style>
+  <script>Notification.requestPermission(); navigator.geolocation.getCurrentPosition(() => {});</script>
+</head>
+<body>
+  <main>
+    <h1>Provenance</h1>
+    <p><img src="made-by-ai.png" alt="A harbour at dawn" width="8" height="8">
+       <img src="generator.png" alt="A lighthouse at dusk" width="8" height="8">
+       <img src="manifest.png" alt="A signed photograph" width="8" height="8">
+       <img src="plain.png" alt="A plain square" width="8" height="8"></p>
+    <video src="clip.mp4" autoplay muted></video>
+    <div class="far"></div>
+    <p><img src="plain.png?far" alt="Far down, loaded at once" width="8" height="8">
+       <img src="plain.png?waits" alt="Far down, waiting" width="8" height="8" loading="lazy"></p>
+  </main>
+</body>
+</html>

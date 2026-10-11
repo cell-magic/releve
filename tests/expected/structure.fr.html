@@ -24,15 +24,15 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <h1>Relevé · http://localhost:8765/structure.html</h1>
 <p>Observation automatisée d'une page rendue, par des règles. Ce n'est pas un audit de conformité : une règle tranche ce qu'une règle peut trancher, et soumet le reste à une personne.</p>
 <h2>Méthode</h2>
-<p>Un navigateur a ouvert chaque page comme le ferait celui d'un lecteur, à 1280 px puis à 320 px, et a consigné ce qu'elle montrait : les noms donnés aux technologies d'assistance, les couleurs telles que rendues, les octets transférés. 34 critères ont ensuite lu ce relevé. Chacun est une règle en code clair ; aucun modèle entraîné n'intervient, de sorte que le même relevé donne le même rapport.</p>
+<p>Un navigateur a ouvert chaque page comme le ferait celui d'un lecteur, à 1280 px puis à 320 px, et a consigné ce qu'elle montrait : les noms donnés aux technologies d'assistance, les couleurs telles que rendues, les octets transférés. 44 critères ont ensuite lu ce relevé. Chacun est une règle en code clair ; aucun modèle entraîné n'intervient, de sorte que le même relevé donne le même rapport.</p>
 <dl>
 <dt>À corriger</dt><dd>une règle énoncée n'est pas respectée ; le remède est indiqué.</dd>
 <dt>À vérifier</dt><dd>la règle a trouvé ce que seule une personne peut trancher, et le montre.</dd>
 <dt>Pourrait être allégé</dt><dd>rien n'est enfreint ; moins d'octets feraient autant.</dd>
 </dl>
 
-<p class="meta">Observée le 11 octobre 2026, 17:14 UTC · Chromium 141.0.7390.37</p>
-<p><strong>8 à corriger · 5 à vérifier · 0 à alléger · 33 contrôles passent</strong></p>
+<p class="meta">Observée le 11 octobre 2026, 17:42 UTC · Chromium 141.0.7390.37</p>
+<p><strong>8 à corriger · 5 à vérifier · 0 à alléger · 38 contrôles passent</strong></p>
 <h2>À corriger (8)</h2>
 <h3>Le contenu principal est balisé</h3>
 <p>Une zone principale balisée permet d'aller droit au contenu, au-delà de ce que chaque page répète. <span class="meta">RGAA 9.2 · 12.6 · WCAG 2.4.1 · travail léger</span></p>
@@ -114,6 +114,16 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <li>Aucune fenêtre ne s'ouvre seule · 0 sur 1 passent</li>
 <li>La page ne se recharge ni ne s'en va après un délai · 0 sur 1 passent</li>
 <li>L'IA conversationnelle est signalée · rien à juger : aucun agent conversationnel détecté</li>
+<li>Les images produites par IA le disent · rien à juger : aucune image ne déclare son origine</li>
+<li>Rien n'est demandé à l'appareil à l'arrivée · 1 sur 1 passent</li>
+<li>Les tiers attendent le consentement · 1 sur 1 passent</li>
+<li>Rien ne se lance seul · 2 sur 2 passent</li>
+<li>La page a une fin · 1 sur 1 passent</li>
+<li>Les polices sont peu nombreuses et légères · rien à juger : aucune police n'est téléchargée</li>
+<li>Le texte voyage compressé · rien à juger : lue depuis cette machine : la façon dont elle est servie n'est pas jugée</li>
+<li>Ce qui ne change pas est gardé par le navigateur · rien à juger : lue depuis cette machine : la façon dont elle est servie n'est pas jugée</li>
+<li>La page voyage par des protocoles actuels · rien à juger : lue depuis cette machine : la façon dont elle est servie n'est pas jugée</li>
+<li>Les images loin dans la page attendent d'être atteintes · rien à juger : aucune image sous le deuxième écran</li>
 <li>Les images ne dépassent pas leur taille d'affichage · rien à juger : aucune image matricielle dans la page</li>
 <li>Les images lourdes utilisent un format récent · rien à juger : aucune image pesée dans la page</li>
 </ul>
@@ -131,9 +141,9 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 </dl>
 <p class="meta">Le lecteur qui en saisit jusqu'à 4 est une convention, comme l'appareil de référence d'un essai de vitesse : il prend ce qui vient en premier dans la page, et moins de choses à la fois là où la page lui fait défaut.</p>
 <h2>Ce qui n'a pas été regardé</h2>
-<p>Ces règles touchent 36 des 106 critères du RGAA 4.1.2, une obligation de l'article 50 du règlement sur l'IA, et deux mesures de sobriété. Toucher un critère n'est pas le solder : la plupart demandent le jugement d'une personne au-delà de ce qu'une règle peut voir.</p>
+<p>Ces règles touchent 36 des 106 critères du RGAA 4.1.2, 14 des 78 du RGESN 2024, et 4 paragraphes de l'article 50 du règlement sur l'IA. Toucher un critère n'est pas le solder : la plupart demandent le jugement d'une personne, ou une déclaration du responsable du site, au-delà de ce qu'une règle peut voir.</p>
 <p>Une page a été observée à un moment donné et à deux largeurs. Ce qui n'apparaît qu'après une action (un menu ouvert, un formulaire envoyé, une boîte de dialogue), ce qui se trouve derrière une connexion, et ce que contiennent les cadres venus d'autres sites n'ont pas été observés.</p>
-<p class="meta">relevé 0.4.0 · critères v3</p>
+<p class="meta">relevé 0.4.0 · critères v4</p>
 </main>
 </body>
 </html>

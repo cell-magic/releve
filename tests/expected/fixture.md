@@ -1,7 +1,7 @@
 # Relevé · http://localhost:8765/fixture.html
 
-Observation `c2c5613e` · 2026-10-11T17:14:22+00:00 · criteria v3 · screenshot `c331abf4b86e8edc` · Chromium 141.0.7390.37  
-29 surfaces · 13 fail · 8 review · 2 hint · 28 pass · first observation of this page
+Observation `c5885ab7` · 2026-10-11T17:41:57+00:00 · criteria v4 · screenshot `c331abf4b86e8edc` · Chromium 141.0.7390.37  
+29 surfaces · 13 fail · 8 review · 3 hint · 31 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
 To correct a line, change its verdict word or add a note after `//`, then run `releve correct`.
@@ -33,8 +33,9 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - **REVIEW** autocomplete · `#n` · the field “Nom” declares no purpose → if it asks for the visitor's own data, add autocomplete="family-name" {c010fbf7}
 - **REVIEW** media-captions · `body > video` · video without a caption track → if it carries speech, add \<track kind="captions"> {4600a9c9}
 
-## Hint (2)
+## Hint (3)
 
+- **HINT** media-autoplay · `body > video` · starts by itself → let the reader start it {4e2a1395}
 - **HINT** image-weight · `body > img:nth-of-type(1)` · 600×300 px shown at 100×50 → serve at most 200×100 px {b0acdb8f}
 - **HINT** image-format · `body > img:nth-of-type(1)` · image\/png, 529 kB → serve AVIF or WebP {e7573373}
 
@@ -72,6 +73,16 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - no-popup: 1 of 1 pass
 - refresh: n/a · no timed refresh declared
 - ai-disclosure: n/a · no conversational widget detected
+- ai-image: n/a · no image states its origin
+- asks-on-arrival: 1 of 1 pass
+- third-parties: 1 of 1 pass
+- media-autoplay: 0 of 1 pass
+- endless: 1 of 1 pass
+- fonts: n/a · no font is downloaded
+- compression: n/a · read from this machine: how it is served is not judged
+- caching: n/a · read from this machine: how it is served is not judged
+- protocol: n/a · read from this machine: how it is served is not judged
+- lazy-images: n/a · no image below the second screen
 - image-weight: 2 of 3 pass
 - image-format: 2 of 3 pass
 

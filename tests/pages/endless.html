@@ -1,0 +1,31 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr> -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<!-- A page without an end: each time its end is reached, it grows by more than a screen.
+
+     endless  HINT  grew twice, each time its end was reached
+     The observer stops at the second time: what a page adds after that is not its reading. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Endless</title>
+  <style>body { font: 16px/1.5 sans-serif; color: #222; background: #fff; } section { height: 1200px; }</style>
+</head>
+<body>
+  <main id="wall">
+    <h1>Endless</h1>
+    <section><p>The first screenful.</p></section>
+  </main>
+  <script>
+    let n = 1;
+    addEventListener("scroll", () => {
+      if (innerHeight + scrollY >= document.documentElement.scrollHeight - 50) {
+        const s = document.createElement("section");
+        s.innerHTML = "<p>More, number " + (++n) + ".</p>";
+        document.getElementById("wall").append(s);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 # Relevé · http://localhost:8765/hostile.html
 
-Observation `8ba66073` · 2026-10-11T17:14:28+00:00 · criteria v3 · screenshot `47e373c1b407f785` · Chromium 141.0.7390.37  
-8 surfaces · 4 fail · 0 review · 0 hint · 22 pass · first observation of this page
+Observation `57088c3c` · 2026-10-11T17:42:03+00:00 · criteria v4 · screenshot `47e373c1b407f785` · Chromium 141.0.7390.37  
+8 surfaces · 4 fail · 0 review · 0 hint · 25 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
 To correct a line, change its verdict word or add a note after `//`, then run `releve correct`.
@@ -47,6 +47,16 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - no-popup: 1 of 1 pass
 - refresh: n/a · no timed refresh declared
 - ai-disclosure: n/a · no conversational widget detected
+- ai-image: n/a · no image states its origin
+- asks-on-arrival: 1 of 1 pass
+- third-parties: 1 of 1 pass
+- media-autoplay: n/a · no audio or video on the page
+- endless: 1 of 1 pass
+- fonts: n/a · no font is downloaded
+- compression: n/a · read from this machine: how it is served is not judged
+- caching: n/a · read from this machine: how it is served is not judged
+- protocol: n/a · read from this machine: how it is served is not judged
+- lazy-images: n/a · no image below the second screen
 - image-weight: 2 of 2 pass
 - image-format: 2 of 2 pass
 

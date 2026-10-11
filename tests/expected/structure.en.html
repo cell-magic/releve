@@ -24,15 +24,15 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <h1>Relevé · http://localhost:8765/structure.html</h1>
 <p>Automated observation of one rendered page, by rule. It is not a conformity audit: a rule decides what a rule can, and puts the rest to a person.</p>
 <h2>Method</h2>
-<p>A browser opened each page as a reader's would, at 1280 px and again at 320 px, and recorded what it showed: the names assistive technology is given, the colours as rendered, the bytes that travelled. 34 criteria then read that record. Each is a rule in plain code; no trained model takes part, so the same record gives the same report.</p>
+<p>A browser opened each page as a reader's would, at 1280 px and again at 320 px, and recorded what it showed: the names assistive technology is given, the colours as rendered, the bytes that travelled. 44 criteria then read that record. Each is a rule in plain code; no trained model takes part, so the same record gives the same report.</p>
 <dl>
 <dt>To mend</dt><dd>a stated rule is broken; the remedy is given.</dd>
 <dt>To check</dt><dd>the rule has found what only a person can decide, and shows it.</dd>
 <dt>Could be lighter</dt><dd>nothing is broken; fewer bytes would do the same.</dd>
 </dl>
 
-<p class="meta">Observed on 11 October 2026, 17:14 UTC · Chromium 141.0.7390.37</p>
-<p><strong>8 to mend · 5 to check · 0 could be lighter · 33 checks pass</strong></p>
+<p class="meta">Observed on 11 October 2026, 17:42 UTC · Chromium 141.0.7390.37</p>
+<p><strong>8 to mend · 5 to check · 0 could be lighter · 38 checks pass</strong></p>
 <h2>To mend (8)</h2>
 <h3>The main content is marked</h3>
 <p>A marked main region lets a reader go straight to the content, past what every page repeats. <span class="meta">RGAA 9.2 · 12.6 · WCAG 2.4.1 · light work</span></p>
@@ -114,6 +114,16 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <li>No window opens by itself · 0 of 1 pass</li>
 <li>The page does not reload or leave on a timer · 0 of 1 pass</li>
 <li>Conversational AI is disclosed · nothing to judge: no conversational widget detected</li>
+<li>Images made by AI say so · nothing to judge: no image states its origin</li>
+<li>Nothing is asked of the device on arrival · 1 of 1 pass</li>
+<li>Third parties wait for consent · 1 of 1 pass</li>
+<li>Nothing plays by itself · 2 of 2 pass</li>
+<li>The page has an end · 1 of 1 pass</li>
+<li>Fonts are few and light · nothing to judge: no font is downloaded</li>
+<li>Text travels compressed · nothing to judge: read from this machine: how it is served is not judged</li>
+<li>What does not change is kept by the browser · nothing to judge: read from this machine: how it is served is not judged</li>
+<li>The page travels by current protocols · nothing to judge: read from this machine: how it is served is not judged</li>
+<li>Images far down the page wait to be reached · nothing to judge: no image below the second screen</li>
 <li>Images are not larger than shown · nothing to judge: no bitmap images on the page</li>
 <li>Heavy images use a modern format · nothing to judge: no weighed images on the page</li>
 </ul>
@@ -131,9 +141,9 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 </dl>
 <p class="meta">The reader who holds up to 4 is a convention, as a reference device is in a test of speed: it takes what comes first on the page, and fewer things at once where the page fails them.</p>
 <h2>What was not looked at</h2>
-<p>These rules touch 36 of the 106 criteria of the RGAA 4.1.2, one obligation of article 50 of the AI Act, and two measures of sobriety. To touch a criterion is not to settle it: most ask for a person's judgement beyond what a rule can see.</p>
+<p>These rules touch 36 of the 106 criteria of the RGAA 4.1.2, 14 of the 78 of the RGESN 2024, and 4 paragraphs of article 50 of the AI Act. To touch a criterion is not to settle it: most ask for a person's judgement, or for a declaration of the owner's, beyond what a rule can see.</p>
 <p>One page was observed at one moment and at two widths. What appears only after an action (a menu opened, a form sent, a dialogue), what stands behind a login, and what lies inside frames from other sites were not observed.</p>
-<p class="meta">relevé 0.4.0 · criteria v3</p>
+<p class="meta">relevé 0.4.0 · criteria v4</p>
 </main>
 </body>
 </html>

@@ -18,7 +18,7 @@ import Releve.Colour
 import Releve.Types
 
 version :: Text
-version = "3"
+version = "4"
 
 criteria :: [Criterion]
 criteria =
@@ -38,7 +38,7 @@ criteria =
       ("A reader who needs larger text enlarges the page; a viewport that forbids it removes the one adjustment they have."
        // "Qui a besoin d'un texte plus grand agrandit la page ; un viewport qui l'interdit retire le seul réglage disponible.")
       zoom
-  , Criterion "reflow" ("No horizontal scrolling at 320 px" // "Pas de défilement horizontal à 320 px") "RGAA 10.11 · WCAG 1.4.10" Heavy
+  , Criterion "reflow" ("No horizontal scrolling at 320 px" // "Pas de défilement horizontal à 320 px") "RGAA 10.11 · WCAG 1.4.10 · RGESN 2.5" Heavy
       ("At 320 px wide, the width of a small phone or of a desktop page enlarged four times, content is read by scrolling one way only."
        // "À 320 px de large, largeur d'un petit téléphone ou d'une page agrandie quatre fois, le contenu se lit en ne défilant que dans un sens.")
       reflowC
@@ -150,11 +150,51 @@ criteria =
       ("A person has to know when the other party to a conversation is a machine: the AI Act requires that they be told."
        // "Une personne doit savoir quand son interlocuteur est une machine : le règlement sur l'IA impose de le lui dire.")
       aiDisclosure
-  , Criterion "image-weight" ("Images are not larger than shown" // "Les images ne dépassent pas leur taille d'affichage") ("RGESN · threshold 2× (tool)" // "RGESN · seuil 2× (outil)") Light
+  , Criterion "ai-image" ("Images made by AI say so" // "Les images produites par IA le disent") "AI Act art. 50(2) · 50(4)" Medium
+      ("An image generated or altered by an AI system has to be disclosed as such to those who see it; the file itself often says where it comes from."
+       // "Une image produite ou modifiée par un système d'IA doit être signalée comme telle à qui la voit ; le fichier lui-même dit souvent d'où il vient.")
+      aiImage
+  , Criterion "asks-on-arrival" ("Nothing is asked of the device on arrival" // "Rien n'est demandé à l'appareil à l'arrivée") "RGESN 4.13 · 6.6 · AI Act art. 50(3)" Light
+      ("A request for location, camera or notifications before the reader has done anything is answered without knowing why it is asked."
+       // "Une demande de position, de caméra ou de notifications avant que le lecteur ait rien fait reçoit une réponse sans qu'il sache pourquoi on la lui pose.")
+      asksOnArrival
+  , Criterion "third-parties" ("Third parties wait for consent" // "Les tiers attendent le consentement") "RGESN 4.4" Medium
+      ("Each third party is a connection to another company's servers, opened for every reader before they have said anything."
+       // "Chaque tiers est une connexion aux serveurs d'une autre entreprise, ouverte pour chaque lecteur avant qu'il ait rien dit.")
+      thirdPartiesC
+  , Criterion "media-autoplay" ("Nothing plays by itself" // "Rien ne se lance seul") "RGESN 4.1" Light
+      ("Media that starts by itself is downloaded and decoded for readers who did not ask for it."
+       // "Un média qui se lance seul est téléchargé et décodé pour des lecteurs qui ne l'ont pas demandé.")
+      mediaAutoplay
+  , Criterion "endless" ("The page has an end" // "La page a une fin") ("RGESN 4.2 · threshold one screen, twice (tool)" // "RGESN 4.2 · seuil un écran, deux fois (outil)") Medium
+      ("A page that grows each time its end is reached has none: its weight is whatever the reader's patience allows, and its footer is never reached."
+       // "Une page qui s'allonge chaque fois qu'on atteint sa fin n'en a pas : son poids est ce que permet la patience du lecteur, et son pied de page n'est jamais atteint.")
+      endless
+  , Criterion "fonts" ("Fonts are few and light" // "Les polices sont peu nombreuses et légères") "RGESN 4.8" Light
+      ("Each font file is fetched before the text it sets shows as designed; two fonts in four variants, or 400 kB, is the reference's limit."
+       // "Chaque fichier de police est chargé avant que le texte qu'il compose s'affiche tel que dessiné ; deux polices en quatre variantes, ou 400 ko, est la limite du référentiel.")
+      fontsC
+  , Criterion "compression" ("Text travels compressed" // "Le texte voyage compressé") ("RGESN 6.3 · threshold 1 kB (tool)" // "RGESN 6.3 · seuil 1 ko (outil)") Light
+      ("Text compresses to a third of its size or less; sent as it is, the rest travels for nothing."
+       // "Le texte se compresse au tiers de sa taille ou moins ; envoyé tel quel, le reste voyage pour rien.")
+      compression
+  , Criterion "caching" ("What does not change is kept by the browser" // "Ce qui ne change pas est gardé par le navigateur") "RGESN 6.2" Light
+      ("A file the browser may keep is not fetched again on the next page, nor on the next visit."
+       // "Un fichier que le navigateur peut garder n'est pas rechargé à la page suivante, ni à la visite suivante.")
+      caching
+  , Criterion "protocol" ("The page travels by current protocols" // "La page voyage par des protocoles actuels") "RGESN 3.3 · 6.7" Medium
+      ("HTTP/2 and 3 carry a page's files over one connection; TLS 1.3 opens it in fewer exchanges; IPv6 reaches readers without address translation."
+       // "HTTP/2 et 3 portent les fichiers d'une page sur une seule connexion ; TLS 1.3 l'ouvre en moins d'échanges ; IPv6 joint les lecteurs sans traduction d'adresse.")
+      protocolC
+  , Criterion "lazy-images" ("Images far down the page wait to be reached" // "Les images loin dans la page attendent d'être atteintes") ("RGESN 6.5 · threshold two screens (tool)" // "RGESN 6.5 · seuil deux écrans (outil)") Light
+      ("An image far below the screen is paid for by every reader and seen by those who scroll to it."
+       // "Une image loin sous l'écran est payée par chaque lecteur et vue par ceux qui défilent jusqu'à elle.")
+      lazyImages
+  , Criterion "image-weight" ("Images are not larger than shown" // "Les images ne dépassent pas leur taille d'affichage") ("RGESN 6.4 · threshold 2× (tool)" // "RGESN 6.4 · seuil 2× (outil)") Light
       ("Pixels that are never displayed still travel, are decoded and held in memory, on the reader's connection and battery."
        // "Les pixels jamais affichés voyagent, sont décodés et gardés en mémoire quand même, sur la connexion et la batterie du lecteur.")
       imageWeight
-  , Criterion "image-format" ("Heavy images use a modern format" // "Les images lourdes utilisent un format récent") ("RGESN · threshold 30 kB (tool)" // "RGESN · seuil 30 ko (outil)") Light
+  , Criterion "image-format" ("Heavy images use a modern format" // "Les images lourdes utilisent un format récent") ("RGESN 5.1 · threshold 30 kB (tool)" // "RGESN 5.1 · seuil 30 ko (outil)") Light
       ("Recent formats carry the same picture in a fraction of the bytes."
        // "Les formats récents portent la même image en une fraction des octets.")
       imageFormat
@@ -613,3 +653,122 @@ aiDisclosure o = case surfacesOf "widget" o of
                (if null ds then Just ("if it is an AI system, say so to the user" // "s'il s'agit d'un système d'IA, le dire à l'utilisateur") else Nothing) | w <- ws ]
   where ds = disclosure (page o)
         said = if null ds then "none" // "aucune" else foldr1 (\a b -> a <> ", " <> b) (map quote ds)
+
+-- sobriety --------------------------------------------------------------
+
+aiImage, asksOnArrival, thirdPartiesC, mediaAutoplay, endless, fontsC, compression, caching, protocolC, lazyImages :: Observation -> [Mark]
+
+-- | What an image file says of its own making is read; whether the page says
+--   it too is put to a person, with the page's wording.
+aiImage o = recorded o . orNA ("no image states its origin" // "aucune image ne déclare son origine") $ mapMaybe judge (surfacesOf "img" o)
+  where
+    judge s = case (origin s, manifest s) of
+      (Just x, _) | x /= "algorithmicMedia" ->
+        Just (on s Review (("the file states its origin: " <> x <> "; disclosure wording on the page: " // "le fichier déclare son origine : " <> x <> " ; mention sur la page : ") <> said)
+                (if null ds then Just ("say, beside the image, that it was generated by AI" // "dire, près de l'image, qu'elle a été produite par IA") else Nothing))
+      (Just x, _) -> Just (on s Pass (both ("origin: " <> x)) Nothing)
+      (Nothing, Just True) -> Just (on s Pass ("carries a provenance manifest (C2PA), with no synthetic origin stated" // "porte un manifeste de provenance (C2PA), sans origine synthétique déclarée") Nothing)
+      _ -> Nothing
+    ds = disclosure (page o)
+    said = if null ds then "none" // "aucune" else foldr1 (\a b -> a <> ", " <> b) (map quote ds)
+
+asksOnArrival o = recorded o $ case fromMaybe [] (asked (page o)) of
+  [] -> [onPage Pass ("asks nothing of the device on arrival" // "ne demande rien à l'appareil à l'arrivée") Nothing]
+  as -> [ onPage Review (("asks for " // "demande ") <> what a <> (" on arrival" // " dès l'arrivée"))
+            (Just ("ask when the reader starts what needs it" // "demander quand le lecteur lance ce qui en a besoin")) | a <- as ]
+  where
+    what "notifications" = "notifications" // "les notifications"
+    what "location" = "the device's location" // "la position de l'appareil"
+    what "camera or microphone" = "the camera or the microphone" // "la caméra ou le microphone"
+    what a = both a
+
+-- | The robot gives no consent: whatever third party answered did so without one.
+thirdPartiesC o = case thirdParties (network o) of
+  [] -> [onPage Pass ("no third party is called" // "aucun tiers n'est appelé") Nothing]
+  hs -> [onPage Review (num (length hs) <> (if length hs == 1 then " third-party host" else " third-party hosts") <> " answered before any consent was given: " <> T.intercalate ", " hs
+                        // num (length hs) <> (if length hs == 1 then " hôte tiers a répondu" else " hôtes tiers ont répondu") <> " avant tout consentement : " <> T.intercalate ", " hs)
+          (Just ("call each one only once the reader has agreed, unless the page cannot work without it" // "n'appeler chacun qu'une fois l'accord du lecteur donné, sauf si la page ne peut fonctionner sans lui"))]
+
+mediaAutoplay o = orNA ("no audio or video on the page" // "ni audio ni vidéo dans la page") (map judge (surfacesOf "media" o))
+  where judge s | autoplay s == Just True = on s Hint ("starts by itself" <> (if muted s == Just True then ", muted" else "") // "se lance seul" <> (if muted s == Just True then ", sans le son" else ""))
+                                              (Just ("let the reader start it" // "laisser le lecteur le lancer"))
+                | otherwise = on s Pass ("waits to be started" // "attend d'être lancé") Nothing
+
+endless o = case grows (page o) of
+  Just [a, b, c] | b - a >= 800 && c - b >= 800 ->
+    [onPage Hint ("grew from " <> int a <> " to " <> int b <> ", then to " <> int c <> " px, each time its end was reached" // "est passée de " <> int a <> " à " <> int b <> ", puis à " <> int c <> " px, chaque fois que sa fin était atteinte")
+       (Just ("load more on request: a button, or pages" // "charger la suite à la demande : un bouton, ou des pages"))]
+  Just hs | not (null hs) -> [onPage Pass ("ends at " <> int (last hs) <> " px" // "s'achève à " <> int (last hs) <> " px") Nothing]
+  _ -> [onPage NA ("not recorded by the observer of that time" // "non relevé par l'observateur d'alors") Nothing]
+
+-- | The responses that brought the page; an observer that did not record them is not judged on them.
+carried :: Observation -> ([Resource] -> [Mark]) -> [Mark]
+carried o f = maybe [onPage NA ("not recorded by the observer of that time" // "non relevé par l'observateur d'alors") Nothing] f (resources (network o))
+
+-- | A page read from this machine says nothing of how it would be served.
+served :: Observation -> [Mark] -> [Mark]
+served o ms
+  | host `elem` ["localhost", "127.0.0.1", "[::1]"] = [onPage NA ("read from this machine: how it is served is not judged" // "lue depuis cette machine : la façon dont elle est servie n'est pas jugée") Nothing]
+  | otherwise = ms
+  where host = T.takeWhile (`notElem` (":/" :: String)) (T.drop 3 (snd (T.breakOn "://" (url o))))
+
+kb :: Int -> Text
+kb b = int (fromIntegral b / 1024)
+
+-- | The file an address names, for a line of a report.
+file :: Text -> Text
+file u = let p = T.takeWhile (`notElem` ("?#" :: String)) (T.drop 3 (snd (T.breakOn "://" u))) in T.takeEnd 60 p
+
+-- | Twelve lines at most for one criterion; what is past them is counted.
+few :: Phrase -> [Mark] -> [Mark]
+few more ms = take 12 ms ++ [onPage Hint (both (num (length ms - 12) <> " ") <> more) Nothing | length ms > 12]
+
+fontsC o = carried o $ \rs -> case [r | r <- rs, xKind r == "Font"] of
+  [] -> [onPage NA ("no font is downloaded" // "aucune police n'est téléchargée") Nothing]
+  fs | length fs <= 4 || weight' <= 400 * 1024 -> [onPage Pass seen Nothing]
+     | otherwise -> [onPage Hint seen (Just ("keep to two fonts in four variants, or to 400 kB" // "s'en tenir à deux polices en quatre variantes, ou à 400 ko"))]
+    where weight' = sum (map xBytes fs)
+          seen = num (length fs) <> (if length fs == 1 then " font file, " else " font files, ") <> kb weight' <> " kB" // num (length fs) <> (if length fs == 1 then " fichier de police, " else " fichiers de police, ") <> kb weight' <> " ko"
+
+compression o = served o . carried o $ \rs ->
+  let text r = not (xThird r) && xBytes r > 1024 && (xKind r `elem` ["Document", "Stylesheet", "Script"] || any (`T.isInfixOf` xMime r) ["svg", "json", "xml", "text/"])
+      bare = [r | r <- rs, text r, T.null (xEncoded r)]
+  in case filter text rs of
+       [] -> [onPage NA ("no text resource of its own above 1 kB" // "aucune ressource textuelle propre au-dessus de 1 ko") Nothing]
+       ts | null bare -> [onPage Pass (num (length ts) <> " text resources, all compressed" // num (length ts) <> " ressources textuelles, toutes compressées") Nothing]
+          | otherwise -> few ("more travel uncompressed" // "autres voyagent sans compression")
+              [ onPage Hint (both (file (xUrl r)) <> (" · " <> kb (xBytes r) <> " kB, not compressed" // " · " <> kb (xBytes r) <> " ko, sans compression"))
+                  (Just ("serve it with Brotli or gzip" // "le servir avec Brotli ou gzip")) | r <- bare ]
+
+caching o = served o . carried o $ \rs ->
+  let static r = not (xThird r) && xKind r `elem` ["Stylesheet", "Script", "Image", "Font", "Media"]
+      loose = [r | r <- rs, static r, not (xCached r)]
+  in case filter static rs of
+       [] -> [onPage NA ("no static file of its own" // "aucun fichier statique propre") Nothing]
+       ss | null loose -> [onPage Pass (num (length ss) <> " static files, all of which the browser may keep" // num (length ss) <> " fichiers statiques, que le navigateur peut tous garder") Nothing]
+          | otherwise -> few ("more may not be kept" // "autres ne peuvent être gardés")
+              [ onPage Hint (both (file (xUrl r)) <> (" may not be kept by the browser" // " ne peut être gardé par le navigateur"))
+                  (Just ("send Cache-Control with a lifetime, or a validator (ETag, Last-Modified)" // "envoyer Cache-Control avec une durée, ou un validateur (ETag, Last-Modified)")) | r <- loose ]
+
+protocolC o = served o . carried o $ \rs ->
+  let own = [r | r <- rs, not (xThird r)]
+      old = [r | r <- own, "http/1" `T.isPrefixOf` T.toLower (xProto r)]
+      homes = nub [T.takeWhile (/= '/') (T.drop 3 (snd (T.breakOn "://" (xUrl r)))) | r <- own, xKind r `elem` ["Stylesheet", "Script", "Image", "Font", "Media"]]
+      found = concat
+        [ [onPage Hint ("served over HTTP, without encryption" // "servie en HTTP, sans chiffrement") (Just ("serve it over HTTPS" // "la servir en HTTPS")) | "http://" `T.isPrefixOf` url o]
+        , [onPage Hint ("negotiated " <> t // "a négocié " <> t) (Just ("enable TLS 1.3" // "activer TLS 1.3")) | Just t <- [tls (page o)], t `notElem` ["TLS 1.3", "QUIC"]]
+        , [onPage Hint (num (length old) <> " of its " <> num (length own) <> " own responses came over HTTP/1" // num (length old) <> " de ses " <> num (length own) <> " réponses propres sont venues en HTTP/1")
+             (Just ("enable HTTP/2 or HTTP/3" // "activer HTTP/2 ou HTTP/3")) | not (null old)]
+        , [onPage Hint ("its name has no IPv6 address" // "son nom n'a pas d'adresse IPv6") (Just ("publish an AAAA record" // "publier un enregistrement AAAA")) | ipv6 (page o) == Just False]
+        , [onPage Hint ("its own static files come from " <> num (length homes) <> " domains: " <> T.intercalate ", " homes // "ses fichiers statiques propres viennent de " <> num (length homes) <> " domaines : " <> T.intercalate ", " homes)
+             (Just ("serve them from one" // "les servir depuis un seul")) | length homes > 1] ]
+  in if null found then [onPage Pass ("HTTPS, " <> fromMaybe "TLS" (tls (page o)) <> ", HTTP/2 or 3, IPv6, one domain" // "HTTPS, " <> fromMaybe "TLS" (tls (page o)) <> ", HTTP/2 ou 3, IPv6, un seul domaine") Nothing] else found
+
+-- | Below the second screen of a page 800 px high, an image should wait.
+lazyImages o = recorded o . orNA ("no image below the second screen" // "aucune image sous le deuxième écran") $
+  [ if lazy s == Just True
+      then on s Pass ("waits to be reached, " <> int y <> " px down" // "attend d'être atteinte, à " <> int y <> " px")
+             Nothing
+      else on s Hint ("starts " <> int y <> " px down the page and is loaded on arrival" // "commence à " <> int y <> " px dans la page et se charge dès l'arrivée")
+             (Just ("add loading=\"lazy\"" // "ajouter loading=\"lazy\""))
+  | s <- surfacesOf "img" o, Just (_ : y : _) <- [box s], y >= 1600, maybe False (not . ("data:" `T.isPrefixOf`)) (src s) ]
