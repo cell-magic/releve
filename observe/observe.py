@@ -86,14 +86,20 @@ def place(url):
     return f"{p.scheme}://{p.netloc}", p.hostname.removeprefix("www.")
 
 
-def robots(origin, agent):
+def robots(origin, agent, shut=None):
     """The site's rules, or None when it must be left alone. RFC 9309: a 4xx
-    means no rules; an unreachable or failing server means stay out."""
+    means no rules; an unreachable or failing server means stay out. `shut`
+    says why an address may not be requested at all, wherever a redirect leads."""
+    class Guarded(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, req, fp, code, msg, headers, to):
+            if shut and shut(to):
+                raise urllib.error.URLError(shut(to))
+            return super().redirect_request(req, fp, code, msg, headers, to)
     rp = urllib.robotparser.RobotFileParser()
     try:
         req = urllib.request.Request(origin + "/robots.txt", headers={"User-Agent": agent})
-        with urllib.request.urlopen(req, timeout=10) as r:
-            rp.parse(r.read().decode("utf-8", "replace").splitlines())
+        with urllib.request.build_opener(Guarded).open(req, timeout=10) as r:
+            rp.parse(r.read(500_000).decode("utf-8", "replace").splitlines())
     except urllib.error.HTTPError as e:
         if not 400 <= e.code < 500:
             return None
@@ -108,7 +114,10 @@ def key(s):
     return hashlib.sha1(ident.encode()).hexdigest()[:10]
 
 
-def observe(browser, url, agent, shots, closed):
+def observe(browser, url, agent, shots, closed, shut=None):
+    """One page, rendered and recorded. `closed` says why the page may not go to an address;
+    `shut`, when given, says why nothing at all may be requested from one, and every request
+    the page makes is put to it."""
     ctx = browser.new_context(viewport=DESKTOP, user_agent=f"Mozilla/5.0 (compatible; {agent})",
                               accept_downloads=False, service_workers="block")
     try:
@@ -130,17 +139,18 @@ def observe(browser, url, agent, shots, closed):
         barred = []
 
         def gate(e):
-            to = e["request"]["url"]
-            why = ("a script submits a form" if e["request"]["method"] != "GET"
-                   else closed(to) if e["frameId"] == frame else None)
-            if why:
-                barred.append(f"leads to {to}, where {why}")
+            to, document = e["request"]["url"], e.get("resourceType") == "Document"
+            away = document and ("a script submits a form" if e["request"]["method"] != "GET"
+                                 else closed(to) if e["frameId"] == frame else None)
+            if away:
+                barred.append(f"leads to {to}, where {away}")
+            if away or (shut and shut(to)):
                 cdp.send("Fetch.failRequest", {"requestId": e["requestId"], "errorReason": "BlockedByClient"})
             else:
                 cdp.send("Fetch.continueRequest", {"requestId": e["requestId"]})
 
         cdp.on("Fetch.requestPaused", gate)
-        cdp.send("Fetch.enable", {"patterns": [{"resourceType": "Document"}]})
+        cdp.send("Fetch.enable", {"patterns": [{} if shut else {"resourceType": "Document"}]})
 
         try:
             answer = page.goto(url, wait_until="load", timeout=45000)

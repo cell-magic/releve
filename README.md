@@ -123,12 +123,45 @@ document, which `releve correct` reads back section by section.
 Everything is UTF-8 with line feeds, on every system. Windows PowerShell 5
 re-encodes what passes through `|` and `>`: use `cmd`, or PowerShell 7.
 
+## As a page anyone can use
+
+```sh
+python serve/serve.py --contact https://you.example/robot      # then open http://127.0.0.1:8000/
+```
+
+`serve` puts the whole of it behind a form: the address of a page in, its
+report out, in English or in French. The page it serves is static HTML,
+without script.
+
+- **Nothing is kept.** No account, no cookie, no log of who asked or of
+  what was asked. An observation lives in memory for the time of the
+  answer.
+- **The record belongs to whoever asked.** Each report offers its record
+  as a small file. Handed back with the next request, it lets the report
+  say what was mended, what is new and what stands. The record is the
+  sealed corpus: one whose seals do not hold is refused.
+- **It goes where a visitor could, and nowhere else.** Only public
+  addresses on the web's own ports are requested, by the page or by
+  anything the page loads. `robots.txt` is obeyed, and no mandate can be
+  claimed through a form. One site is visited at most once every ten
+  seconds; one page is observed at a time, and requests past the few that
+  may wait are told to come back.
+
+Put a proxy in front of it that terminates TLS and keeps no access log,
+and keep the machine away from any private network: the address check is
+made when a request is asked for, and a firewall is the second lock.
+`--shell en=FILE --shell fr=FILE` sets the report in a page of your own
+(`<!-- relevé -->` marks the place), `--static DIR` serves what that page
+needs. One page takes two to ten seconds and, with the browser, up to
+about one gigabyte of memory for a heavy one; two gigabytes are enough.
+
 ## Tests
 
 ```sh
 python tests/run.py            # the kernel against recorded pages: no browser, no network
 python tests/run.py --record   # re-record the test pages after changing the observer
 python tests/conduct.py        # the observer against local sites that say no
+python tests/service.py        # the service against local sites: a report out, nothing left behind
 ```
 
 `tests/pages/` holds pages with known defects and edge cases, each

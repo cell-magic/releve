@@ -12,6 +12,8 @@ may read it too: it is the house rule, written down.
   without the other.
 - The observer's conduct (README, *Conduct*) is code, and `tests/conduct.py`
   checks it. It is never loosened to make a page readable.
+- The service keeps nothing: no account, no cookie, no script, no log of who
+  asked or of what. `tests/service.py` checks it.
 - Every file states its licence, in an SPDX header or in `REUSE.toml`.
   EUPL-1.2 throughout; dependencies under free licences only; nothing taken
   from other software.
@@ -22,10 +24,11 @@ may read it too: it is the house rule, written down.
 ```sh
 python tests/run.py        # the kernel, against recorded pages
 python tests/conduct.py    # the observer, against local sites that say no
+python tests/service.py    # the service: a report out, nothing left behind
 reuse lint
 ```
 
-All three pass. A change of judgement shows as a diff in `tests/expected/`
+All four pass. A change of judgement shows as a diff in `tests/expected/`
 and is accepted on purpose (`--accept`), never in passing.
 
 ## Each commit says how it was made
