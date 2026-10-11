@@ -1,5 +1,50 @@
 # Changes
 
+## 0.4.0
+
+Criteria move from v2 to v4: 44 rules where there were 17. The English of
+the first 17 is unchanged, so readings made under 0.3 still carry.
+
+- **The report.** `releve report en|fr CORPUS` writes one page of HTML for
+  the person whose pages they are: the method first, each finding with its
+  remedy under its criterion and what that criterion is for, the lightest
+  work first, then what was not looked at. With `-` for the corpus it reads
+  observations from standard input and keeps nothing.
+- **Two languages.** Whatever a rule says, it says in English and in
+  French. `facts` stays in English, as the reviewer's working document.
+- **As a page anyone can use.** `serve/serve.py` puts the whole of it
+  behind a form: an address in, a report out. No account, no cookie, no
+  script, no log. Whoever asks keeps the record, as a small sealed file, and
+  hands it back to learn what changed. Only public addresses on the web's
+  own ports are requested, by the page or by anything it loads.
+- **Twenty-seven new rules.** From the RGAA: the document type, a link to
+  the main content, text that looks like a heading or a list, elements used
+  as gaps, styling in the markup, links of one name to several places, the
+  visible label within the name, legends and groups of fields, the purpose
+  a field declares, table headers, caption tracks, the keyboard's order,
+  focus under aria-hidden, windows and reloads without the reader. From the
+  RGESN: fonts, compression, caching, protocols, images loaded before they
+  are reached, third parties before consent, media that starts alone, a
+  page without an end, requests made of the device on arrival. From article
+  50 of the AI Act: an image whose own file states a synthetic origin.
+  They touch 36 of the 106 criteria of the RGAA, 14 of the 78 of the RGESN
+  and four paragraphs of article 50. To touch is not to settle.
+- **The reading.** Beside the verdicts, a measure: how much a page gives
+  its reader to take in, the order its markup obliges, and the steps that
+  makes for a reader who takes one thing at a time and for one who holds up
+  to four. In `facts`, in `atlas` (with the order as a tree) and in the
+  report.
+- **The observer records more, and keeps less.** The reading sequence; how
+  each response travelled; what image files say of their own making; what
+  the page asks of the device on arrival. Of what a page says, extracts of
+  80 characters at most are kept: names, labels, alternatives and titles
+  are clipped, and what a block says is weighed and not kept. Surfaces
+  whose name ran past 80 characters change identity once.
+- **A page read from this machine** is not judged on how it is served.
+- `releve guide en|fr`: the criteria and what each is for, on one page.
+- Eight new test pages, each commented with the reading it should give; a
+  third suite, `tests/service.py`.
+
 ## 0.3.1
 
 Criteria stay at v2. Three corrections, each from an outside reading of the code.

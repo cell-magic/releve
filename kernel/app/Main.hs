@@ -33,6 +33,7 @@ usage = unlines
   , "  releve atlas CORPUS                   every observation as study data (JSON lines)"
   , "  releve verify CORPUS                  check the corpus seals"
   , "  releve criteria                       list the criteria and their sources"
+  , "  releve guide en|fr                    the criteria and what each is for, as HTML"
   , "  releve --version" ]
 
 -- | The release, as in releve.cabal; tests/run.py holds the two together.
@@ -63,6 +64,7 @@ main = plain >> getArgs >>= \args -> case args of
   ["criteria"] -> do
     putStrLn ("criteria v" <> T.unpack version)
     forM_ criteria $ \k -> TIO.putStrLn (T.justifyLeft 17 ' ' (cId k) <> T.justifyLeft 46 ' ' (en (cTitle k)) <> en (cRef k))
+  ["guide", l] | Just lang <- lookup l [("en", En), ("fr", Fr)] -> TIO.putStr (guide lang (T.pack release))
   ["--version"] -> putStrLn ("releve " <> release <> " · criteria v" <> T.unpack version)
   _ -> hPutStrLn stderr usage >> exitWith (ExitFailure 2)
 

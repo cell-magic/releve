@@ -5,7 +5,7 @@
 --   person whose pages they are. One HTML page, without script, in the
 --   language asked for. Method before findings; a finding with its remedy;
 --   the lightest work first; and what was not looked at, said plainly.
-module Releve.Report (report, typography, touched) where
+module Releve.Report (report, guide, typography, touched) where
 
 import Data.Char (isDigit)
 import Data.List (nub, sortOn)
@@ -160,6 +160,25 @@ report l release st = T.unlines $
       [ "<p>" <> esc (num e) <> " " <> t ("elements in the document" // "éléments dans le document") <> " · " <> esc (num r) <> " " <> t ("requests" // "requêtes") <> " · "
           <> esc (num (round kb :: Int)) <> " " <> t ("kB transferred" // "ko transférés") <> " · " <> esc (num (length hs)) <> " " <> t ("third-party hosts" // "hôtes tiers")
           <> (if null hs then "" else " (" <> esc (T.intercalate ", " hs) <> ")") <> "</p>" ]
+
+-- | The criteria, each with what it is for: the same words the report uses,
+--   on one page, for whoever wants to know what is read before asking.
+guide :: Lang -> Text -> Text
+guide l release = T.unlines $
+  [ "<!doctype html>", "<html lang=\"" <> (if l == En then "en" else "fr") <> "\">", "<head>", "<meta charset=\"utf-8\">"
+  , "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+  , "<title>" <> t ("relevé · the criteria" // "relevé · les critères") <> "</title>", "<style>", style, "</style>", "</head>", "<body>", "<main>"
+  , "<h1>" <> t ("The criteria" // "Les critères") <> "</h1>"
+  , "<p>" <> t (num (length criteria) <> " rules, each in plain code. For each: what it checks, what that is for, and the text it comes from. They touch "
+                <> num (length (touched "RGAA")) <> " of the 106 criteria of the RGAA 4.1.2, " <> num (length (touched "RGESN")) <> " of the 78 of the RGESN 2024, and "
+                <> num (length (touched "art.")) <> " paragraphs of article 50 of the AI Act."
+                // num (length criteria) <> " règles, chacune en code clair. Pour chacune : ce qu'elle vérifie, à quoi cela sert, et le texte dont elle vient. Elles touchent "
+                <> num (length (touched "RGAA")) <> " des 106 critères du RGAA 4.1.2, " <> num (length (touched "RGESN")) <> " des 78 du RGESN 2024, et "
+                <> num (length (touched "art.")) <> " paragraphes de l'article 50 du règlement sur l'IA.") <> "</p>" ]
+  ++ concat [ [ "<h2 id=\"" <> cId c <> "\">" <> t (cTitle c) <> "</h2>", "<p>" <> t (cWhy c) <> "</p>"
+              , "<p class=\"meta\">" <> t (cRef c) <> " · <code>" <> cId c <> "</code></p>" ] | c <- criteria ]
+  ++ [ "<p class=\"meta\">relevé " <> esc release <> " · " <> t ("criteria v" // "critères v") <> esc version <> "</p>", "</main>", "</body>", "</html>" ]
+  where t = esc . typography l . say l
 
 num :: Int -> Text
 num = T.pack . show

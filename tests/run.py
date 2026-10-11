@@ -138,8 +138,10 @@ def main():
             expected.write_bytes(doc)
         check(f"report in {lang}", doc == expected.read_bytes() and f'<html lang="{lang}">'.encode() in doc)
         check(f"the same report in {lang} with nothing kept", releve("report", lang, "-", feed=structure)[1] == doc)
+    check("the guide names every criterion, in each language",
+          all(releve("guide", lang)[1].count(b"<h2 id=") == len(releve("criteria")[1].splitlines()) - 1 for lang in ("en", "fr")))
     everything = b"".join(o.read_bytes() for o in sorted((HERE / "observations").glob("*.jsonl")))
-    french = releve("report", "fr", "-", feed=everything)[1].decode("utf-8")
+    french = releve("report", "fr", "-", feed=everything)[1].decode("utf-8") + releve("guide", "fr")[1].decode("utf-8")
     ours = re.sub(r"«.*?»|<code>.*?</code>|<a .*?</a>|<title>.*?</title>|<h[12][^>]*>.*?</h[12]>|<style>.*?</style>", "", french, flags=re.S)
     left = sorted(set(re.findall(r"\b(?:the|with|without|and|is|are|of|not|no|by|has)\b", re.sub(r"<[^>]+>", " ", ours))))
     check("the French report is in French" + (": " + ", ".join(left) if left else ""), not left)

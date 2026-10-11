@@ -109,6 +109,7 @@ releve correct corpus.jsonl < facts.md     # your edits become events
 releve report fr corpus.jsonl > report.html # for the pages' owner; en or fr
 releve atlas corpus.jsonl > atlas.jsonl
 releve verify corpus.jsonl
+releve guide en > criteria.html             # what each criterion is for
 
 # or, keeping nothing:
 python observe/observe.py https://example.org --contact https://you.example/robot | releve report en - > report.html
