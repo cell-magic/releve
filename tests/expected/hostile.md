@@ -36,3 +36,11 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 ## Footprint
 
 - 12 elements · 3 requests · 2 kB transferred · 0 third-party hosts
+
+## Reading
+
+- 4 events · 1 shown and not said · 0 said and not shown
+- depth 4: the longest run the markup obliges
+- the page says 66 bytes; 24 bytes travel for each
+- one at a time, by ear: 3 steps
+- up to 4 at a time: 4 steps as the page stands · 4 with nothing failing (between 4 and 4 at this depth and size)

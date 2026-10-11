@@ -41,3 +41,11 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 ## Footprint
 
 - 26 elements · 2 requests · 2 kB transferred · 0 third-party hosts
+
+## Reading
+
+- 10 events · 2 shown and not said · 1 said and not shown
+- depth 8: the longest run the markup obliges
+- the page says 61 bytes; 27 bytes travel for each
+- one at a time, by ear: 8 steps
+- up to 4 at a time: 8 steps as the page stands · 8 with nothing failing (between 8 and 8 at this depth and size)

@@ -1,0 +1,63 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr> -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<!-- A page whose reading is known by hand. Events are numbered in the comments.
+
+     39 events: 1 shown and not said (37), 1 said and not shown (0). The decorative image is seen
+     by the observer (38) and reaches no reader.
+     Depth 8: the skip link, then the main region: h1, its lead, and the deepest section,
+     "Lists": its heading, the list (1), the ordered list (3).
+     With nothing failing, four at a time, in document order, 13 steps:
+       0 · 1 2 3 4 · 5 39 · 6 · 7 14 22 28 · 8 9 10 15 · 11 16 17 23 · 12 18 19 20 ·
+       13 21 24 25 · 26 29 30 31 · 27 32 33 34 · 35 36 · 37
+     As it stands, 16: the pale items (29 to 32) fail contrast, and where three of four in the
+     window fail the reader takes one at a time:
+       … · 26 · 27 · 29 · 30 · 31 32 · 33 34 35 36 · 37
+     Mending the contrast alone gives back 3 steps; mending the image alone gives back none. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A page with a declared order</title>
+  <style>
+    body { font: 16px/1.5 sans-serif; color: #222; background: #fff; }
+    .pale { color: #aaa; }
+    .unseen { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  </style>
+</head>
+<body>
+  <a class="unseen" href="#main">Skip to the content</a>                                    <!-- 0 -->
+  <header><p>The reading, tested</p></header>                                              <!-- 1 -->
+  <nav aria-label="Sections"><ul>
+    <li><a href="#a">Lists</a></li><li><a href="#b">Table</a></li><li><a href="#c">Form</a></li>  <!-- 2 3 4 -->
+  </ul></nav>
+  <main id="main">
+    <h1>Order</h1>                                                                         <!-- 5 -->
+    <p>Sections of one level are independent of each other.</p>                            <!-- 6 -->
+    <h2 id="a">Lists</h2>                                                                  <!-- 7 -->
+    <ul><li>One item</li><li>Another</li><li>A third</li></ul>                             <!-- 8 9 10 -->
+    <ol><li>First step</li><li>Second step</li><li>Third step</li></ol>                    <!-- 11 12 13 -->
+    <h2 id="b">Table</h2>                                                                  <!-- 14 -->
+    <table>
+      <caption>Weights</caption>                                                           <!-- 15 -->
+      <tr><th scope="col">Page</th><th scope="col">Bytes</th></tr>                         <!-- 16 17 -->
+      <tr><td>Home</td><td>12000</td></tr>                                                 <!-- 18 19 -->
+      <tr><td>Contact</td><td>9000</td></tr>                                               <!-- 20 21 -->
+    </table>
+    <h2 id="c">Form</h2>                                                                   <!-- 22 -->
+    <form action="/none">
+      <p><label for="q">Question</label></p> <p><input id="q" type="text"></p>             <!-- 23 24 -->
+      <p><label for="m">Address</label></p> <p><input id="m" type="email" autocomplete="email"></p>  <!-- 25 26 -->
+      <button type="submit">Send</button>                                                  <!-- 27 -->
+    </form>
+    <h2>Failing</h2>                                                                       <!-- 28 -->
+    <ul>
+      <li class="pale">Pale one</li><li class="pale">Pale two</li><li class="pale">Pale three</li><li class="pale">Pale four</li>  <!-- 29 30 31 32 -->
+      <li>Dark five</li><li>Dark six</li><li>Dark seven</li><li>Dark eight</li>           <!-- 33 34 35 36 -->
+    </ul>
+    <img src="logo.png" width="40" height="40">                                            <!-- 37 -->
+    <p><img src="logo.png" alt="" width="40" height="40"></p>                              <!-- 38, to no one -->
+  </main>
+  <footer><p>End of the page.</p></footer>                                                 <!-- 39 -->
+</body>
+</html>

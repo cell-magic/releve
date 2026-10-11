@@ -11,7 +11,7 @@ reports compared byte for byte with the expected ones.
 
 The kernel is `releve` on the PATH, or the program named by RELEVE.
 """
-import hashlib, json, os, re, shutil, subprocess, sys, tempfile, threading
+import hashlib, json, os, random, re, shutil, subprocess, sys, tempfile, threading
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -128,6 +128,59 @@ def main():
     releve("correct", v, feed=edited(releve("facts", v)[1].decode("utf-8"), (rf"^- \*\*REVIEW\*\*(.*\{{{weak['id']}\}})$", r"- **FAIL**\1")))
     line = later([150, 150, 150, 1])
     check("the new reading then stands, and carries in its turn", line.startswith("- **FAIL**") and "read otherwise" not in line)
+
+    # The reading. A series takes a step for each event, whatever the reader holds; independent
+    # events take a quarter of that; a series beside them costs nothing until it is the longer.
+    blank = json.loads((HERE / "observations" / "edge.jsonl").read_text(encoding="utf-8"))
+    blank["page"].update(lang="en", viewport=None, reflow=320, dupIds=[])
+
+    def event(n, *path):
+        return {"n": n, "sel": f"e{n}", "kind": "text", "shown": True, "said": f"word{n}", "path": [list(p) for p in path],
+                "box": [0, 0, 9, 9], "size": 16, "weight": 400}
+
+    def readings(pages):
+        corpus, lines = Path(tempfile.mkdtemp()) / "c", []
+        for i, (events, failing) in enumerate(pages):
+            surfaces = [{"kind": "button", "key": f"k{n}", "sel": f"e{n}", "order": n, "ev": n, "name": ""} for n in failing]
+            lines.append(json.dumps(dict(blank, url=f"http://localhost/{i}", events=events, surfaces=surfaces)))
+        releve("ingest", corpus, feed="\n".join(lines).encode("utf-8"))
+        return [json.loads(l)["reading"] for l in releve("atlas", corpus)[1].splitlines()]
+
+    series = [event(n, ("olist", 0), ("item", n + 1)) for n in range(12)]
+    apart = [event(n, ("list", 0), ("item", n + 1)) for n in range(12)]
+    beside = [[event(n, ("main", 0), ("olist", 1), ("item", 9 + n)) for n in range(d)]
+              + [event(n, ("navigation", 2), ("list", 3), ("item", 99 + n)) for n in range(d, 12)] for d in range(1, 7)]
+    r = readings([(es, []) for es in [series, apart] + beside])
+    check("twelve events in series take twelve steps", (r[0]["depth"], r[0]["steps"], r[0]["lower"], r[0]["upper"]) == (12, 12, 12, 12))
+    check("twelve independent events take three", (r[1]["depth"], r[1]["steps"]) == (1, 3))
+    check("a series beside the rest costs nothing until it is the longer", [x["steps"] for x in r[2:]] == [3, 3, 3, 4, 5, 6])
+
+    rng, pages = random.Random(20261011), []
+
+    def nested(deep, count, path, out):
+        kind, me = rng.choice(["list", "olist"]), count[1]
+        count[1] += 1
+        for _ in range(rng.randint(1, 5)):
+            count[1] += 1
+            inner = path + [(kind, me), ("item", count[1])]
+            if deep and rng.random() < 0.45:
+                nested(deep - 1, count, inner, out)
+            else:
+                for _ in range(rng.randint(1, 3)):
+                    out.append(event(count[0], *inner))
+                    count[0] += 1
+
+    for _ in range(200):
+        out, share = [], rng.choice([0, 0.1, 0.5, 1])
+        nested(rng.randint(0, 4), [0, 0], [], out)
+        pages.append((out, [e["n"] for e in out if rng.random() < share]))
+    r = readings(pages)
+    check("on two hundred nestings, the steps stay between the bounds the depth and the size set",
+          all(x["events"] == len(es) and max(x["depth"], -(-len(es) // 4)) == x["lower"] <= x["clear"] <= x["upper"] <= len(es)
+              for (es, _), x in zip(pages, r)))
+    check("failures never shorten a reading, and failing everywhere makes it serial",
+          all(x["clear"] <= x["steps"] <= len(es) and (bad or x["steps"] == x["clear"]) and (len(bad) < len(es) or x["steps"] == len(es))
+              for (es, bad), x in zip(pages, r)))
 
     (tmp / "damaged").write_bytes(b"\n\nnot a record\n")
     code, _, said = releve("facts", tmp / "damaged")

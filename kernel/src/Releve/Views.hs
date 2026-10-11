@@ -17,6 +17,7 @@ import qualified Data.Text as T
 import Releve.Criteria (criteria, version)
 import Releve.Footprint
 import Releve.Kernel
+import Releve.Reading
 import Releve.Types
 
 -- facts -------------------------------------------------------------------
@@ -38,6 +39,7 @@ facts st o = T.unlines $
   ++ overruled
   ++ ["", "## By criterion", ""] ++ passes
   ++ ["", "## Footprint", ""] ++ weight
+  ++ maybe [] (\r -> ["", "## Reading", ""] ++ lecture b r) (read' b fs)
   where
     b = oBody o
     fs = assess st o
@@ -73,6 +75,29 @@ facts st o = T.unlines $
       [ "- " <> plural e "element" <> " · " <> plural r "request" <> " · "
           <> T.pack (show (round kb :: Int)) <> " kB transferred · " <> plural (length hs) "third-party host" ]
       ++ [ "- third-party hosts: " <> T.intercalate ", " hs | not (null hs) ]
+
+-- | The reading of an observation, under the verdicts that stand.
+read' :: Observation -> [Finding] -> Maybe Reading
+read' b fs = (\es -> reading es [Misfit (cId (fCrit f)) (fSurface f >>= ev) | f <- fs, fVerdict f == Fail]) <$> events b
+
+lecture :: Observation -> Reading -> [Text]
+lecture b r =
+  [ "- " <> plural (rEvents r) "event" <> " · " <> n (rUnsaid r) <> " shown and not said · " <> n (rUnshown r) <> " said and not shown"
+  , "- depth " <> n (rDepth r) <> ": the longest run the markup obliges"
+  , "- the page says " <> plural spoken "byte" <> "; " <> plural (transfer (network b) `div` max 1 spoken) "byte" <> " travel for each"
+  , "- one at a time, by ear: " <> plural (rSerial r) "step"
+  , "- up to " <> n ceiling' <> " at a time: " <> plural (rSteps r) "step" <> " as the page stands · " <> n (rClear r)
+      <> " with nothing failing (between " <> n (rLower r) <> " and " <> n (rUpper r) <> " at this depth and size)" ]
+  ++ [ "- mending " <> c <> " alone gives back " <> plural k "step" | (c, k) <- rReturns r ]
+  where
+    n = T.pack . show
+    spoken = round (rBits r / 8) :: Int
+
+-- | The order of a reading as data: an event by its number, a series, a parallel.
+sequence' :: Shape -> Value
+sequence' (One e) = toJSON (eN e)
+sequence' (Series xs) = object ["series" .= map sequence' xs]
+sequence' (Parallel xs) = object ["parallel" .= map sequence' xs]
 
 plural :: Int -> Text -> Text
 plural n w = T.pack (show n) <> " " <> w <> (if n == 1 then "" else "s")
@@ -138,6 +163,11 @@ atlas st o = object
       , "breaks" .= length [k | k <- fresh, k `elem` broken] ]
   , "findings" .= [ finding f | f <- fs, fVerdict f /= Pass || fMachine f /= Pass, fVerdict f /= NA ]
   , "passes" .= M.fromListWith (+) [(cId (fCrit f), 1 :: Int) | f <- fs, fVerdict f == Pass]
+  , "reading" .= fmap (\r -> object
+      [ "events" .= rEvents r, "unsaid" .= rUnsaid r, "unshown" .= rUnshown r, "depth" .= rDepth r
+      , "bits" .= (round (rBits r) :: Int), "serial" .= rSerial r, "steps" .= rSteps r, "clear" .= rClear r
+      , "lower" .= rLower r, "upper" .= rUpper r, "returns" .= M.fromList (rReturns r)
+      , "order" .= fmap sequence' (rShape r) ]) (read' b fs)
   ]
   where
     b = oBody o
