@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/provenance.html
 
-Observation `c3331ee7` · 2026-10-11T17:42:09+00:00 · criteria v4 · screenshot `b152eddf1b09f457` · Chromium 141.0.7390.37  
+Observation `c3331ee7` · 2026-10-11T17:42:09+00:00 · criteria v5 · screenshot `b152eddf1b09f457` · Chromium 141.0.7390.37  
 10 surfaces · 0 fail · 5 review · 2 hint · 39 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
@@ -38,7 +38,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - link-name: n/a · no links on the page
 - link-distinct: n/a · no links on the page
 - button-name: n/a · no buttons on the page
-- label-in-name: n/a · no name given by the code over a visible label
+- label-in-name: n/a · no name given by the code over words shown
 - control-label: n/a · no form fields on the page
 - group-legend: n/a · no group of fields on the page
 - field-group: n/a · no radio buttons on the page

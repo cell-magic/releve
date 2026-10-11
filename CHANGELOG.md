@@ -2,8 +2,11 @@
 
 ## 0.4.0
 
-Criteria move from v2 to v4: 44 rules where there were 17. The English of
-the first 17 is unchanged, so readings made under 0.3 still carry.
+Criteria move from v2 to v5: 44 rules where there were 17. The English of
+sixteen of the first seventeen is unchanged, so readings made under 0.3
+still carry. The seventeenth, on form fields, now says "field without a
+name", as links and buttons are said to be: a reading of it made under 0.3
+comes back for review.
 
 - **The report.** `releve report en|fr CORPUS` writes one page of HTML for
   the person whose pages they are: the method first, each finding with its
@@ -12,6 +15,14 @@ the first 17 is unchanged, so readings made under 0.3 still carry.
   observations from standard input and keeps nothing.
 - **Two languages.** Whatever a rule says, it says in English and in
   French. `facts` stays in English, as the reviewer's working document.
+- **Plain words, and no claim.** A report says nothing of audits,
+  conformity, certificates, quality marks or guarantees, except that it is
+  not an audit. What HTML itself writes (`<label>`, `aria-label`,
+  `loading="lazy"`) is set as code in the report and the guide, and appears
+  nowhere else. The checks hold every report to it.
+- **The service is held to its own rules.** Its pages, read by the rules it
+  applies to others, are asked for nothing; the check found its form too
+  wide at 320 px before anyone else did.
 - **As a page anyone can use.** `serve/serve.py` puts the whole of it
   behind a form: an address in, a report out. No account, no cookie, no
   script, no log. Whoever asks keeps the record, as a small sealed file, and

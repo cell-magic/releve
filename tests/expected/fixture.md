@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/fixture.html
 
-Observation `c5885ab7` · 2026-10-11T17:41:57+00:00 · criteria v4 · screenshot `c331abf4b86e8edc` · Chromium 141.0.7390.37  
+Observation `c5885ab7` · 2026-10-11T17:41:57+00:00 · criteria v5 · screenshot `c331abf4b86e8edc` · Chromium 141.0.7390.37  
 29 surfaces · 13 fail · 8 review · 3 hint · 31 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
@@ -17,7 +17,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - **FAIL** text-contrast · `body > p.pale:nth-of-type(1)` · #999999 on #ffffff · 2.84:1, needs 4.50:1 · “Pale text that fails contrast.” → use #767676 {5af26a21}
 - **FAIL** link-name · `body > header > nav > a:nth-of-type(2)` · link without a name → give the link text, an image alt, or aria-label {b254e44b}
 - **FAIL** button-name · `body > button:nth-of-type(1)` · button without a name → give the button text or aria-label {f8e6f54f}
-- **FAIL** control-label · `body > form > input:nth-of-type(1)` · no label; placeholder “Votre e-mail” only → associate a \<label>, or add aria-label {256aafa2}
+- **FAIL** control-label · `body > form > input:nth-of-type(1)` · field without a name; placeholder “Votre e-mail” only → associate a \<label>, or add aria-label {256aafa2}
 - **FAIL** frame-title · `body > iframe` · frame without a title → add a title that says what the frame holds {3229c18c}
 - **FAIL** autoplay · `body > video` · plays sound on load → add muted, or remove autoplay {834334b1}
 - **FAIL** unique-ids · page · id “dup” used 2 times → give each element its own id {4b8179e0}
@@ -58,7 +58,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - link-name: 1 of 3 pass
 - link-distinct: 1 of 1 pass
 - button-name: 1 of 2 pass
-- label-in-name: n/a · no name given by the code over a visible label
+- label-in-name: n/a · no name given by the code over words shown
 - control-label: 1 of 2 pass
 - group-legend: n/a · no group of fields on the page
 - field-group: n/a · no radio buttons on the page

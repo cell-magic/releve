@@ -7,7 +7,7 @@
 --   the lightest work first; and what was not looked at, said plainly.
 module Releve.Report (report, guide, typography, touched) where
 
-import Data.Char (isDigit)
+import Data.Char (isAlphaNum, isAsciiLower, isDigit)
 import Data.List (nub, sortOn)
 import Data.Maybe (listToMaybe)
 import Data.Text (Text)
@@ -52,7 +52,7 @@ report l release st = T.unlines $
      , "<p class=\"meta\">relevé " <> esc release <> " · " <> t ("criteria v" // "critères v") <> esc version <> "</p>"
      , "</main>", "</body>", "</html>" ]
   where
-    t = esc . typography l . say l
+    t = codify . typography l . say l
     p x = "<p>" <> x <> "</p>"
     dt x = "<dt>" <> t x <> "</dt>"
     dd x = "<dd>" <> t x <> "</dd>"
@@ -176,9 +176,9 @@ guide l release = T.unlines $
                 <> num (length (touched "RGAA")) <> " des 106 critères du RGAA 4.1.2, " <> num (length (touched "RGESN")) <> " des 78 du RGESN 2024, et "
                 <> num (length (touched "art.")) <> " paragraphes de l'article 50 du règlement sur l'IA.") <> "</p>" ]
   ++ concat [ [ "<h2 id=\"" <> cId c <> "\">" <> t (cTitle c) <> "</h2>", "<p>" <> t (cWhy c) <> "</p>"
-              , "<p class=\"meta\">" <> t (cRef c) <> " · <code>" <> cId c <> "</code></p>" ] | c <- criteria ]
+              , "<p class=\"meta\">" <> t (cRef c) <> "</p>" ] | c <- criteria ]
   ++ [ "<p class=\"meta\">relevé " <> esc release <> " · " <> t ("criteria v" // "critères v") <> esc version <> "</p>", "</main>", "</body>", "</html>" ]
-  where t = esc . typography l . say l
+  where t = codify . typography l . say l
 
 num :: Int -> Text
 num = T.pack . show
@@ -211,6 +211,35 @@ date l iso = case (T.splitOn "-" (T.take 10 iso), T.take 5 (T.drop 11 iso)) of
 typography :: Lang -> Text -> Text
 typography En = id
 typography Fr = T.replace " :" "\x00a0:" . T.replace "« " "«\x202f" . foldr (.) id [T.replace (" " <> c) ("\x202f" <> c) | c <- [";", "!", "?", "»"]]
+
+-- | Text made safe for a page, with what HTML itself writes set as code: a
+--   tag, an attribute with its value, an ARIA attribute. A reader then tells
+--   at a glance the words of the report from the words of the language it
+--   reports on.
+codify :: Text -> Text
+codify = go True
+  where
+    go _ "" = ""
+    go start x
+      | Just n <- tag x = code n x
+      | start, Just n <- attribute x = code n x
+      | otherwise = let (c, rest) = T.splitAt 1 x in esc c <> go (c `elem` [" ", "(", "\x00a0", "\x202f"]) rest
+    code n x = let (a, rest) = T.splitAt n x in "<code>" <> esc a <> "</code>" <> go False rest
+    -- <label>, <track kind="captions">, <!doctype html>: an opening bracket, a letter or a bang, and its closing bracket near by.
+    tag x = case T.uncons x of
+      Just ('<', r) | Just (c, _) <- T.uncons r, isAsciiLower c || c == '!'
+                    , (inside, close) <- T.breakOn ">" (T.take 60 r), not (T.null close), not (T.any (== '<') inside) -> Just (T.length inside + 2)
+      _ -> Nothing
+    -- aria-label; alt=""; loading="lazy"; role=presentation: a lower-case name, then a value or nothing.
+    attribute x =
+      let (name', r) = T.span (\c -> isAsciiLower c || c == '-') x
+      in case T.uncons r of
+           Just ('=', v) | not (T.null name') -> Just (T.length name' + 1 + value v)
+           _ | "aria-" `T.isPrefixOf` name' && T.length name' > 5 -> Just (T.length name')
+           _ -> Nothing
+    value v = case T.uncons v of
+      Just ('"', q) -> let (inside, close) = T.breakOn "\"" q in if T.null close then 1 else T.length inside + 2
+      _ -> T.length (T.takeWhile (\c -> isAlphaNum c || c `elem` ("-_." :: String)) v)
 
 esc :: Text -> Text
 esc = T.concatMap $ \c -> case c of

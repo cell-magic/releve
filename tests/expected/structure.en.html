@@ -37,7 +37,7 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <h3>The main content is marked</h3>
 <p>A marked main region lets a reader go straight to the content, past what every page repeats. <span class="meta">RGAA 9.2 · 12.6 · WCAG 2.4.1 · light work</span></p>
 <ul>
-<li>2 main landmarks are visible<br><strong>Change: </strong>keep one &lt;main&gt;; give the others the hidden attribute</li>
+<li>2 main landmarks are visible<br><strong>Change: </strong>keep one <code>&lt;main&gt;</code>; give the others the hidden attribute</li>
 </ul>
 <h3>No element is used as a gap</h3>
 <p>An element that holds nothing is still announced, or counted, by assistive technology: spacing belongs to the style sheet. <span class="meta">RGAA 8.9 · WCAG 1.3.1 · light work</span></p>
@@ -49,8 +49,8 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <p>Appearance written into the markup cannot be adapted by a reader's own styles; left to the style sheet, it can. <span class="meta">RGAA 10.1 · WCAG 1.3.1 · some work</span></p>
 <ul>
 <li>attribute bgcolor used 1 time<br><strong>Change: </strong>move it to the style sheet</li>
-<li>&lt;center&gt; used 1 time<br><strong>Change: </strong>move it to the style sheet</li>
-<li>&lt;font&gt; used 1 time<br><strong>Change: </strong>move it to the style sheet</li>
+<li><code>&lt;center&gt;</code> used 1 time<br><strong>Change: </strong>move it to the style sheet</li>
+<li><code>&lt;font&gt;</code> used 1 time<br><strong>Change: </strong>move it to the style sheet</li>
 <li>attribute color used 1 time<br><strong>Change: </strong>move it to the style sheet</li>
 </ul>
 <h3>No window opens by itself</h3>
@@ -68,7 +68,7 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <h3>What looks like a list is one</h3>
 <p>A marked list announces how many items it holds and lets a reader move from one to the next. <span class="meta">RGAA 9.3 · WCAG 1.3.1 · light work</span></p>
 <ul>
-<li>3 lines in a row begin like list items, from “• First of three”<br><strong>Change: </strong>mark them as a list: &lt;ul&gt; or &lt;ol&gt;, with &lt;li&gt;<br><code>body &gt; main:nth-of-type(1) &gt; p:nth-of-type(5)</code></li>
+<li>3 lines in a row begin like list items, from “• First of three”<br><strong>Change: </strong>mark them as a list: <code>&lt;ul&gt;</code> or <code>&lt;ol&gt;</code>, with <code>&lt;li&gt;</code><br><code>body &gt; main:nth-of-type(1) &gt; p:nth-of-type(5)</code></li>
 </ul>
 <h3>The page does not reload or leave on a timer</h3>
 <p>A page that reloads or leaves on a timer takes the reader's place, and their time, away from them. <span class="meta">RGAA 13.1 · WCAG 2.2.1 · light work</span></p>
@@ -78,7 +78,7 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <h3>Videos carry captions</h3>
 <p>Captions carry speech and sound to those who do not hear them, and to anyone reading with the sound off. <span class="meta">RGAA 4.3 · WCAG 1.2.2 · heavy work</span></p>
 <ul>
-<li>video without a caption track<br><strong>Change: </strong>if it carries speech, add &lt;track kind=&quot;captions&quot;&gt;<br><code>body &gt; main:nth-of-type(1) &gt; video:nth-of-type(1)</code></li>
+<li>video without a caption track<br><strong>Change: </strong>if it carries speech, add <code>&lt;track kind=&quot;captions&quot;&gt;</code><br><code>body &gt; main:nth-of-type(1) &gt; video:nth-of-type(1)</code></li>
 </ul>
 <h2>Criterion by criterion</h2>
 <ul>
@@ -99,8 +99,8 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <li>Links have a name · nothing to judge: no links on the page</li>
 <li>Links to different places differ in name · nothing to judge: no links on the page</li>
 <li>Buttons have a name · nothing to judge: no buttons on the page</li>
-<li>The visible label is in the name · nothing to judge: no name given by the code over a visible label</li>
-<li>Form fields have a label · nothing to judge: no form fields on the page</li>
+<li>The words shown are in the name · nothing to judge: no name given by the code over words shown</li>
+<li>Form fields have a name · nothing to judge: no form fields on the page</li>
 <li>Groups of fields have a legend · nothing to judge: no group of fields on the page</li>
 <li>Choices of one question are grouped · nothing to judge: no radio buttons on the page</li>
 <li>Fields for personal data state their purpose · nothing to judge: no field that asks for personal data</li>
@@ -143,7 +143,7 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <h2>What was not looked at</h2>
 <p>These rules touch 36 of the 106 criteria of the RGAA 4.1.2, 14 of the 78 of the RGESN 2024, and 4 paragraphs of article 50 of the AI Act. To touch a criterion is not to settle it: most ask for a person's judgement, or for a declaration of the owner's, beyond what a rule can see.</p>
 <p>One page was observed at one moment and at two widths. What appears only after an action (a menu opened, a form sent, a dialogue), what stands behind a login, and what lies inside frames from other sites were not observed.</p>
-<p class="meta">relevé 0.4.0 · criteria v4</p>
+<p class="meta">relevé 0.4.0 · criteria v5</p>
 </main>
 </body>
 </html>

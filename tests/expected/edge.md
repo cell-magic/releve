@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/edge.html
 
-Observation `2c3dd7a1` · 2026-10-11T17:41:50+00:00 · criteria v4 · screenshot `7a6cb565f56e8a7f` · Chromium 141.0.7390.37  
+Observation `2c3dd7a1` · 2026-10-11T17:41:50+00:00 · criteria v5 · screenshot `7a6cb565f56e8a7f` · Chromium 141.0.7390.37  
 13 surfaces · 5 fail · 1 review · 0 hint · 28 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
@@ -37,7 +37,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - link-name: 0 of 2 pass
 - link-distinct: n/a · no links on the page
 - button-name: 2 of 2 pass
-- label-in-name: n/a · no name given by the code over a visible label
+- label-in-name: n/a · no name given by the code over words shown
 - control-label: n/a · no form fields on the page
 - group-legend: n/a · no group of fields on the page
 - field-group: n/a · no radio buttons on the page

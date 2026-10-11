@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/forms.html
 
-Observation `63444cd1` · 2026-10-11T17:42:00+00:00 · criteria v4 · screenshot `82dd9fc6e34bafbe` · Chromium 141.0.7390.37  
+Observation `63444cd1` · 2026-10-11T17:42:00+00:00 · criteria v5 · screenshot `82dd9fc6e34bafbe` · Chromium 141.0.7390.37  
 41 surfaces · 2 fail · 3 review · 0 hint · 62 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
@@ -36,7 +36,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - link-name: n/a · no links on the page
 - link-distinct: n/a · no links on the page
 - button-name: 1 of 1 pass
-- label-in-name: n/a · no name given by the code over a visible label
+- label-in-name: n/a · no name given by the code over words shown
 - control-label: 16 of 16 pass
 - group-legend: 2 of 3 pass
 - field-group: 3 of 4 pass

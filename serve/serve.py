@@ -93,9 +93,12 @@ WORDS = {
     },
 }
 TYPES = {".css": "text/css; charset=utf-8", ".svg": "image/svg+xml", ".woff2": "font/woff2", ".png": "image/png", ".ico": "image/x-icon"}
-STYLE = ("html{color:#1a1a1a;background:#fff}body{margin:0;font:1rem/1.6 system-ui,sans-serif}main{max-width:42rem;margin:0 auto;padding:1rem 1rem 4rem}"
-         "label{display:block;margin-top:1rem}input[type=url],select{display:block;width:100%;max-width:32rem;font:inherit;padding:.4rem;border:1px solid #1a1a1a}"
-         "input[type=file]{display:block;font:inherit;margin-top:.25rem}button{font:inherit;margin-top:1.25rem;padding:.5rem 1rem;color:#fff;background:#1a1a1a;border:1px solid #1a1a1a}"
+STYLE = ("*{box-sizing:border-box}html{color:#1a1a1a;background:#fff}body{margin:0;font:1rem/1.6 system-ui,sans-serif}"
+         "main{max-width:42rem;margin:0 auto;padding:1rem 1rem 4rem;overflow-wrap:anywhere}h1,h2,h3{line-height:1.25}"
+         "label{display:block;margin-top:1rem}input,select{display:block;max-width:100%;font:inherit}"
+         "input[type=url],select{width:32rem;padding:.4rem;color:inherit;background:#fff;border:1px solid #1a1a1a}input[type=file]{margin-top:.25rem}"
+         "button{font:inherit;margin-top:1.25rem;padding:.5rem 1rem;color:#fff;background:#1a1a1a;border:1px solid #1a1a1a}"
+         "code{font:.875rem/1.4 ui-monospace,monospace;color:#5c6066}.meta{color:#5c6066;font-size:.9375rem}dt{font-weight:600}dd{margin:0 0 .5rem}"
          "a{color:#1f3a8a}:focus-visible{outline:2px solid #1f3a8a;outline-offset:2px}")
 
 

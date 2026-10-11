@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: EUPL-1.2
 """The service, checked against local sites: an address in, a report out, and
 nothing left behind. Needs Python, Playwright, Chromium and `releve`; no network."""
-import base64, gzip, os, re, sys, threading, uuid
+import base64, gzip, os, re, subprocess, sys, tempfile, threading, uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.request import Request, urlopen
@@ -12,14 +12,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "serve"))
 import serve  # noqa: E402
 
 PAGE = "<!doctype html><html lang=en><title>{0}</title><main><h1>{0}</h1><p>Words of the page.</p><img src=/x.png></main></html>"
-hits, checks = [], []
+hits, checks, shelf = [], [], {}  # requests seen; results; pages put up to be read
 
 
 def site(robots):
     class Site(BaseHTTPRequestHandler):
         def do_GET(self):
             hits.append((self.server.server_port, self.path))
-            body = robots if self.path == "/robots.txt" else PAGE.format(self.path.strip("/") or "Home")
+            body = robots if self.path == "/robots.txt" else shelf.get(self.path) or PAGE.format(self.path.strip("/") or "Home")
             self.send_response(200)
             self.send_header("Content-Type", "text/plain" if self.path == "/robots.txt" else "text/html")
             self.end_headers()
@@ -51,6 +51,16 @@ def ask(door, url=None, lang="en", record=None, path="/"):
         r = urlopen(Request(f"http://127.0.0.1:{door}/", data=body + b"--" + mark.encode() + b"--\r\n",
                             headers={"Content-Type": "multipart/form-data; boundary=" + mark}))
     return r.status, {k.lower(): v for k, v in r.headers.items()}, r.read().decode("utf-8")
+
+
+def asked(*urls):
+    """What the rules ask of these pages: how many were read, and every line that is not a pass."""
+    seen = subprocess.run([sys.executable, str(Path(serve.__file__).parent.parent / "observe" / "observe.py"), *urls,
+                           "--contact", "https://example.org/robot"], capture_output=True).stdout
+    corpus = Path(tempfile.mkdtemp()) / "c"
+    subprocess.run([serve.RELEVE, "ingest", str(corpus)], input=seen, capture_output=True)
+    facts = subprocess.run([serve.RELEVE, "facts", str(corpus), "--all"], capture_output=True).stdout.decode("utf-8")
+    return len(seen.splitlines()), re.findall(r"^- \*\*(?:FAIL|REVIEW|HINT)\*\*.*$", facts, re.M)
 
 
 def kept(text):
@@ -103,6 +113,11 @@ for address, verdict in [("http://127.0.0.1/", "not public"), ("http://10.1.2.3/
                          ("http://[::1]/", "not public"), ("https://93.184.216.34:8443/", "not public"), ("https://93.184.216.34/", None),
                          ("http://no-such-host.invalid/", "not public"), ("data:text/html,x", None)]:
     check(f"in the open, {address} is {'requested' if verdict is None else 'never requested'}", serve.shut(address, False) == verdict)
+
+# The service is held to what it asks of others: its own pages, read by its own rules, are asked for nothing.
+shelf["/answer"] = first
+read, lines = asked(f"http://127.0.0.1:{door}/", f"http://127.0.0.1:{door}/fr/", f"http://localhost:{open_}/answer")
+check("its own pages, read by its own rules, are asked for nothing" + "".join("\n      " + l for l in lines), read == 3 and not lines)
 
 # A record passes through a directory in memory that is gone with the answer; nothing is written beside the service.
 passing = [n for d in {serve.MEMORY or serve.tempfile.gettempdir(), serve.tempfile.gettempdir()} for n in os.listdir(d) if n.startswith("releve-")]

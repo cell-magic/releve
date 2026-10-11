@@ -146,6 +146,18 @@ def main():
     left = sorted(set(re.findall(r"\b(?:the|with|without|and|is|are|of|not|no|by|has)\b", re.sub(r"<[^>]+>", " ", ours))))
     check("the French report is in French" + (": " + ", ".join(left) if left else ""), not left)
 
+    # What a report says, it says of the page, and it claims nothing for it: no audit, no conformity, no
+    # certificate, no quality mark, no guarantee. The one thing it says of audits is that it is not one. Words
+    # quoted from the page are the page's; what HTML itself writes (<label>, aria-label) is set as code.
+    english = releve("report", "en", "-", feed=everything)[1].decode("utf-8") + releve("guide", "en")[1].decode("utf-8")
+    claims = []
+    for text in (english, french):
+        said = re.sub(r"«.*?»|“.*?”|<code>.*?</code>|<a .*?</a>|<title>.*?</title>|<h[12][^>]*>.*?</h[12]>|<style>.*?</style>", " ", text, flags=re.S)
+        said = re.sub(r"<[^>]+>", " ", said).replace("\u202f", " ").replace("\xa0", " ").lower()
+        said = re.sub(r"is not a conformity audit|n'est pas un audit de conformité", " ", said)
+        claims += re.findall(r"\baudit\w*|\bconformes?\b|\bcompliant\b|\w*certif\w*|\blabel\w*|\bgaranti\w*|\bguarant\w*|100\s*%|\bobligatoire\w*|\bmandatory\b", said)
+    check("a report claims nothing for the page" + (": " + ", ".join(sorted(set(claims))) if claims else ""), not claims)
+
     # The reading. A series takes a step for each event, whatever the reader holds; independent
     # events take a quarter of that; a series beside them costs nothing until it is the longer.
     blank = json.loads((HERE / "observations" / "edge.jsonl").read_text(encoding="utf-8"))

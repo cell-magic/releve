@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/quirks.html
 
-Observation `d09dc21e` · 2026-10-11T17:42:12+00:00 · criteria v4 · screenshot `4d6d183a71bb0913` · Chromium 141.0.7390.37  
+Observation `d09dc21e` · 2026-10-11T17:42:12+00:00 · criteria v5 · screenshot `4d6d183a71bb0913` · Chromium 141.0.7390.37  
 8 surfaces · 2 fail · 1 review · 0 hint · 22 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
@@ -34,7 +34,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - link-name: 1 of 1 pass
 - link-distinct: 1 of 1 pass
 - button-name: n/a · no buttons on the page
-- label-in-name: n/a · no name given by the code over a visible label
+- label-in-name: n/a · no name given by the code over words shown
 - control-label: n/a · no form fields on the page
 - group-legend: n/a · no group of fields on the page
 - field-group: n/a · no radio buttons on the page

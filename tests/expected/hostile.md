@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/hostile.html
 
-Observation `57088c3c` · 2026-10-11T17:42:03+00:00 · criteria v4 · screenshot `47e373c1b407f785` · Chromium 141.0.7390.37  
+Observation `57088c3c` · 2026-10-11T17:42:03+00:00 · criteria v5 · screenshot `47e373c1b407f785` · Chromium 141.0.7390.37  
 8 surfaces · 4 fail · 0 review · 0 hint · 25 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
@@ -32,7 +32,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - link-name: 0 of 1 pass
 - link-distinct: n/a · no links on the page
 - button-name: n/a · no buttons on the page
-- label-in-name: n/a · no name given by the code over a visible label
+- label-in-name: n/a · no name given by the code over words shown
 - control-label: n/a · no form fields on the page
 - group-legend: n/a · no group of fields on the page
 - field-group: n/a · no radio buttons on the page

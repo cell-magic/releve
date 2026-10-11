@@ -37,23 +37,23 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <h3>La page a un titre</h3>
 <p>Le titre est ce que montrent de la page un onglet, un favori, un résultat de recherche et les premiers mots d'un lecteur d'écran. <span class="meta">RGAA 8.5 · WCAG 2.4.2 · travail léger</span></p>
 <ul>
-<li>la page n'a pas de titre<br><strong>À changer : </strong>ajouter un &lt;title&gt; qui nomme la page</li>
+<li>la page n'a pas de titre<br><strong>À changer : </strong>ajouter un <code>&lt;title&gt;</code> qui nomme la page</li>
 </ul>
 <h3>La page déclare sa langue</h3>
 <p>La langue déclarée règle la voix d'un lecteur d'écran, la césure, et la traduction que propose le navigateur. <span class="meta">RGAA 8.3 · WCAG 3.1.1 · travail léger</span></p>
 <ul>
-<li>pas d'attribut lang sur &lt;html&gt;<br><strong>À changer : </strong>déclarer lang sur &lt;html&gt;, par exemple lang=&quot;fr&quot;</li>
+<li>pas d'attribut lang sur <code>&lt;html&gt;</code><br><strong>À changer : </strong>déclarer lang sur <code>&lt;html&gt;</code>, par exemple <code>lang=&quot;fr&quot;</code></li>
 </ul>
 <h3>L'agrandissement n'est pas bloqué</h3>
 <p>Qui a besoin d'un texte plus grand agrandit la page ; un viewport qui l'interdit retire le seul réglage disponible. <span class="meta">RGAA 10.4 · WCAG 1.4.4 · travail léger</span></p>
 <ul>
-<li>viewport « width=device-width, initial-scale=1, maximum-scale=1 »<br><strong>À changer : </strong>retirer maximum-scale et user-scalable</li>
+<li>viewport « <code>width=device-width</code>, <code>initial-scale=1</code>, <code>maximum-scale=1</code> »<br><strong>À changer : </strong>retirer maximum-scale et user-scalable</li>
 </ul>
 <h3>Les images portent une alternative textuelle</h3>
 <p>L'alternative textuelle est ce que dit une image là où elle ne peut être vue : à un lecteur d'écran, à un moteur de recherche, sur une connexion lente. <span class="meta">RGAA 1.1–1.3 · WCAG 1.1.1 · travail léger</span></p>
 <ul>
-<li>pas d'attribut alt<br><strong>À changer : </strong>ajouter alt ; alt=&quot;&quot; si l'image est décorative<br><code>body &gt; img:nth-of-type(1)</code></li>
-<li>role=img sans nom<br><strong>À changer : </strong>ajouter aria-label ou &lt;title&gt;<br><code>body &gt; svg</code></li>
+<li>pas d'attribut alt<br><strong>À changer : </strong>ajouter alt ; <code>alt=&quot;&quot;</code> si l'image est décorative<br><code>body &gt; img:nth-of-type(1)</code></li>
+<li><code>role=img</code> sans nom<br><strong>À changer : </strong>ajouter <code>aria-label</code> ou <code>&lt;title&gt;</code><br><code>body &gt; svg</code></li>
 </ul>
 <h3>Le texte contraste avec son fond</h3>
 <p>Le contraste décide si un texte se lit au soleil, sur un écran fatigué, par des yeux qui ont vieilli ou qui voient autrement les couleurs. <span class="meta">RGAA 3.2 · WCAG 1.4.3 · travail léger</span></p>
@@ -63,17 +63,17 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <h3>Les liens ont un intitulé</h3>
 <p>L'intitulé d'un lien est tout ce dont dispose un lecteur quand les liens sont listés hors de leur contexte, comme le proposent les technologies d'assistance. <span class="meta">RGAA 6.1–6.2 · WCAG 2.4.4 · travail léger</span></p>
 <ul>
-<li>lien sans intitulé<br><strong>À changer : </strong>donner au lien un texte, un alt d'image ou un aria-label<br><code>body &gt; header &gt; nav &gt; a:nth-of-type(2)</code></li>
+<li>lien sans intitulé<br><strong>À changer : </strong>donner au lien un texte, un alt d'image ou un <code>aria-label</code><br><code>body &gt; header &gt; nav &gt; a:nth-of-type(2)</code></li>
 </ul>
 <h3>Les boutons ont un intitulé</h3>
 <p>Un bouton sans intitulé est annoncé « bouton », et rien ne dit ce qu'il fait. <span class="meta">RGAA 11.9 · WCAG 4.1.2 · travail léger</span></p>
 <ul>
-<li>bouton sans intitulé<br><strong>À changer : </strong>donner au bouton un texte ou un aria-label<br><code>body &gt; button:nth-of-type(1)</code></li>
+<li>bouton sans intitulé<br><strong>À changer : </strong>donner au bouton un texte ou un <code>aria-label</code><br><code>body &gt; button:nth-of-type(1)</code></li>
 </ul>
-<h3>Les champs de formulaire ont une étiquette</h3>
-<p>L'étiquette dit ce qu'attend un champ, demeure quand la saisie commence, et agrandit la zone que vise un doigt ou un pointeur. <span class="meta">RGAA 11.1 · WCAG 1.3.1 · travail léger</span></p>
+<h3>Les champs de formulaire ont un intitulé</h3>
+<p>Les mots placés près d'un champ disent ce qu'il attend, demeurent quand la saisie commence, et agrandissent la zone que vise un doigt ou un pointeur. <span class="meta">RGAA 11.1 · WCAG 1.3.1 · travail léger</span></p>
 <ul>
-<li>pas d'étiquette ; seulement un texte indicatif, « Votre e-mail »<br><strong>À changer : </strong>associer un &lt;label&gt;, ou ajouter aria-label<br><code>body &gt; form &gt; input:nth-of-type(1)</code></li>
+<li>champ sans intitulé ; seulement un texte indicatif, « Votre e-mail »<br><strong>À changer : </strong>associer un <code>&lt;label&gt;</code>, ou ajouter <code>aria-label</code><br><code>body &gt; form &gt; input:nth-of-type(1)</code></li>
 </ul>
 <h3>Les cadres ont un titre</h3>
 <p>Un cadre contient un autre document ; son titre dit lequel, avant que le lecteur y entre. <span class="meta">RGAA 2.1 · WCAG 4.1.2 · travail léger</span></p>
@@ -86,7 +86,7 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <li>du son démarre au chargement<br><strong>À changer : </strong>ajouter muted, ou retirer autoplay<br><code>body &gt; video</code></li>
 </ul>
 <h3>Les id des éléments sont uniques</h3>
-<p>Étiquettes, descriptions et liens internes désignent un élément par son id ; un id répété les fait désigner le mauvais. <span class="meta">RGAA 8.2 · travail léger</span></p>
+<p>L'intitulé d'un champ, une description, un lien interne : chacun désigne un élément par son id ; un id répété lui fait désigner le mauvais. <span class="meta">RGAA 8.2 · travail léger</span></p>
 <ul>
 <li>id « dup » utilisé 2 fois<br><strong>À changer : </strong>donner à chaque élément son propre id</li>
 </ul>
@@ -99,7 +99,7 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <h3>Le contenu principal est balisé</h3>
 <p>Une zone principale balisée permet d'aller droit au contenu, au-delà de ce que chaque page répète. <span class="meta">RGAA 9.2 · 12.6 · WCAG 2.4.1 · travail léger</span></p>
 <ul>
-<li>pas de zone principale balisée<br><strong>À changer : </strong>placer le contenu principal dans &lt;main&gt;</li>
+<li>pas de zone principale balisée<br><strong>À changer : </strong>placer le contenu principal dans <code>&lt;main&gt;</code></li>
 </ul>
 <h3>Les images portent une alternative textuelle</h3>
 <p>L'alternative textuelle est ce que dit une image là où elle ne peut être vue : à un lecteur d'écran, à un moteur de recherche, sur une connexion lente. <span class="meta">RGAA 1.1–1.3 · WCAG 1.1.1 · travail léger</span></p>
@@ -119,8 +119,8 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <h3>Les champs de données personnelles déclarent leur finalité</h3>
 <p>Une finalité déclarée permet au navigateur de remplir le champ pour le lecteur : moins de saisie, moins d'erreurs, et une aide pour qui peine à l'une ou l'autre. <span class="meta">RGAA 11.13 · WCAG 1.3.5 · travail léger</span></p>
 <ul>
-<li>le champ « email » ne déclare aucune finalité<br><strong>À changer : </strong>s'il demande une donnée du visiteur lui-même, ajouter autocomplete=&quot;email&quot;<br><code>body &gt; form &gt; input:nth-of-type(1)</code></li>
-<li>le champ « Nom » ne déclare aucune finalité<br><strong>À changer : </strong>s'il demande une donnée du visiteur lui-même, ajouter autocomplete=&quot;family-name&quot;<br><code>#n</code></li>
+<li>le champ « email » ne déclare aucune finalité<br><strong>À changer : </strong>s'il demande une donnée du visiteur lui-même, ajouter <code>autocomplete=&quot;email&quot;</code><br><code>body &gt; form &gt; input:nth-of-type(1)</code></li>
+<li>le champ « Nom » ne déclare aucune finalité<br><strong>À changer : </strong>s'il demande une donnée du visiteur lui-même, ajouter <code>autocomplete=&quot;family-name&quot;</code><br><code>#n</code></li>
 </ul>
 <h3>Les niveaux de titre se suivent</h3>
 <p>Les titres sont la table des matières de la page : les technologies d'assistance les listent et sautent de l'un à l'autre, niveau par niveau. <span class="meta">RGAA 9.1 · WCAG 1.3.1 · travail moyen</span></p>
@@ -130,7 +130,7 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <h3>Les vidéos portent des sous-titres</h3>
 <p>Les sous-titres portent la parole et les sons à qui ne les entend pas, et à quiconque lit sans le son. <span class="meta">RGAA 4.3 · WCAG 1.2.2 · travail lourd</span></p>
 <ul>
-<li>vidéo sans piste de sous-titres<br><strong>À changer : </strong>si elle porte de la parole, ajouter &lt;track kind=&quot;captions&quot;&gt;<br><code>body &gt; video</code></li>
+<li>vidéo sans piste de sous-titres<br><strong>À changer : </strong>si elle porte de la parole, ajouter <code>&lt;track kind=&quot;captions&quot;&gt;</code><br><code>body &gt; video</code></li>
 </ul>
 <h2>Pourrait être allégé (3)</h2>
 <h3>Rien ne se lance seul</h3>
@@ -167,8 +167,8 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <li>Les liens ont un intitulé · 1 sur 3 passent</li>
 <li>Des liens vers des lieux différents diffèrent d'intitulé · 1 sur 1 passent</li>
 <li>Les boutons ont un intitulé · 1 sur 2 passent</li>
-<li>L'intitulé visible figure dans le nom · rien à juger : aucun nom donné par le code par-dessus un intitulé visible</li>
-<li>Les champs de formulaire ont une étiquette · 1 sur 2 passent</li>
+<li>Les mots montrés figurent dans le nom · rien à juger : aucun nom donné par le code par-dessus des mots montrés</li>
+<li>Les champs de formulaire ont un intitulé · 1 sur 2 passent</li>
 <li>Les groupes de champs ont une légende · rien à juger : aucun groupe de champs dans la page</li>
 <li>Les choix d'une même question sont regroupés · rien à juger : aucun bouton radio dans la page</li>
 <li>Les champs de données personnelles déclarent leur finalité · 0 sur 2 passent</li>
@@ -211,7 +211,7 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <h2>Ce qui n'a pas été regardé</h2>
 <p>Ces règles touchent 36 des 106 critères du RGAA 4.1.2, 14 des 78 du RGESN 2024, et 4 paragraphes de l'article 50 du règlement sur l'IA. Toucher un critère n'est pas le solder : la plupart demandent le jugement d'une personne, ou une déclaration du responsable du site, au-delà de ce qu'une règle peut voir.</p>
 <p>Une page a été observée à un moment donné et à deux largeurs. Ce qui n'apparaît qu'après une action (un menu ouvert, un formulaire envoyé, une boîte de dialogue), ce qui se trouve derrière une connexion, et ce que contiennent les cadres venus d'autres sites n'ont pas été observés.</p>
-<p class="meta">relevé 0.4.0 · critères v4</p>
+<p class="meta">relevé 0.4.0 · critères v5</p>
 </main>
 </body>
 </html>

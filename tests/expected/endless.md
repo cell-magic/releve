@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/endless.html
 
-Observation `ba3b5656` · 2026-10-11T17:41:54+00:00 · criteria v4 · screenshot `572de61eb21d3697` · Chromium 141.0.7390.37  
+Observation `ba3b5656` · 2026-10-11T17:41:54+00:00 · criteria v5 · screenshot `572de61eb21d3697` · Chromium 141.0.7390.37  
 6 surfaces · 0 fail · 0 review · 1 hint · 22 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
@@ -29,7 +29,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - link-name: n/a · no links on the page
 - link-distinct: n/a · no links on the page
 - button-name: n/a · no buttons on the page
-- label-in-name: n/a · no name given by the code over a visible label
+- label-in-name: n/a · no name given by the code over words shown
 - control-label: n/a · no form fields on the page
 - group-legend: n/a · no group of fields on the page
 - field-group: n/a · no radio buttons on the page

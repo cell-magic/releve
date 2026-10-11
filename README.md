@@ -170,7 +170,7 @@ commented with the reading it should produce. The recorded observations
 and expected reports sit beside them, so any change in judgement shows up
 as a diff to review.
 
-## Criteria (v4)
+## Criteria (v5)
 
 | id | checks | source |
 |---|---|---|
@@ -191,8 +191,8 @@ as a diff to review.
 | link-name | links have a name | RGAA 6.1–6.2 · WCAG 2.4.4 |
 | link-distinct | links to different places differ in name | RGAA 6.1 · WCAG 2.4.4 |
 | button-name | buttons have a name | RGAA 11.9 · WCAG 4.1.2 |
-| label-in-name | the visible label is in the name | RGAA 6.1 · 11.2 · 11.9 · WCAG 2.5.3 |
-| control-label | form fields have a label | RGAA 11.1 · WCAG 1.3.1 |
+| label-in-name | the words shown are in the name | RGAA 6.1 · 11.2 · 11.9 · WCAG 2.5.3 |
+| control-label | form fields have a name | RGAA 11.1 · WCAG 1.3.1 |
 | group-legend | groups of fields have a legend | RGAA 11.6 · WCAG 1.3.1 |
 | field-group | choices of one question are grouped | RGAA 11.5 · WCAG 1.3.1 |
 | autocomplete | fields for personal data state their purpose | RGAA 11.13 · WCAG 1.3.5 |
@@ -223,6 +223,14 @@ Each criterion is one entry in `kernel/src/Releve/Criteria.hs`: what it
 checks, its source, what it is for, and one pure function. Whatever a
 criterion says, it says in English and in French. Adding one means writing
 one entry; nothing else changes.
+
+A report speaks in plain words and claims nothing for the page: no audit,
+no conformity, no certificate, no quality mark, no guarantee. The one
+thing it says of audits is that it is not one. What HTML itself calls a
+thing (`<label>`, `aria-label`) is written as HTML writes it and set as
+code, so that the words of the report are never taken for the words of
+the language it reports on. `tests/run.py` holds every report and the
+guide to this, in both languages.
 
 ## Scope and limits
 

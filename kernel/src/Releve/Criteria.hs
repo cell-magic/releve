@@ -4,7 +4,8 @@
 -- | The criteria. Each is a pure function from an observation to marks.
 --   A criterion states its source and what it is for; thresholds that are
 --   this tool's own choice say so. Whatever a mark says, it says in each
---   language of the reports.
+--   language of the reports, and in plain words: what HTML calls a thing
+--   (<label>, aria-label) is written as HTML writes it, and nowhere else.
 module Releve.Criteria (criteria, version) where
 
 import Data.Char (isAlpha, isAlphaNum, isDigit, isSpace)
@@ -18,7 +19,7 @@ import Releve.Colour
 import Releve.Types
 
 version :: Text
-version = "4"
+version = "5"
 
 criteria :: [Criterion]
 criteria =
@@ -90,13 +91,13 @@ criteria =
       ("A button without a name is announced as “button”, and nothing says what it does."
        // "Un bouton sans intitulé est annoncé « bouton », et rien ne dit ce qu'il fait.")
       buttonName
-  , Criterion "label-in-name" ("The visible label is in the name" // "L'intitulé visible figure dans le nom") "RGAA 6.1 · 11.2 · 11.9 · WCAG 2.5.3" Light
+  , Criterion "label-in-name" ("The words shown are in the name" // "Les mots montrés figurent dans le nom") "RGAA 6.1 · 11.2 · 11.9 · WCAG 2.5.3" Light
       ("Someone who speaks to their device says what they see; the command works only if the visible words are in the name the code gives."
        // "Qui commande son appareil à la voix dit ce qu'il voit ; la commande n'aboutit que si les mots visibles figurent dans le nom donné par le code.")
       labelInName
-  , Criterion "control-label" ("Form fields have a label" // "Les champs de formulaire ont une étiquette") "RGAA 11.1 · WCAG 1.3.1" Light
-      ("A label says what a field expects, stays when typing begins, and enlarges the area a finger or a pointer can aim at."
-       // "L'étiquette dit ce qu'attend un champ, demeure quand la saisie commence, et agrandit la zone que vise un doigt ou un pointeur.")
+  , Criterion "control-label" ("Form fields have a name" // "Les champs de formulaire ont un intitulé") "RGAA 11.1 · WCAG 1.3.1" Light
+      ("The words beside a field say what it expects, stay when typing begins, and enlarge the area a finger or a pointer can aim at."
+       // "Les mots placés près d'un champ disent ce qu'il attend, demeurent quand la saisie commence, et agrandissent la zone que vise un doigt ou un pointeur.")
       controlLabel
   , Criterion "group-legend" ("Groups of fields have a legend" // "Les groupes de champs ont une légende") "RGAA 11.6 · WCAG 1.3.1" Light
       ("A legend names the question that a set of choices answers; without it each choice is announced alone."
@@ -127,8 +128,8 @@ criteria =
        // "Les sous-titres portent la parole et les sons à qui ne les entend pas, et à quiconque lit sans le son.")
       mediaCaptions
   , Criterion "unique-ids" ("Element ids are unique" // "Les id des éléments sont uniques") "RGAA 8.2" Light
-      ("Labels, descriptions and in-page links point at an element by its id; a repeated id makes them point at the wrong one."
-       // "Étiquettes, descriptions et liens internes désignent un élément par son id ; un id répété les fait désigner le mauvais.")
+      ("A field's name, a description, an in-page link: each points at an element by its id; a repeated id makes it point at the wrong one."
+       // "L'intitulé d'un champ, une description, un lien interne : chacun désigne un élément par son id ; un id répété lui fait désigner le mauvais.")
       uniqueIds
   , Criterion "tab-order" ("The keyboard follows the order of the page" // "Le clavier suit l'ordre de la page") "RGAA 12.8 · WCAG 2.4.3" Medium
       ("The keyboard follows the order of the code; a positive tabindex takes an element out of that order and puts it first."
@@ -512,9 +513,9 @@ buttonName o = orNA ("no buttons on the page" // "aucun bouton dans la page") (m
                 | otherwise = on s Pass (quote (fromMaybe "" (name s))) Nothing
 
 -- | Where the code gives a name of its own (aria-label, aria-labelledby), the
---   words shown must be in it. Case and punctuation do not count; a label of
+--   words shown must be in it. Case and punctuation do not count; a caption of
 --   one character is a symbol and is left alone.
-labelInName o = recorded o . orNA ("no name given by the code over a visible label" // "aucun nom donné par le code par-dessus un intitulé visible") $
+labelInName o = recorded o . orNA ("no name given by the code over words shown" // "aucun nom donné par le code par-dessus des mots montrés") $
   [ if plain l `T.isInfixOf` plain n
       then on s Pass (quote n <> (" holds " // " contient ") <> quote l) Nothing
       else on s Fail (("shows " // "montre ") <> quote l <> (", is named " // ", se nomme ") <> quote n)
@@ -524,9 +525,9 @@ labelInName o = recorded o . orNA ("no name given by the code over a visible lab
   , Just l <- [label s], Just n <- [name s], T.length (plain l) > 1, not (any ("…" `T.isSuffixOf`) [l, n]) ]
 
 controlLabel o = orNA ("no form fields on the page" // "aucun champ de formulaire dans la page") (map judge (surfacesOf "control" o))
-  where judge s | blank (name s) = on s Fail (("no label" // "pas d'étiquette") <> maybe "" (\p -> ("; placeholder " // " ; seulement un texte indicatif, ") <> quote p <> (" only" // "")) (placeholder s))
+  where judge s | blank (name s) = on s Fail (("field without a name" // "champ sans intitulé") <> maybe "" (\p -> ("; placeholder " // " ; seulement un texte indicatif, ") <> quote p <> (" only" // "")) (placeholder s))
                                           (Just ("associate a <label>, or add aria-label" // "associer un <label>, ou ajouter aria-label"))
-                | otherwise = on s Pass (("label " // "étiquette ") <> quote (fromMaybe "" (name s))) Nothing
+                | otherwise = on s Pass (quote (fromMaybe "" (name s))) Nothing
 
 groupLegend o = recorded o . orNA ("no group of fields on the page" // "aucun groupe de champs dans la page") $ map judge (surfacesOf "group" o)
   where judge s | blank (name s) = on s Fail ("group of fields without a legend" // "groupe de champs sans légende") (Just ("add a <legend>, or aria-label on the group" // "ajouter un <legend>, ou aria-label sur le groupe"))
