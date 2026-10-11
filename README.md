@@ -148,13 +148,30 @@ without script.
   seconds; one page is observed at a time, and requests past the few that
   may wait are told to come back.
 
-Put a proxy in front of it that terminates TLS and keeps no access log,
-and keep the machine away from any private network: the address check is
-made when a request is asked for, and a firewall is the second lock.
 `--shell en=FILE --shell fr=FILE` sets the report in a page of your own
 (`<!-- relevé -->` marks the place), `--static DIR` serves what that page
 needs. One page takes two to ten seconds and, with the browser, up to
 about one gigabyte of memory for a heavy one; two gigabytes are enough.
+
+To put it online, on a machine given over to it (Ubuntu 24.04):
+
+```sh
+sudo bash serve/install.sh releve.you.example https://you.example/robot
+```
+
+`serve/install.sh` builds relevé in a folder of its own, runs the three
+sets of checks there, and only then starts the service: a unit that keeps
+none of its output, confined to what it needs, behind a proxy (Caddy) that
+keeps no log of requests, failed ones included. It then asks the running
+service for a report and says what came back. Run again, it renews: the
+service stays as it was until the checks pass, and returns to what it was
+if no report comes back. `--playwright VERSION` brings a newer browser
+than the one relevé was last tried with; a service in the open should not
+run an old one. What it does not give is the browser's own sandbox: the
+browser is confined by the unit, as a user that owns nothing, on a machine
+that holds no data and no key. Keep that machine away from any private
+network: the address check is made when a request is asked for, and the
+unit's address filter is the second lock.
 
 ## Tests
 

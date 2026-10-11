@@ -28,6 +28,12 @@ comes back for review.
   script, no log. Whoever asks keeps the record, as a small sealed file, and
   hands it back to learn what changed. Only public addresses on the web's
   own ports are requested, by the page or by anything it loads.
+- **Putting it online.** `serve/install.sh` installs or renews the service
+  on a machine given over to it: built apart, checked there, started only
+  then, behind a proxy that logs no request, and put back as it was if the
+  running service gives no report. A service whose browser cannot start
+  now ends, to be started again, where it used to answer that the page was
+  slow; whatever else fails, the answer says so; `HEAD` is answered.
 - **Twenty-seven new rules.** From the RGAA: the document type, a link to
   the main content, text that looks like a heading or a list, elements used
   as gaps, styling in the markup, links of one name to several places, the

@@ -155,6 +155,12 @@ class Bench(threading.Thread):
         return "robots.txt unreachable" if rules is None else None if rules.can_fetch(observer.AGENT, url) else "robots.txt refuses"
 
     def run(self):
+        try:
+            self.observing()
+        finally:  # without its bench the service answers nothing: it ends, and whatever keeps it starts it again
+            os._exit(1)
+
+    def observing(self):
         from playwright.sync_api import Error as BrowserError, sync_playwright
         with sync_playwright() as pw:
             browser, seen = pw.chromium.launch(), 0
@@ -251,7 +257,7 @@ class Door(BaseHTTPRequestHandler):
                                                  "form-action 'self'; base-uri 'none'; frame-ancestors 'none'"), *extra]:
             self.send_header(k, v)
         self.end_headers()
-        self.wfile.write(out)
+        self.command == "HEAD" or self.wfile.write(out)
 
     def do_GET(self):
         path = urllib.parse.urlsplit(self.path).path.removeprefix(PREFIX)
@@ -264,12 +270,14 @@ class Door(BaseHTTPRequestHandler):
                              ("Cache-Control", "public, max-age=86400"), ("X-Content-Type-Options", "nosniff")]:
                     self.send_header(k, v)
                 self.end_headers()
-                return self.wfile.write(out)
+                return self.command == "HEAD" or self.wfile.write(out)
         if path not in ("/", "/fr/"):
             return self.answer(404, "en", "relevé", '<h1>relevé</h1>\n<p><a href="' + PREFIX + '/">relevé</a></p>')
         lang = "fr" if path == "/fr/" else "en"
         w = WORDS[lang]
         self.answer(200, lang, w["title"], f'<h1>{w["title"]}</h1>\n<p>{w["lead"]}</p>\n{form(lang)}')
+
+    do_HEAD = do_GET  # the same answer, without its body
 
     def do_POST(self):
         lang = "en"
@@ -294,6 +302,8 @@ class Door(BaseHTTPRequestHandler):
             return self.refuse(lang, "slow")
         except Refused as r:
             return self.refuse(lang, str(r))
+        except Exception as e:  # whatever went wrong, the answer says so and nothing is written
+            return self.refuse(lang, type(e).__name__)
         w = WORDS[lang]
         title = re.search(r"<title>(.*?)</title>", report, re.S).group(1)
         body = report[report.index("<main>") + 6:report.index("</main>")]
@@ -315,7 +325,7 @@ def setup(contact, local=False, shells=(), static=None, prefix=""):
     """Everything the door needs, set once before it opens."""
     global BENCH, MEMORY, PREFIX, RELEVE, SHELLS, STATIC
     RELEVE = shutil.which(os.environ.get("RELEVE", "releve")) or sys.exit("serve: releve not found; build it, or name it in RELEVE")
-    MEMORY = "/dev/shm" if os.path.isdir("/dev/shm") else None  # records pass through memory, not through a disk
+    MEMORY = "/dev/shm" if os.access("/dev/shm", os.W_OK) else None  # records pass through memory, not through a disk
     PREFIX = prefix.rstrip("/")
     SHELLS = {k: Path(v).read_text(encoding="utf-8") for k, v in (x.split("=", 1) for x in shells)}
     STATIC = Path(static).resolve() if static else None

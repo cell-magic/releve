@@ -74,3 +74,4 @@ jobs:
       - run: python tests/service.py
         env:
           RELEVE: dist/releve
+      - run: bash -n serve/install.sh && shellcheck serve/install.sh

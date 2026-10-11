@@ -82,6 +82,9 @@ for path, lang in (("/", "en"), ("/fr/", "fr")):
           "set-cookie" not in heads and "<script" not in text and heads["cache-control"] == "no-store"
           and "default-src 'none'" in heads["content-security-policy"])
 
+head = urlopen(Request(f"http://127.0.0.1:{door}/", method="HEAD"))
+check("answers a request for the headers alone with the headers alone", head.status == 200 and int(head.headers["Content-Length"]) > 0 and head.read() == b"")
+
 code, heads, first = ask(door, f"http://localhost:{open_}/one", "fr")
 check("answers an address with its report, in the language asked for",
       code == 200 and '<html lang="fr">' in first and "Méthode" in first and "pas d'attribut alt" in first and "set-cookie" not in heads)
@@ -118,6 +121,19 @@ for address, verdict in [("http://127.0.0.1/", "not public"), ("http://10.1.2.3/
 shelf["/answer"] = first
 read, lines = asked(f"http://127.0.0.1:{door}/", f"http://127.0.0.1:{door}/fr/", f"http://localhost:{open_}/answer")
 check("its own pages, read by its own rules, are asked for nothing" + "".join("\n      " + l for l in lines), read == 3 and not lines)
+
+# Installed by its own recipe, it keeps none of its output and stands behind a proxy that logs no request.
+recipe = (Path(serve.__file__).parent / "install.sh").read_text(encoding="utf-8")
+check("its recipe keeps no output and no log of requests", all(x in recipe for x in ("StandardOutput=null", "StandardError=null", "exclude http.log.error"))
+      and "output file" not in recipe)
+
+# A service whose browser cannot start is of no use, and does not pretend: it ends, to be started again.
+try:
+    ended = subprocess.run([sys.executable, serve.__file__, "--contact", "https://example.org/robot", "--port", "0"], timeout=60, capture_output=True,
+                           env={**os.environ, "PLAYWRIGHT_BROWSERS_PATH": tempfile.mkdtemp(), "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1"}).returncode
+except subprocess.TimeoutExpired:
+    ended = None
+check("ends when its browser cannot start", ended == 1)
 
 # A record passes through a directory in memory that is gone with the answer; nothing is written beside the service.
 passing = [n for d in {serve.MEMORY or serve.tempfile.gettempdir(), serve.tempfile.gettempdir()} for n in os.listdir(d) if n.startswith("releve-")]
