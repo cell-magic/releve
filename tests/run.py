@@ -129,6 +129,21 @@ def main():
     line = later([150, 150, 150, 1])
     check("the new reading then stands, and carries in its turn", line.startswith("- **FAIL**") and "read otherwise" not in line)
 
+    # The report: the same document from a corpus and from observations passed through, in each
+    # language; and nothing in the French one left in English but what the page itself said.
+    structure = (HERE / "observations" / "structure.jsonl").read_bytes()
+    for lang in ("en", "fr"):
+        doc, expected = releve("report", lang, tmp / "structure")[1], HERE / "expected" / f"structure.{lang}.html"
+        if accept:
+            expected.write_bytes(doc)
+        check(f"report in {lang}", doc == expected.read_bytes() and f'<html lang="{lang}">'.encode() in doc)
+        check(f"the same report in {lang} with nothing kept", releve("report", lang, "-", feed=structure)[1] == doc)
+    everything = b"".join(o.read_bytes() for o in sorted((HERE / "observations").glob("*.jsonl")))
+    french = releve("report", "fr", "-", feed=everything)[1].decode("utf-8")
+    ours = re.sub(r"«.*?»|<code>.*?</code>|<a .*?</a>|<title>.*?</title>|<h[12][^>]*>.*?</h[12]>|<style>.*?</style>", "", french, flags=re.S)
+    left = sorted(set(re.findall(r"\b(?:the|with|without|and|is|are|of|not|no|by|has)\b", re.sub(r"<[^>]+>", " ", ours))))
+    check("the French report is in French" + (": " + ", ".join(left) if left else ""), not left)
+
     # The reading. A series takes a step for each event, whatever the reader holds; independent
     # events take a quarter of that; a series beside them costs nothing until it is the longer.
     blank = json.loads((HERE / "observations" / "edge.jsonl").read_text(encoding="utf-8"))

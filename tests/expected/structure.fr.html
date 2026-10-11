@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relevé · http://localhost:8765/structure.html</title>
+<style>
+html { color: #1a1a1a; background: #fff; }
+body { margin: 0; font: 1rem/1.6 system-ui, sans-serif; }
+main { max-width: 42rem; margin: 0 auto; padding: 1rem 1rem 4rem; }
+h1, h2, h3, h4 { line-height: 1.25; font-weight: 600; }
+h1 { font-size: 1.75rem; overflow-wrap: anywhere; } h2 { font-size: 1.375rem; margin-top: 2.5rem; overflow-wrap: anywhere; } h3 { font-size: 1.125rem; margin-top: 2rem; } h4 { font-size: 1rem; margin-top: 1.5rem; }
+a { color: #1f3a8a; } a:focus-visible { outline: 2px solid #1f3a8a; outline-offset: 2px; }
+li { margin-bottom: .6rem; overflow-wrap: anywhere; }
+code { font: .875rem/1.4 ui-monospace, monospace; color: #5c6066; }
+.meta { color: #5c6066; font-size: .9375rem; }
+dt { font-weight: 600; } dd { margin: 0 0 .5rem; }
+table { border-collapse: collapse; width: 100%; } th, td { text-align: left; padding: .4rem .5rem .4rem 0; border-bottom: 1px solid #c8cacd; overflow-wrap: anywhere; } tbody th { font-weight: normal; }
+
+</style>
+</head>
+<body>
+<main>
+<h1>Relevé · http://localhost:8765/structure.html</h1>
+<p>Observation automatisée d'une page rendue, par des règles. Ce n'est pas un audit de conformité : une règle tranche ce qu'une règle peut trancher, et soumet le reste à une personne.</p>
+<h2>Méthode</h2>
+<p>Un navigateur a ouvert chaque page comme le ferait celui d'un lecteur, à 1280 px puis à 320 px, et a consigné ce qu'elle montrait : les noms donnés aux technologies d'assistance, les couleurs telles que rendues, les octets transférés. 34 critères ont ensuite lu ce relevé. Chacun est une règle en code clair ; aucun modèle entraîné n'intervient, de sorte que le même relevé donne le même rapport.</p>
+<dl>
+<dt>À corriger</dt><dd>une règle énoncée n'est pas respectée ; le remède est indiqué.</dd>
+<dt>À vérifier</dt><dd>la règle a trouvé ce que seule une personne peut trancher, et le montre.</dd>
+<dt>Pourrait être allégé</dt><dd>rien n'est enfreint ; moins d'octets feraient autant.</dd>
+</dl>
+
+<p class="meta">Observée le 11 octobre 2026, 17:14 UTC · Chromium 141.0.7390.37</p>
+<p><strong>8 à corriger · 5 à vérifier · 0 à alléger · 33 contrôles passent</strong></p>
+<h2>À corriger (8)</h2>
+<h3>Le contenu principal est balisé</h3>
+<p>Une zone principale balisée permet d'aller droit au contenu, au-delà de ce que chaque page répète. <span class="meta">RGAA 9.2 · 12.6 · WCAG 2.4.1 · travail léger</span></p>
+<ul>
+<li>2 zones principales sont visibles<br><strong>À changer : </strong>garder un seul &lt;main&gt; ; donner aux autres l'attribut hidden</li>
+</ul>
+<h3>Aucun élément ne sert d'espace</h3>
+<p>Un élément vide reste annoncé, ou compté, par les technologies d'assistance : l'espacement relève de la feuille de styles. <span class="meta">RGAA 8.9 · WCAG 1.3.1 · travail léger</span></p>
+<ul>
+<li>2 paragraphes vides<br><strong>À changer : </strong>les retirer ; l'espacement relève de la feuille de styles</li>
+<li>1 titre vide<br><strong>À changer : </strong>le retirer ; l'espacement relève de la feuille de styles</li>
+</ul>
+<h3>L'apparence est confiée à la feuille de styles</h3>
+<p>Une apparence écrite dans le balisage échappe aux styles du lecteur ; confiée à la feuille de styles, elle s'y adapte. <span class="meta">RGAA 10.1 · WCAG 1.3.1 · travail moyen</span></p>
+<ul>
+<li>attribut bgcolor utilisé 1 fois<br><strong>À changer : </strong>le confier à la feuille de styles</li>
+<li>&lt;center&gt; utilisé 1 fois<br><strong>À changer : </strong>le confier à la feuille de styles</li>
+<li>&lt;font&gt; utilisé 1 fois<br><strong>À changer : </strong>le confier à la feuille de styles</li>
+<li>attribut color utilisé 1 fois<br><strong>À changer : </strong>le confier à la feuille de styles</li>
+</ul>
+<h3>Aucune fenêtre ne s'ouvre seule</h3>
+<p>Une fenêtre qui s'ouvre seule déplace le lecteur là où il n'a pas choisi d'aller, parfois sans qu'il s'en aperçoive. <span class="meta">RGAA 13.2 · WCAG 3.2.1 · travail moyen</span></p>
+<ul>
+<li>a tenté d'ouvrir 1 fenêtre d'elle-même<br><strong>À changer : </strong>n'ouvrir une fenêtre qu'à l'action du lecteur</li>
+</ul>
+<h2>À vérifier (5)</h2>
+<h3>Ce qui a l'air d'un titre en est un</h3>
+<p>Un texte qui a l'air d'un titre sans être balisé comme tel ne titre la page que pour l'œil. <span class="meta">RGAA 9.1 · WCAG 1.3.1 · seuils (outil) · travail léger</span></p>
+<ul>
+<li>« Set large and not marked » est composé en 28 px, le texte courant en 16 px, et ce n'est pas un titre<br><strong>À changer : </strong>s'il titre ce qui suit, le baliser h1 à h6<br><code>body &gt; main:nth-of-type(1) &gt; div.big:nth-of-type(1)</code></li>
+<li>« Set bold before plain text » est composé plus gras que le texte qui suit, et ce n'est pas un titre<br><strong>À changer : </strong>s'il titre ce qui suit, le baliser h1 à h6<br><code>body &gt; main:nth-of-type(1) &gt; div.bold:nth-of-type(2)</code></li>
+</ul>
+<h3>Ce qui a l'air d'une liste en est une</h3>
+<p>Une liste balisée annonce combien d'éléments elle contient et permet de passer de l'un au suivant. <span class="meta">RGAA 9.3 · WCAG 1.3.1 · travail léger</span></p>
+<ul>
+<li>3 lignes de suite commencent comme des éléments de liste, depuis « • First of three »<br><strong>À changer : </strong>les baliser en liste : &lt;ul&gt; ou &lt;ol&gt;, avec &lt;li&gt;<br><code>body &gt; main:nth-of-type(1) &gt; p:nth-of-type(5)</code></li>
+</ul>
+<h3>La page ne se recharge ni ne s'en va après un délai</h3>
+<p>Une page qui se recharge ou s'en va après un délai retire au lecteur sa place, et son temps. <span class="meta">RGAA 13.1 · WCAG 2.2.1 · travail léger</span></p>
+<ul>
+<li>se recharge toutes les 600 s<br><strong>À changer : </strong>laisser le lecteur l'arrêter ou le retarder</li>
+</ul>
+<h3>Les vidéos portent des sous-titres</h3>
+<p>Les sous-titres portent la parole et les sons à qui ne les entend pas, et à quiconque lit sans le son. <span class="meta">RGAA 4.3 · WCAG 1.2.2 · travail lourd</span></p>
+<ul>
+<li>vidéo sans piste de sous-titres<br><strong>À changer : </strong>si elle porte de la parole, ajouter &lt;track kind=&quot;captions&quot;&gt;<br><code>body &gt; main:nth-of-type(1) &gt; video:nth-of-type(1)</code></li>
+</ul>
+<h2>Critère par critère</h2>
+<ul>
+<li>La page a un titre · 1 sur 1 passent</li>
+<li>La page déclare sa langue · 1 sur 1 passent</li>
+<li>La page déclare son type de document · 1 sur 1 passent</li>
+<li>L'agrandissement n'est pas bloqué · 1 sur 1 passent</li>
+<li>Pas de défilement horizontal à 320 px · 1 sur 1 passent</li>
+<li>Le contenu principal est balisé · 0 sur 1 passent</li>
+<li>Un lien mène au contenu principal · 1 sur 1 passent</li>
+<li>Les niveaux de titre se suivent · 2 sur 2 passent</li>
+<li>Ce qui a l'air d'un titre en est un · 0 sur 2 passent</li>
+<li>Ce qui a l'air d'une liste en est une · 0 sur 1 passent</li>
+<li>Aucun élément ne sert d'espace · 0 sur 2 passent</li>
+<li>L'apparence est confiée à la feuille de styles · 0 sur 4 passent</li>
+<li>Les images portent une alternative textuelle · rien à juger : aucune image dans la page</li>
+<li>Le texte contraste avec son fond · 19 sur 19 passent</li>
+<li>Les liens ont un intitulé · rien à juger : aucun lien dans la page</li>
+<li>Des liens vers des lieux différents diffèrent d'intitulé · rien à juger : aucun lien dans la page</li>
+<li>Les boutons ont un intitulé · rien à juger : aucun bouton dans la page</li>
+<li>L'intitulé visible figure dans le nom · rien à juger : aucun nom donné par le code par-dessus un intitulé visible</li>
+<li>Les champs de formulaire ont une étiquette · rien à juger : aucun champ de formulaire dans la page</li>
+<li>Les groupes de champs ont une légende · rien à juger : aucun groupe de champs dans la page</li>
+<li>Les choix d'une même question sont regroupés · rien à juger : aucun bouton radio dans la page</li>
+<li>Les champs de données personnelles déclarent leur finalité · rien à juger : aucun champ ne demandant une donnée personnelle</li>
+<li>Les tableaux de données déclarent leurs en-têtes · rien à juger : aucun tableau dans la page</li>
+<li>Les cadres ont un titre · rien à juger : aucun cadre dans la page</li>
+<li>Aucun son ne démarre seul · 2 sur 2 passent</li>
+<li>Les vidéos portent des sous-titres · 1 sur 2 passent</li>
+<li>Les id des éléments sont uniques · 1 sur 1 passent</li>
+<li>Le clavier suit l'ordre de la page · 1 sur 1 passent</li>
+<li>Rien de caché ne prend le focus · 1 sur 1 passent</li>
+<li>Aucune fenêtre ne s'ouvre seule · 0 sur 1 passent</li>
+<li>La page ne se recharge ni ne s'en va après un délai · 0 sur 1 passent</li>
+<li>L'IA conversationnelle est signalée · rien à juger : aucun agent conversationnel détecté</li>
+<li>Les images ne dépassent pas leur taille d'affichage · rien à juger : aucune image matricielle dans la page</li>
+<li>Les images lourdes utilisent un format récent · rien à juger : aucune image pesée dans la page</li>
+</ul>
+<h2>Empreinte</h2>
+<p>39 éléments dans le document · 3 requêtes · 4 ko transférés · 0 hôtes tiers</p>
+<h2>Ce qui n'a pas été regardé</h2>
+<p>Ces règles touchent 36 des 106 critères du RGAA 4.1.2, une obligation de l'article 50 du règlement sur l'IA, et deux mesures de sobriété. Toucher un critère n'est pas le solder : la plupart demandent le jugement d'une personne au-delà de ce qu'une règle peut voir.</p>
+<p>Une page a été observée à un moment donné et à deux largeurs. Ce qui n'apparaît qu'après une action (un menu ouvert, un formulaire envoyé, une boîte de dialogue), ce qui se trouve derrière une connexion, et ce que contiennent les cadres venus d'autres sites n'ont pas été observés.</p>
+<p class="meta">relevé 0.4.0 · critères v3</p>
+</main>
+</body>
+</html>

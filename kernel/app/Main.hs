@@ -17,6 +17,7 @@ import System.IO (hPutStrLn, hSetEncoding, hSetNewlineMode, noNewlineTranslation
 import Releve.Corpus
 import Releve.Criteria (criteria, version)
 import Releve.Kernel
+import Releve.Report
 import Releve.Types
 import Releve.Views
 
@@ -26,6 +27,8 @@ usage = unlines
   , ""
   , "  observe URL | releve ingest CORPUS    record observations (JSON lines on stdin)"
   , "  releve facts CORPUS [ID|URL|--all]    the checkable report, as Markdown"
+  , "  releve report en|fr CORPUS            the report for the pages' owner, as HTML;"
+  , "                                        CORPUS may be - : observations on stdin, nothing kept"
   , "  releve correct CORPUS < facts.md      record a person's edits to a report"
   , "  releve atlas CORPUS                   every observation as study data (JSON lines)"
   , "  releve verify CORPUS                  check the corpus seals"
@@ -49,6 +52,8 @@ main = plain >> getArgs >>= \args -> case args of
   ["facts", c] -> withState c $ \st -> maybe (die "no observations") (TIO.putStr . facts st) (resolve st Nothing)
   ["facts", c, "--all"] -> withState c $ \st -> TIO.putStr (T.intercalate "\n---\n\n" (map (facts st) (latest st)))
   ["facts", c, ref] -> withState c $ \st -> maybe (die "no such observation") (TIO.putStr . facts st) (resolve st (Just (T.pack ref)))
+  ["report", l, c] | Just lang <- lookup l [("en", En), ("fr", Fr)] ->
+    (if c == "-" then passing else records c) >>= either die (TIO.putStr . report lang (T.pack release)) . build
   ["correct", c] -> correct c
   ["atlas", c] -> withState c $ \st -> forM_ (observations st) (BL.putStrLn . encode . atlas st)
   ["verify", c] -> records c >>= \rs -> case verify rs of
@@ -66,6 +71,13 @@ die m = hPutStrLn stderr ("releve: " <> m) >> exitWith (ExitFailure 1)
 
 records :: FilePath -> IO [Record]
 records c = load c >>= either (die . (<> "; the corpus is damaged there, restore it from a copy")) pure
+
+-- | Observations read from stdin and sealed in memory: a corpus that is never written.
+passing :: IO [Record]
+passing = do
+  ls <- filter (not . BC.null) . BC.lines <$> BC.getContents
+  os <- either (die . ("not an observation: " <>)) pure (mapM eitherDecodeStrict ls) :: IO [Observation]
+  pure (foldl (\rs o -> rs ++ [next rs (toJSON (Observed o))]) [] os)
 
 sealed :: FilePath -> IO [Record]
 sealed c = do

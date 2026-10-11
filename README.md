@@ -22,12 +22,12 @@ tamper-evident, because a report is a claim someone may rely on.
 ```
 page ──observe──▶ observation ──releve ingest──▶ corpus   (append-only, sealed)
                                                    │
-                         ┌─────────────────────────┴─────────────────────────┐
-                       facts                                               atlas
-          what the page is: one checkable                what the page could become:
-          line per finding, for a person                 structure, constraints, changes,
-                         │                                as data for study
-               edits ──releve correct──▶ corpus
+                ┌──────────────────────────────────┼──────────────────────────────────┐
+              facts                              report                              atlas
+   what the page is: one checkable     the same, for the person       what the page could become:
+   line per finding, for a reviewer    whose page it is: a page       structure, constraints, changes,
+                │                      of HTML, English or French     as data for study
+      edits ──releve correct──▶ corpus
 ```
 
 ## Principles
@@ -66,7 +66,7 @@ page ──observe──▶ observation ──releve ingest──▶ corpus   (a
    the smallest change that satisfies it: the nearest compliant colour, or
    the size an image should be served at.
 
-## The two outputs
+## The three outputs
 
 **facts** is a Markdown document made for proofreading. Each finding is one
 line:
@@ -79,6 +79,14 @@ To correct it, change the verdict word, add a note after `//`, and pipe
 the file back through `releve correct`. Lines left untouched record
 nothing. A line changed in a way that cannot be read is refused, and
 nothing is recorded: a decision is never dropped in silence.
+
+**report** is one page of HTML, without script, in English or in French,
+for the person whose pages they are. The method comes before the findings.
+Each finding stands with its remedy, under its criterion and what that
+criterion is for; the lightest work comes first; and the page ends on what
+was not looked at. Read from a corpus, it says what changed since the
+last observation. Read from standard input (`releve report en -`), it
+writes the report and keeps nothing.
 
 **atlas** is JSON lines, one per observation: the page's shape (its
 landmarks, headings and controls in reading order), its footprint, what
@@ -98,8 +106,12 @@ cabal install                     # builds `releve`; or take a built one from th
 python observe/observe.py https://example.org --contact https://you.example/robot | releve ingest corpus.jsonl
 releve facts corpus.jsonl > facts.md       # proofread, edit
 releve correct corpus.jsonl < facts.md     # your edits become events
+releve report fr corpus.jsonl > report.html # for the pages' owner; en or fr
 releve atlas corpus.jsonl > atlas.jsonl
 releve verify corpus.jsonl
+
+# or, keeping nothing:
+python observe/observe.py https://example.org --contact https://you.example/robot | releve report en - > report.html
 ```
 
 `observe` takes several URLs and writes one line per page, so any crawler

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relevé · http://localhost:8765/structure.html</title>
+<style>
+html { color: #1a1a1a; background: #fff; }
+body { margin: 0; font: 1rem/1.6 system-ui, sans-serif; }
+main { max-width: 42rem; margin: 0 auto; padding: 1rem 1rem 4rem; }
+h1, h2, h3, h4 { line-height: 1.25; font-weight: 600; }
+h1 { font-size: 1.75rem; overflow-wrap: anywhere; } h2 { font-size: 1.375rem; margin-top: 2.5rem; overflow-wrap: anywhere; } h3 { font-size: 1.125rem; margin-top: 2rem; } h4 { font-size: 1rem; margin-top: 1.5rem; }
+a { color: #1f3a8a; } a:focus-visible { outline: 2px solid #1f3a8a; outline-offset: 2px; }
+li { margin-bottom: .6rem; overflow-wrap: anywhere; }
+code { font: .875rem/1.4 ui-monospace, monospace; color: #5c6066; }
+.meta { color: #5c6066; font-size: .9375rem; }
+dt { font-weight: 600; } dd { margin: 0 0 .5rem; }
+table { border-collapse: collapse; width: 100%; } th, td { text-align: left; padding: .4rem .5rem .4rem 0; border-bottom: 1px solid #c8cacd; overflow-wrap: anywhere; } tbody th { font-weight: normal; }
+
+</style>
+</head>
+<body>
+<main>
+<h1>Relevé · http://localhost:8765/structure.html</h1>
+<p>Automated observation of one rendered page, by rule. It is not a conformity audit: a rule decides what a rule can, and puts the rest to a person.</p>
+<h2>Method</h2>
+<p>A browser opened each page as a reader's would, at 1280 px and again at 320 px, and recorded what it showed: the names assistive technology is given, the colours as rendered, the bytes that travelled. 34 criteria then read that record. Each is a rule in plain code; no trained model takes part, so the same record gives the same report.</p>
+<dl>
+<dt>To mend</dt><dd>a stated rule is broken; the remedy is given.</dd>
+<dt>To check</dt><dd>the rule has found what only a person can decide, and shows it.</dd>
+<dt>Could be lighter</dt><dd>nothing is broken; fewer bytes would do the same.</dd>
+</dl>
+
+<p class="meta">Observed on 11 October 2026, 17:14 UTC · Chromium 141.0.7390.37</p>
+<p><strong>8 to mend · 5 to check · 0 could be lighter · 33 checks pass</strong></p>
+<h2>To mend (8)</h2>
+<h3>The main content is marked</h3>
+<p>A marked main region lets a reader go straight to the content, past what every page repeats. <span class="meta">RGAA 9.2 · 12.6 · WCAG 2.4.1 · light work</span></p>
+<ul>
+<li>2 main landmarks are visible<br><strong>Change: </strong>keep one &lt;main&gt;; give the others the hidden attribute</li>
+</ul>
+<h3>No element is used as a gap</h3>
+<p>An element that holds nothing is still announced, or counted, by assistive technology: spacing belongs to the style sheet. <span class="meta">RGAA 8.9 · WCAG 1.3.1 · light work</span></p>
+<ul>
+<li>2 empty paragraphs<br><strong>Change: </strong>remove them; spacing belongs to the style sheet</li>
+<li>1 empty heading<br><strong>Change: </strong>remove it; spacing belongs to the style sheet</li>
+</ul>
+<h3>Appearance is left to the style sheet</h3>
+<p>Appearance written into the markup cannot be adapted by a reader's own styles; left to the style sheet, it can. <span class="meta">RGAA 10.1 · WCAG 1.3.1 · some work</span></p>
+<ul>
+<li>attribute bgcolor used 1 time<br><strong>Change: </strong>move it to the style sheet</li>
+<li>&lt;center&gt; used 1 time<br><strong>Change: </strong>move it to the style sheet</li>
+<li>&lt;font&gt; used 1 time<br><strong>Change: </strong>move it to the style sheet</li>
+<li>attribute color used 1 time<br><strong>Change: </strong>move it to the style sheet</li>
+</ul>
+<h3>No window opens by itself</h3>
+<p>A window that opens by itself moves the reader somewhere they did not choose, and may not be noticed at all. <span class="meta">RGAA 13.2 · WCAG 3.2.1 · some work</span></p>
+<ul>
+<li>tried to open 1 window by itself<br><strong>Change: </strong>open a window on the reader's action only</li>
+</ul>
+<h2>To check (5)</h2>
+<h3>What looks like a heading is one</h3>
+<p>Text that looks like a heading and is not marked as one titles the page for the eye only. <span class="meta">RGAA 9.1 · WCAG 1.3.1 · thresholds (tool) · light work</span></p>
+<ul>
+<li>“Set large and not marked” is set at 28 px, the running text at 16 px, and it is not a heading<br><strong>Change: </strong>if it titles what follows, mark it h1 to h6<br><code>body &gt; main:nth-of-type(1) &gt; div.big:nth-of-type(1)</code></li>
+<li>“Set bold before plain text” is set bolder than the text that follows, and it is not a heading<br><strong>Change: </strong>if it titles what follows, mark it h1 to h6<br><code>body &gt; main:nth-of-type(1) &gt; div.bold:nth-of-type(2)</code></li>
+</ul>
+<h3>What looks like a list is one</h3>
+<p>A marked list announces how many items it holds and lets a reader move from one to the next. <span class="meta">RGAA 9.3 · WCAG 1.3.1 · light work</span></p>
+<ul>
+<li>3 lines in a row begin like list items, from “• First of three”<br><strong>Change: </strong>mark them as a list: &lt;ul&gt; or &lt;ol&gt;, with &lt;li&gt;<br><code>body &gt; main:nth-of-type(1) &gt; p:nth-of-type(5)</code></li>
+</ul>
+<h3>The page does not reload or leave on a timer</h3>
+<p>A page that reloads or leaves on a timer takes the reader's place, and their time, away from them. <span class="meta">RGAA 13.1 · WCAG 2.2.1 · light work</span></p>
+<ul>
+<li>reloads itself every 600 s<br><strong>Change: </strong>let the reader stop or delay it</li>
+</ul>
+<h3>Videos carry captions</h3>
+<p>Captions carry speech and sound to those who do not hear them, and to anyone reading with the sound off. <span class="meta">RGAA 4.3 · WCAG 1.2.2 · heavy work</span></p>
+<ul>
+<li>video without a caption track<br><strong>Change: </strong>if it carries speech, add &lt;track kind=&quot;captions&quot;&gt;<br><code>body &gt; main:nth-of-type(1) &gt; video:nth-of-type(1)</code></li>
+</ul>
+<h2>Criterion by criterion</h2>
+<ul>
+<li>The page has a title · 1 of 1 pass</li>
+<li>The page states its language · 1 of 1 pass</li>
+<li>The page declares its document type · 1 of 1 pass</li>
+<li>Zoom is not blocked · 1 of 1 pass</li>
+<li>No horizontal scrolling at 320 px · 1 of 1 pass</li>
+<li>The main content is marked · 0 of 1 pass</li>
+<li>A link leads to the main content · 1 of 1 pass</li>
+<li>Heading levels follow each other · 2 of 2 pass</li>
+<li>What looks like a heading is one · 0 of 2 pass</li>
+<li>What looks like a list is one · 0 of 1 pass</li>
+<li>No element is used as a gap · 0 of 2 pass</li>
+<li>Appearance is left to the style sheet · 0 of 4 pass</li>
+<li>Images carry a text alternative · nothing to judge: no images on the page</li>
+<li>Text contrasts with its background · 19 of 19 pass</li>
+<li>Links have a name · nothing to judge: no links on the page</li>
+<li>Links to different places differ in name · nothing to judge: no links on the page</li>
+<li>Buttons have a name · nothing to judge: no buttons on the page</li>
+<li>The visible label is in the name · nothing to judge: no name given by the code over a visible label</li>
+<li>Form fields have a label · nothing to judge: no form fields on the page</li>
+<li>Groups of fields have a legend · nothing to judge: no group of fields on the page</li>
+<li>Choices of one question are grouped · nothing to judge: no radio buttons on the page</li>
+<li>Fields for personal data state their purpose · nothing to judge: no field that asks for personal data</li>
+<li>Data tables declare their headers · nothing to judge: no tables on the page</li>
+<li>Frames have a title · nothing to judge: no frames on the page</li>
+<li>No sound starts by itself · 2 of 2 pass</li>
+<li>Videos carry captions · 1 of 2 pass</li>
+<li>Element ids are unique · 1 of 1 pass</li>
+<li>The keyboard follows the order of the page · 1 of 1 pass</li>
+<li>Nothing hidden takes the focus · 1 of 1 pass</li>
+<li>No window opens by itself · 0 of 1 pass</li>
+<li>The page does not reload or leave on a timer · 0 of 1 pass</li>
+<li>Conversational AI is disclosed · nothing to judge: no conversational widget detected</li>
+<li>Images are not larger than shown · nothing to judge: no bitmap images on the page</li>
+<li>Heavy images use a modern format · nothing to judge: no weighed images on the page</li>
+</ul>
+<h2>Footprint</h2>
+<p>39 elements in the document · 3 requests · 4 kB transferred · 0 third-party hosts</p>
+<h2>What was not looked at</h2>
+<p>These rules touch 36 of the 106 criteria of the RGAA 4.1.2, one obligation of article 50 of the AI Act, and two measures of sobriety. To touch a criterion is not to settle it: most ask for a person's judgement beyond what a rule can see.</p>
+<p>One page was observed at one moment and at two widths. What appears only after an action (a menu opened, a form sent, a dialogue), what stands behind a login, and what lies inside frames from other sites were not observed.</p>
+<p class="meta">relevé 0.4.0 · criteria v3</p>
+</main>
+</body>
+</html>
