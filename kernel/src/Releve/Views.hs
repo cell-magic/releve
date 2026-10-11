@@ -39,7 +39,7 @@ facts st o = T.unlines $
   ++ overruled
   ++ ["", "## By criterion", ""] ++ passes
   ++ ["", "## Footprint", ""] ++ weight
-  ++ maybe [] (\r -> ["", "## Reading", ""] ++ lecture b r) (read' b fs)
+  ++ maybe [] (\r -> ["", "## Reading", ""] ++ lecture b r) (readingOf b fs)
   where
     b = oBody o
     fs = assess st o
@@ -75,10 +75,6 @@ facts st o = T.unlines $
       [ "- " <> plural e "element" <> " · " <> plural r "request" <> " · "
           <> T.pack (show (round kb :: Int)) <> " kB transferred · " <> plural (length hs) "third-party host" ]
       ++ [ "- third-party hosts: " <> T.intercalate ", " hs | not (null hs) ]
-
--- | The reading of an observation, under the verdicts that stand.
-read' :: Observation -> [Finding] -> Maybe Reading
-read' b fs = (\es -> reading es [Misfit (cId (fCrit f)) (fSurface f >>= ev) | f <- fs, fVerdict f == Fail]) <$> events b
 
 lecture :: Observation -> Reading -> [Text]
 lecture b r =
@@ -167,7 +163,7 @@ atlas st o = object
       [ "events" .= rEvents r, "unsaid" .= rUnsaid r, "unshown" .= rUnshown r, "depth" .= rDepth r
       , "bits" .= (round (rBits r) :: Int), "serial" .= rSerial r, "steps" .= rSteps r, "clear" .= rClear r
       , "lower" .= rLower r, "upper" .= rUpper r, "returns" .= M.fromList (rReturns r)
-      , "order" .= fmap sequence' (rShape r) ]) (read' b fs)
+      , "order" .= fmap sequence' (rShape r) ]) (readingOf b fs)
   ]
   where
     b = oBody o

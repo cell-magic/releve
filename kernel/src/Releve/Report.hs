@@ -15,6 +15,7 @@ import qualified Data.Text as T
 import Releve.Criteria (criteria, version)
 import Releve.Footprint
 import Releve.Kernel
+import Releve.Reading
 import Releve.Types
 
 -- | A report on the latest observation of every page of the corpus.
@@ -85,6 +86,7 @@ report l release st = T.unlines $
       ++ [ "<li>" <> t (cTitle c) <> " · " <> summary [f | f <- fs, cId (fCrit f) == cId c] <> "</li>" | c <- criteria ]
       ++ [ "</ul>", hd 2 (t ("Footprint" // "Empreinte")) ]
       ++ weight b
+      ++ maybe [] (lecture b) (readingOf b fs)
 
     since o fs = case previous st o of
       [] -> ""
@@ -123,6 +125,34 @@ report l release st = T.unlines $
     summary xs
       | all ((== NA) . fVerdict) xs = t ("nothing to judge: " // "rien à juger : ") <> maybe "" (t . fSeen) (listToMaybe xs)
       | otherwise = esc (num (length [f | f <- xs, fVerdict f == Pass])) <> t (" of " // " sur ") <> esc (num (length [f | f <- xs, fVerdict f /= NA])) <> t (" pass" // " passent")
+
+    -- The reading: a measure set apart from the verdicts.
+    lecture b r =
+      [ hd 2 (t ("The reading" // "La lecture"))
+      , p (t ("A measure, not a verdict. The page gives its reader " <> things (rEvents r) <> " to take in. Its markup says which of them can be taken independently: a heading opens a section, a list holds items, a table's headers free its cells. What it does not declare independent has to be taken in order."
+              // "Une mesure, pas un verdict. La page donne à son lecteur " <> choses (rEvents r) <> " à saisir. Son balisage dit lesquelles se saisissent indépendamment : un titre ouvre une section, une liste porte des éléments, les en-têtes d'un tableau libèrent ses cellules. Ce qu'il ne déclare pas indépendant se prend dans l'ordre."))
+      , "<dl>"
+      , dt ("Shown and not said" // "Montré et non dit") <> dd (num (rUnsaid r) <> ": what the eye is given and assistive technology is not." // num (rUnsaid r) <> " : ce qui est donné à l'œil et non aux technologies d'assistance.")
+      , dt ("Said and not shown" // "Dit et non montré") <> dd (num (rUnshown r) <> ": what is given to assistive technology alone, such as a link past the menu." // num (rUnshown r) <> " : ce qui n'est donné qu'aux technologies d'assistance, tel un lien d'évitement.")
+      , dt ("Depth" // "Profondeur") <> dd (num (rDepth r) <> ": the longest run the markup obliges. Without structure it would be " <> num (rEvents r) <> "."
+                                           // num (rDepth r) <> " : la plus longue suite que le balisage impose. Sans structure, elle vaudrait " <> num (rEvents r) <> ".")
+      , dt ("One at a time, by ear" // "Un à la fois, à l'oreille") <> dd (steps' (rSerial r) <> ": each thing that is said, one after the other." // etapes (rSerial r) <> " : chaque chose dite, l'une après l'autre.")
+      , dt ("Up to " <> num ceiling' <> " at a time" // "Jusqu'à " <> num ceiling' <> " à la fois")
+          <> dd (steps' (rSteps r) <> " as the page stands; " <> num (rClear r) <> " with nothing failing. A page of this size and depth takes between " <> num (rLower r) <> " and " <> num (rUpper r) <> "."
+                 // etapes (rSteps r) <> " en l'état ; " <> num (rClear r) <> " si rien n'échouait. Une page de cette taille et de cette profondeur en demande entre " <> num (rLower r) <> " et " <> num (rUpper r) <> ".")
+      , dt ("What the page says" // "Ce que dit la page")
+          <> dd (let said = max 1 (round (rBits r / 8)) :: Int; each = transfer (network b) `div` said
+                 in num said <> " bytes of text, by an estimate; " <> num each <> " bytes travel for each." // num said <> " octets de texte, par estimation ; " <> num each <> " octets voyagent pour chacun.")
+      , "</dl>" ]
+      ++ [ p (T.intercalate " " [ t ("Mending “" // "Corriger « ") <> t (title' c) <> t ("” alone gives back " <> steps' k <> "." // " » seul rend " <> etapes k <> ".") | (c, k) <- rReturns r ]) | not (null (rReturns r)) ]
+      ++ [ "<p class=\"meta\">" <> t ("The reader who holds up to " <> num ceiling' <> " is a convention, as a reference device is in a test of speed: it takes what comes first on the page, and fewer things at once where the page fails them."
+              // "Le lecteur qui en saisit jusqu'à " <> num ceiling' <> " est une convention, comme l'appareil de référence d'un essai de vitesse : il prend ce qui vient en premier dans la page, et moins de choses à la fois là où la page lui fait défaut.") <> "</p>" ]
+      where
+        things n = num n <> (if n == 1 then " thing" else " things")
+        choses n = num n <> (if n == 1 then " chose" else " choses")
+        steps' n = num n <> (if n == 1 then " step" else " steps")
+        etapes n = num n <> (if n == 1 then " étape" else " étapes")
+        title' c = maybe (both c) cTitle (listToMaybe [k | k <- criteria, cId k == c])
 
     weight b = let Footprint e r kb hs = footprint b in
       [ "<p>" <> esc (num e) <> " " <> t ("elements in the document" // "éléments dans le document") <> " · " <> esc (num r) <> " " <> t ("requests" // "requêtes") <> " · "

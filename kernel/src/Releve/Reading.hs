@@ -9,7 +9,7 @@
 --   markup declares which of them can be taken independently; and a reader
 --   takes them a few at a time, fewer where the page fails them. Every
 --   constant below is a stated convention.
-module Releve.Reading (Reading (..), Misfit (..), Shape (..), reading, aperture, ceiling') where
+module Releve.Reading (Reading (..), Misfit (..), Shape (..), reading, readingOf, aperture, ceiling') where
 
 import Data.List (groupBy, nub, sortOn)
 import Data.Maybe (listToMaybe, mapMaybe)
@@ -175,6 +175,11 @@ data Reading = Reading
   , rReturns :: [(Text, Int)] -- ^ steps given back by mending one criterion alone
   , rShape :: Maybe Shape    -- ^ what must be taken in order, and what need not
   }
+
+-- | The reading of an observation, under the verdicts that stand. An observer
+--   that did not record the reading sequence gives none.
+readingOf :: Observation -> [Finding] -> Maybe Reading
+readingOf o fs = (\es -> reading es [Misfit (cId (fCrit f)) (fSurface f >>= ev) | f <- fs, fVerdict f == Fail]) <$> events o
 
 reading :: [Ev] -> [Misfit] -> Reading
 reading es misfits = Reading
