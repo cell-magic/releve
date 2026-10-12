@@ -14,7 +14,7 @@ may read it too: it is the house rule, written down.
   checks it. It is never loosened to make a page readable.
 - The service keeps nothing of a request: no account, no cookie, no script,
   no log of who asked or of what. It counts reports by week, in aggregate,
-  and shows a week once it has ended. `tests/service.py` checks it.
+  on the server, and no page shows them. `tests/service.py` checks it.
 - Every file states its licence, in an SPDX header or in `REUSE.toml`.
   EUPL-1.2 throughout; dependencies under free licences only; nothing taken
   from other software.

@@ -24,6 +24,8 @@
 #   5. the running service is asked for the report of CONTACT. If none comes
 #      back, the service returns to what it was before.
 #
+# The service's weekly counts stay on the machine: sudo releve-counts [en|fr].
+#
 # Run again, from newer source or with a newer browser, it does the same, and
 # the service keeps running as it was until step 4. The folder before the
 # current one is kept, older ones are removed.
@@ -167,6 +169,12 @@ $name {
 }
 PROXY
 install -d -o releve -g releve -m 0750 /var/lib/releve
+cat > /usr/local/bin/releve-counts <<COUNTS
+#!/bin/sh
+# The service's weekly counts, read where they are kept: sudo releve-counts [en|fr]
+exec $home/current/venv/bin/python $home/current/src/serve/counts.py /var/lib/releve/counts.json "\$@"
+COUNTS
+chmod 0755 /usr/local/bin/releve-counts
 ln -sfn "$new" $home/current
 systemctl daemon-reload
 systemctl enable -q releve caddy

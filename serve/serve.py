@@ -12,11 +12,11 @@ the report is the answer. What holds, here and nowhere else:
     of what was asked. The observation lives in memory for the time of the
     answer. A reader who wants to follow a page keeps its record themselves:
     the report offers it as a file, and takes it back with the next request.
-  - What is counted is counted by week, and shown to anyone at /counts once
-    the week has ended: how many reports were given, in which language, how
-    many followed a record handed back, and the broad region a browser's
-    language setting points to. Nothing in a count belongs to one request; no
-    time finer than the week.
+  - What is counted is counted by week, and stays on the server: how many
+    reports were given, in which language, how many followed a record handed
+    back, and the broad region a browser's language setting points to.
+    Nothing in a count belongs to one request; no time finer than the week.
+    No page shows them; serve/counts.py reads them where they are kept.
   - A record handed back is believed only if its seals hold.
   - The observer's conduct is the observer's own (robots.txt, one page at a
     time, nothing submitted). Here it is narrowed further: only public
@@ -345,16 +345,6 @@ class Door(BaseHTTPRequestHandler):
                     self.send_header(k, v)
                 self.end_headers()
                 return self.command == "HEAD" or self.wfile.write(out)
-        if path == "/counts.json":
-            out = json.dumps(TALLY.shown(), ensure_ascii=False, indent=1).encode("utf-8")
-            self.send_response(200)
-            for k, v in [("Content-Type", "application/json"), ("Content-Length", str(len(out))), ("Cache-Control", "no-store"),
-                         ("X-Content-Type-Options", "nosniff")]:
-                self.send_header(k, v)
-            self.end_headers()
-            return self.command == "HEAD" or self.wfile.write(out)
-        if path in ("/counts", "/fr/counts"):
-            return self.counts("fr" if path.startswith("/fr/") else "en")
         if path not in ("/", "/fr/"):
             return self.answer(404, "en", "relevé", '<h1>relevé</h1>\n<p><a href="' + PREFIX + '/">relevé</a></p>')
         lang = "fr" if path == "/fr/" else "en"
@@ -362,17 +352,6 @@ class Door(BaseHTTPRequestHandler):
         self.answer(200, lang, w["title"], f'<h1>{w["title"]}</h1>\n<p>{w["lead"]}</p>\n{form(lang)}')
 
     do_HEAD = do_GET  # the same answer, without its body
-
-    def counts(self, lang):
-        w, weeks = WORDS[lang], TALLY.shown()
-        regions = [r for r in w["regions"] if any(r in v["regions"] for v in weeks.values())]
-        head = "".join(f'<th scope="col">{c}</th>' for c in w["columns"] + [w["regions"][r] for r in regions])
-        cell = lambda n: w["few"] if isinstance(n, str) else str(n)
-        rows = "".join(f'<tr><th scope="row">{k}</th><td>{v["reports"]}</td><td>{v["following"]}</td><td>{v["languages"].get("en", 0)}</td>'
-                       f'<td>{v["languages"].get("fr", 0)}</td>' + "".join(f'<td>{cell(v["regions"].get(r, 0))}</td>' for r in regions) + "</tr>"
-                       for k, v in reversed(list(weeks.items())))
-        table = f'<table>\n<thead><tr>{head}</tr></thead>\n<tbody>{rows}</tbody>\n</table>' if weeks else f'<p>{w["none"]}</p>'
-        self.answer(200, lang, w["counts"], f'<h1>{w["counts"]}</h1>\n<p>{w["countsit"]}</p>\n{table}')
 
     def do_POST(self):
         lang = "en"

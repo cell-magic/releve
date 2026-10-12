@@ -129,18 +129,20 @@ check("counts each report given by week, language, record and region, and nothin
 check("reads a region from the language setting alone",
       [serve.region(a) for a in ("fr-FR,fr;q=0.9", "fr,fr-CA;q=0.8", "en", "zh-Hant-TW", "es-419", None)]
       == ["Europe", "North America", "unknown", "Asia", "unknown", "unknown"])
-code, heads, shown = ask(door, path="/counts.json")
-shown = json.loads(shown)
-code, heads, page = ask(door, path="/counts")
-check("shows the weeks that have ended, a small region as fewer than 5",
-      list(shown) == ["2026-W01"] and shown["2026-W01"]["regions"] == {"Europe": 9, "Asia": "<5", "unknown": "<5"}
-      and code == 200 and "fewer than 5" in page and "<script" not in page and "set-cookie" not in heads)
+printed = subprocess.run([sys.executable, str(Path(serve.__file__).parent / "counts.py"), str(counts)], capture_output=True, text=True).stdout
+check("reads its counts where they are kept: the weeks that have ended, a small region as fewer than 5",
+      "| 2026-W01 | 12 | 3 | 7 | 5 | 9 | fewer than 5 | fewer than 5 |" in printed and serve.Tally.week() not in printed)
+try:
+    urlopen(f"http://127.0.0.1:{door}/counts")
+    hidden = False
+except Exception as e:
+    hidden = getattr(e, "code", None) == 404
+check("shows its counts on no page", hidden)
 
 # The service is held to what it asks of others: its own pages, read by its own rules, are asked for nothing.
 shelf["/answer"] = first
-read, lines = asked(f"http://127.0.0.1:{door}/", f"http://127.0.0.1:{door}/fr/", f"http://localhost:{open_}/answer",
-                    f"http://127.0.0.1:{door}/counts", f"http://127.0.0.1:{door}/fr/counts")
-check("its own pages, read by its own rules, are asked for nothing" + "".join("\n      " + l for l in lines), read == 5 and not lines)
+read, lines = asked(f"http://127.0.0.1:{door}/", f"http://127.0.0.1:{door}/fr/", f"http://localhost:{open_}/answer")
+check("its own pages, read by its own rules, are asked for nothing" + "".join("\n      " + l for l in lines), read == 3 and not lines)
 
 # Installed by its own recipe, it keeps none of its output and stands behind a proxy that logs no request.
 recipe = (Path(serve.__file__).parent / "install.sh").read_text(encoding="utf-8")

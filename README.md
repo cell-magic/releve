@@ -137,13 +137,14 @@ without script.
 - **Nothing is kept.** No account, no cookie, no log of who asked or of
   what was asked. An observation lives in memory for the time of the
   answer.
-- **What is counted is shown.** Each report given adds one to the counts of
-  its week: in which language, whether it followed a record handed back,
-  and the broad region (Europe, Asia…) that the browser's language setting
-  names, as in `fr-FR`. No address, no time finer than the week, nothing
-  that ties a number to one request. `/counts` shows the weeks that have
-  ended, to anyone; a region counted fewer than five times in a week is
-  shown as such. `--counts FILE` keeps them across restarts.
+- **What is counted stays with whoever runs it.** Each report given adds
+  one to the counts of its week: in which language, whether it followed a
+  record handed back, and the broad region (Europe, Asia…) that the
+  browser's language setting names, as in `fr-FR`. No address, no time
+  finer than the week, nothing that ties a number to one request. No page
+  shows them: `serve/counts.py FILE` prints the weeks that have ended, a
+  region counted fewer than five times in a week shown as such.
+  `--counts FILE` keeps them across restarts.
 - **The record belongs to whoever asked.** Each report offers its record
   as a small file. Handed back with the next request, it lets the report
   say what was mended, what is new and what stands. The record is the
