@@ -47,10 +47,10 @@ WORDS = {
     "en": {
         "title": "relevé", "lead": "Give the address of a page. It is opened once, in a browser, by the robot releve-observe; "
         "what it shows is read by rule, and the report is the answer. Nothing is kept: no account, no cookie, no record of the address.",
-        "address": "Address of the page", "record": "Record of earlier observations, if you kept one (optional)",
+        "address": "Address of the page", "record": "Record of earlier observations, if one was kept (optional)",
         "go": "Observe the page", "language": "Language of the report",
         "keep": "Keeping the record", "keepit": "This service keeps nothing. To follow this page over time, keep its record: "
-        "hand it back with your next request, and the report will say what was mended, what is new and what stands.",
+        "hand it back with the next request, and the report will say what was mended, what is new and what stands.",
         "download": "Download the record", "again": "Observe another page",
         "no": "The page was not observed", "busy": "Others are waiting. Ask again in a minute.",
         "why": {
