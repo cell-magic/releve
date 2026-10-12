@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: EUPL-1.2
 """The service, checked against local sites: an address in, a report out, and
 nothing left behind. Needs Python, Playwright, Chromium and `releve`; no network."""
-import base64, gzip, os, re, subprocess, sys, tempfile, threading, uuid
+import base64, gzip, json, os, re, subprocess, sys, tempfile, threading, uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.request import Request, urlopen
@@ -38,7 +38,7 @@ def check(name, ok):
     print(("ok    " if ok else "FAIL  ") + name)
 
 
-def ask(door, url=None, lang="en", record=None, path="/"):
+def ask(door, url=None, lang="en", record=None, path="/", accept=None):
     """The door's answer: status, headers, text."""
     if url is None:
         r = urlopen(f"http://127.0.0.1:{door}{path}")
@@ -49,7 +49,7 @@ def ask(door, url=None, lang="en", record=None, path="/"):
         body = b"".join(b"--" + mark.encode() + b'\r\nContent-Disposition: form-data; name="' + n.encode() + b'"'
                         + (b'; filename="' + f.encode() + b'"' if f else b"") + b"\r\n\r\n" + v + b"\r\n" for n, f, v in parts)
         r = urlopen(Request(f"http://127.0.0.1:{door}/", data=body + b"--" + mark.encode() + b"--\r\n",
-                            headers={"Content-Type": "multipart/form-data; boundary=" + mark}))
+                            headers={"Content-Type": "multipart/form-data; boundary=" + mark, **({"Accept-Language": accept} if accept else {})}))
     return r.status, {k.lower(): v for k, v in r.headers.items()}, r.read().decode("utf-8")
 
 
@@ -70,7 +70,9 @@ def kept(text):
 open_, closed = site("User-agent: *\nDisallow: /private/\n"), site("User-agent: *\nDisallow: /\n")
 serve.PAUSE = 1
 here = sorted(os.listdir("."))
-serve.setup("https://example.org/robot", local=True)
+counts = Path(tempfile.mkdtemp()) / "counts.json"
+counts.write_text(json.dumps({"2026-W01": {"reports": 12, "following": 3, "languages": {"en": 7, "fr": 5}, "regions": {"Europe": 9, "Asia": 2, "unknown": 1}}}))
+serve.setup("https://example.org/robot", local=True, counts=counts)
 door = ThreadingHTTPServer(("127.0.0.1", 0), serve.Door)
 threading.Thread(target=door.serve_forever, daemon=True).start()
 door = door.server_port
@@ -95,7 +97,7 @@ code, heads, text = ask(door, f"http://localhost:{open_}/one", "en")
 check("leaves a site alone that it has just visited", "observed a moment ago" in text)
 
 threading.Event().wait(serve.PAUSE + 0.2)
-code, heads, text = ask(door, f"http://localhost:{open_}/one", "en", record)
+code, heads, text = ask(door, f"http://localhost:{open_}/one", "en", record, accept="en-GB,en;q=0.9")
 check("reads a record handed back, and says what stands", "Since the observation of" in text and "1 standing" in text)
 check("hands the record back longer by one observation", len(gzip.decompress(kept(text)).splitlines()) == 2)
 
@@ -117,10 +119,28 @@ for address, verdict in [("http://127.0.0.1/", "not public"), ("http://10.1.2.3/
                          ("http://no-such-host.invalid/", "not public"), ("data:text/html,x", None)]:
     check(f"in the open, {address} is {'requested' if verdict is None else 'never requested'}", serve.shut(address, False) == verdict)
 
+# What is counted: each report given, by week, language, whether it followed a record, and the broad region a
+# browser's language setting names. Nothing of the request itself; a week is shown once it has ended.
+now = json.loads(counts.read_text())[serve.Tally.week()]
+stored = counts.read_text()
+check("counts each report given by week, language, record and region, and nothing else",
+      now == {"reports": 2, "following": 1, "languages": {"fr": 1, "en": 1}, "regions": {"unknown": 1, "Europe": 1}}
+      and not any(x in stored for x in ("127.0.0.1", "localhost", "/one", "example", "http")))
+check("reads a region from the language setting alone",
+      [serve.region(a) for a in ("fr-FR,fr;q=0.9", "fr,fr-CA;q=0.8", "en", "zh-Hant-TW", "es-419", None)]
+      == ["Europe", "North America", "unknown", "Asia", "unknown", "unknown"])
+code, heads, shown = ask(door, path="/counts.json")
+shown = json.loads(shown)
+code, heads, page = ask(door, path="/counts")
+check("shows the weeks that have ended, a small region as fewer than 5",
+      list(shown) == ["2026-W01"] and shown["2026-W01"]["regions"] == {"Europe": 9, "Asia": "<5", "unknown": "<5"}
+      and code == 200 and "fewer than 5" in page and "<script" not in page and "set-cookie" not in heads)
+
 # The service is held to what it asks of others: its own pages, read by its own rules, are asked for nothing.
 shelf["/answer"] = first
-read, lines = asked(f"http://127.0.0.1:{door}/", f"http://127.0.0.1:{door}/fr/", f"http://localhost:{open_}/answer")
-check("its own pages, read by its own rules, are asked for nothing" + "".join("\n      " + l for l in lines), read == 3 and not lines)
+read, lines = asked(f"http://127.0.0.1:{door}/", f"http://127.0.0.1:{door}/fr/", f"http://localhost:{open_}/answer",
+                    f"http://127.0.0.1:{door}/counts", f"http://127.0.0.1:{door}/fr/counts")
+check("its own pages, read by its own rules, are asked for nothing" + "".join("\n      " + l for l in lines), read == 5 and not lines)
 
 # Installed by its own recipe, it keeps none of its output and stands behind a proxy that logs no request.
 recipe = (Path(serve.__file__).parent / "install.sh").read_text(encoding="utf-8")

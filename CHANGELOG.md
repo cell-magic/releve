@@ -36,6 +36,10 @@ comes back for review.
   script, no log. Whoever asks keeps the record, as a small sealed file, and
   hands it back to learn what changed. Only public addresses on the web's
   own ports are requested, by the page or by anything it loads.
+- **Counts, in the open.** The service counts the reports it gives, by
+  week: language, follow-ups, and the broad region a browser's language
+  setting names. Nothing per request, no script, nothing on the reader's
+  device. `/counts` shows the weeks that have ended, small regions hidden.
 - **Putting it online.** `serve/install.sh` installs or renews the service
   on a machine given over to it: built apart, checked there, started only
   then, behind a proxy that logs no request, and put back as it was if the

@@ -115,7 +115,7 @@ Wants=network-online.target
 [Service]
 User=releve
 Environment=RELEVE=$home/current/releve PLAYWRIGHT_BROWSERS_PATH=$home/current/browsers HOME=/tmp PYTHONDONTWRITEBYTECODE=1
-ExecStart=$home/current/venv/bin/python $home/current/src/serve/serve.py --contact $contact$shells
+ExecStart=$home/current/venv/bin/python $home/current/src/serve/serve.py --contact $contact --counts /var/lib/releve/counts.json$shells
 Restart=always
 RestartSec=2
 # Nothing the service or its browser says is kept.
@@ -125,7 +125,8 @@ StandardError=null
 MemoryMax=1500M
 # The second lock on private addresses. The first is in the service.
 IPAddressDeny=10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 169.254.0.0/16 100.64.0.0/10 fc00::/7 fe80::/10
-# Confined to what it needs: it reads its own folder and writes nowhere that lasts.
+# Confined to what it needs: it reads its own folder, and writes only the weekly counts.
+StateDirectory=releve
 NoNewPrivileges=yes
 ProtectSystem=strict
 ProtectHome=yes
@@ -162,6 +163,7 @@ $name {
 	reverse_proxy 127.0.0.1:8000
 }
 PROXY
+install -d -o releve -g releve -m 0750 /var/lib/releve
 ln -sfn "$new" $home/current
 systemctl daemon-reload
 systemctl enable -q releve caddy

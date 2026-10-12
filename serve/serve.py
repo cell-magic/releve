@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: EUPL-1.2
 """serve — relevé as a page anyone can use: an address in, a report out.
 
-    serve --contact URL [--port 8000] [--shell en=FILE --shell fr=FILE] [--static DIR] [--local]
+    serve --contact URL [--port 8000] [--shell en=FILE --shell fr=FILE] [--static DIR] [--counts FILE] [--local]
 
 A form asks for the address of a page. The page is observed once, judged, and
 the report is the answer. What holds, here and nowhere else:
@@ -12,6 +12,11 @@ the report is the answer. What holds, here and nowhere else:
     of what was asked. The observation lives in memory for the time of the
     answer. A reader who wants to follow a page keeps its record themselves:
     the report offers it as a file, and takes it back with the next request.
+  - What is counted is counted by week, and shown to anyone at /counts once
+    the week has ended: how many reports were given, in which language, how
+    many followed a record handed back, and the broad region a browser's
+    language setting points to. Nothing in a count belongs to one request; no
+    time finer than the week.
   - A record handed back is believed only if its seals hold.
   - The observer's conduct is the observer's own (robots.txt, one page at a
     time, nothing submitted). Here it is narrowed further: only public
@@ -22,10 +27,12 @@ the report is the answer. What holds, here and nowhere else:
 
 `--shell` sets the report in a page of your own: the file's `<!-- relevé -->`
 is replaced by the report's content, `{title}` by its title; `--static` serves
-the files that page needs, under /static/. `--local` admits private addresses,
-for trying it on your own machine; never use it in the open.
+the files that page needs, under /static/. `--counts` keeps the weekly counts
+in a file, across restarts. `--local` admits private addresses, for trying it
+on your own machine; never use it in the open.
 """
 import argparse, base64, gzip, ipaddress, json, os, queue, re, shutil, socket, subprocess, sys, tempfile, threading, time, urllib.parse
+from datetime import date
 from concurrent.futures import Future
 from email.parser import BytesParser
 from email.policy import HTTP
@@ -65,6 +72,12 @@ WORDS = {
             "slow": "The page took too long to answer.",
         },
         "left": [(r".*", r"The robot left the page alone: \g<0>.")],
+        "counts": "What the service counts", "countsit": "By week: how many reports were given, in which language, how many followed a record "
+        "handed back, and the broad region a browser's language setting points to. No address, no time finer than the week, nothing about any one "
+        "request. A week is shown once it has ended; a region counted fewer than five times in it is shown as “fewer than 5”.",
+        "columns": ["Week", "Reports", "Following a record", "In English", "In French"], "few": "fewer than 5", "none": "Nothing counted yet.",
+        "regions": {"Europe": "Europe", "North America": "North America", "South America": "South America", "Asia": "Asia", "Africa": "Africa",
+                    "Oceania": "Oceania", "unknown": "Region not stated"},
     },
     "fr": {
         "title": "relevé", "lead": "Indiquez l'adresse d'une page. Elle est ouverte une fois, dans un navigateur, par le robot releve-observe ; "
@@ -90,8 +103,69 @@ WORDS = {
                  (r"a challenge stands before the content", "Une vérification anti-robot précède le contenu ; le robot n'insiste pas."),
                  (r"leads to .*", "La page mène à une adresse fermée au robot ; il ne l'a pas suivie."),
                  (r".*", "La page n'a pas pu être chargée.")],
+        "counts": "Ce que le service compte", "countsit": "Par semaine : combien de rapports ont été remis, en quelle langue, combien faisaient suite "
+        "à un relevé rendu, et la grande région que désigne le réglage de langue du navigateur. Ni adresse, ni heure plus fine que la semaine, rien "
+        "qui concerne une demande en particulier. Une semaine paraît une fois achevée ; une région comptée moins de cinq fois y est indiquée « moins de 5 ».",
+        "columns": ["Semaine", "Rapports", "Après un relevé", "En anglais", "En français"], "few": "moins de 5", "none": "Rien n'est encore compté.",
+        "regions": {"Europe": "Europe", "North America": "Amérique du Nord", "South America": "Amérique du Sud", "Asia": "Asie", "Africa": "Afrique",
+                    "Oceania": "Océanie", "unknown": "Région non indiquée"},
     },
 }
+# The broad region of a country, by its two-letter code, as a browser's language setting names it (fr-FR, en-GB).
+REGIONS = {code: region for region, codes in [
+    ("Europe", "AD AL AT AX BA BE BG BY CH CY CZ DE DK EE ES FI FO FR GB GG GI GR HR HU IE IM IS IT JE LI LT LU LV MC MD ME MK MT NL NO PL PT "
+               "RO RS RU SE SI SJ SK SM UA VA XK"),
+    ("North America", "AG AI AW BB BL BM BQ BS BZ CA CR CU CW DM DO GD GL GP GT HN HT JM KN KY LC MF MQ MS MX NI PA PM PR SV SX TC TT US VC VG VI"),
+    ("South America", "AR BO BR CL CO EC FK GF GY PE PY SR UY VE"),
+    ("Asia", "AE AF AM AZ BD BH BN BT CN GE HK ID IL IN IQ IR JO JP KG KH KP KR KW KZ LA LB LK MM MN MO MV MY NP OM PH PK PS QA SA SG SY TH TJ "
+             "TL TM TR TW UZ VN YE"),
+    ("Africa", "AO BF BI BJ BW CD CF CG CI CM CV DJ DZ EG EH ER ET GA GH GM GN GQ GW KE KM LR LS LY MA MG ML MR MU MW MZ NA NE NG RE RW SC SD "
+               "SH SL SN SO SS ST SZ TD TG TN TZ UG YT ZA ZM ZW"),
+    ("Oceania", "AS AU CK FJ FM GU KI MH MP NC NF NR NU NZ PF PG PN PW SB TK TO TV VU WF WS"),
+] for code in codes.split()}
+FEW = 5           # a region counted fewer times than this in a week is not shown by its number
+
+
+def region(accept):
+    """The broad region the first language tag with a country names (fr-FR, en-GB), or "unknown". Nothing else is read."""
+    for tag in (accept or "").split(",")[:8]:
+        for sub in tag.split(";")[0].strip().split("-")[1:]:
+            if len(sub) == 2 and sub.isalpha():
+                return REGIONS.get(sub.upper(), "unknown")
+    return "unknown"
+
+
+class Tally:
+    """The weekly counts, and nothing else: no address, no time finer than the week, nothing that ties a number to one request."""
+    def __init__(self, path=None):
+        self.path, self.lock = Path(path) if path else None, threading.Lock()
+        self.weeks = json.loads(self.path.read_text(encoding="utf-8")) if self.path and self.path.exists() else {}
+
+    @staticmethod
+    def week():
+        year, week, _ = date.today().isocalendar()
+        return f"{year}-W{week:02d}"
+
+    def count(self, lang, following, where):
+        with self.lock:
+            w = self.weeks.setdefault(self.week(), {"reports": 0, "following": 0, "languages": {}, "regions": {}})
+            w["reports"] += 1
+            w["following"] += bool(following)
+            w["languages"][lang] = w["languages"].get(lang, 0) + 1
+            w["regions"][where] = w["regions"].get(where, 0) + 1
+            if self.path:
+                spare = self.path.with_suffix(".new")
+                spare.write_text(json.dumps(self.weeks, sort_keys=True), encoding="utf-8")
+                spare.replace(self.path)
+
+    def shown(self):
+        """The counts as anyone may read them: weeks that have ended only, so that no count moves while it is watched,
+        and a region under FEW in a week shown as such, not by its number."""
+        with self.lock:
+            return {k: dict(v, regions={r: (n if n >= FEW else f"<{FEW}") for r, n in v["regions"].items()})
+                    for k, v in sorted(self.weeks.items()) if k < self.week()}
+
+
 TYPES = {".css": "text/css; charset=utf-8", ".svg": "image/svg+xml", ".woff2": "font/woff2", ".png": "image/png", ".ico": "image/x-icon"}
 STYLE = ("*{box-sizing:border-box}html{color:#1a1a1a;background:#fff}body{margin:0;font:1rem/1.6 system-ui,sans-serif}"
          "main{max-width:42rem;margin:0 auto;padding:1rem 1rem 4rem;overflow-wrap:anywhere}h1,h2,h3{line-height:1.25}"
@@ -271,6 +345,16 @@ class Door(BaseHTTPRequestHandler):
                     self.send_header(k, v)
                 self.end_headers()
                 return self.command == "HEAD" or self.wfile.write(out)
+        if path == "/counts.json":
+            out = json.dumps(TALLY.shown(), ensure_ascii=False, indent=1).encode("utf-8")
+            self.send_response(200)
+            for k, v in [("Content-Type", "application/json"), ("Content-Length", str(len(out))), ("Cache-Control", "no-store"),
+                         ("X-Content-Type-Options", "nosniff")]:
+                self.send_header(k, v)
+            self.end_headers()
+            return self.command == "HEAD" or self.wfile.write(out)
+        if path in ("/counts", "/fr/counts"):
+            return self.counts("fr" if path.startswith("/fr/") else "en")
         if path not in ("/", "/fr/"):
             return self.answer(404, "en", "relevé", '<h1>relevé</h1>\n<p><a href="' + PREFIX + '/">relevé</a></p>')
         lang = "fr" if path == "/fr/" else "en"
@@ -278,6 +362,17 @@ class Door(BaseHTTPRequestHandler):
         self.answer(200, lang, w["title"], f'<h1>{w["title"]}</h1>\n<p>{w["lead"]}</p>\n{form(lang)}')
 
     do_HEAD = do_GET  # the same answer, without its body
+
+    def counts(self, lang):
+        w, weeks = WORDS[lang], TALLY.shown()
+        regions = [r for r in w["regions"] if any(r in v["regions"] for v in weeks.values())]
+        head = "".join(f'<th scope="col">{c}</th>' for c in w["columns"] + [w["regions"][r] for r in regions])
+        cell = lambda n: w["few"] if isinstance(n, str) else str(n)
+        rows = "".join(f'<tr><th scope="row">{k}</th><td>{v["reports"]}</td><td>{v["following"]}</td><td>{v["languages"].get("en", 0)}</td>'
+                       f'<td>{v["languages"].get("fr", 0)}</td>' + "".join(f'<td>{cell(v["regions"].get(r, 0))}</td>' for r in regions) + "</tr>"
+                       for k, v in reversed(list(weeks.items())))
+        table = f'<table>\n<thead><tr>{head}</tr></thead>\n<tbody>{rows}</tbody>\n</table>' if weeks else f'<p>{w["none"]}</p>'
+        self.answer(200, lang, w["counts"], f'<h1>{w["counts"]}</h1>\n<p>{w["countsit"]}</p>\n{table}')
 
     def do_POST(self):
         lang = "en"
@@ -298,6 +393,7 @@ class Door(BaseHTTPRequestHandler):
                 raise Refused("not a web address")
             observation = BENCH.ask(url)
             report, record = read(observation, fields.get("record") or None, lang)
+            TALLY.count(lang, fields.get("record"), region(self.headers.get("Accept-Language")))
         except TimeoutError:
             return self.refuse(lang, "slow")
         except Refused as r:
@@ -321,14 +417,15 @@ class Door(BaseHTTPRequestHandler):
         self.answer(200, lang, w["no"], f'<h1>{w["no"]}</h1>\n<p>{said}</p>\n{form(lang)}')
 
 
-def setup(contact, local=False, shells=(), static=None, prefix=""):
+def setup(contact, local=False, shells=(), static=None, prefix="", counts=None):
     """Everything the door needs, set once before it opens."""
-    global BENCH, MEMORY, PREFIX, RELEVE, SHELLS, STATIC
+    global BENCH, MEMORY, PREFIX, RELEVE, SHELLS, STATIC, TALLY
     RELEVE = shutil.which(os.environ.get("RELEVE", "releve")) or sys.exit("serve: releve not found; build it, or name it in RELEVE")
     MEMORY = "/dev/shm" if os.access("/dev/shm", os.W_OK) else None  # records pass through memory, not through a disk
     PREFIX = prefix.rstrip("/")
     SHELLS = {k: Path(v).read_text(encoding="utf-8") for k, v in (x.split("=", 1) for x in shells)}
     STATIC = Path(static).resolve() if static else None
+    TALLY = Tally(counts)
     BENCH = Bench(contact, local)
     BENCH.start()
 
@@ -342,9 +439,10 @@ def main():
     ap.add_argument("--prefix", default="", help="the path this service is reached under, if not the root")
     ap.add_argument("--shell", action="append", default=[], metavar="LANG=FILE", help="a page of your own to set the report in")
     ap.add_argument("--static", metavar="DIR", help="files the shell needs, served under /static/")
+    ap.add_argument("--counts", metavar="FILE", help="where the weekly counts are kept across restarts; without it, in memory only")
     ap.add_argument("--local", action="store_true", help="admit private addresses: for trying it on your own machine only")
     args = ap.parse_args()
-    setup(args.contact, args.local, args.shell, args.static, args.prefix)
+    setup(args.contact, args.local, args.shell, args.static, args.prefix, args.counts)
     ThreadingHTTPServer((args.host, args.port), Door).serve_forever()
 
 
