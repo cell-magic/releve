@@ -35,8 +35,8 @@ report l release st = T.unlines $
        <> esc (num (length criteria)) <> t (" criteria then read that record. Each is a rule in plain code; no trained model takes part, so the same record gives the same report."
           // " critères ont ensuite lu ce relevé. Chacun est une règle en code clair ; aucun modèle entraîné n'intervient, de sorte que le même relevé donne le même rapport."))
   , "<dl>"
-  , dt ("To mend" // "À corriger") <> dd ("a stated rule is broken; the remedy is given." // "une règle énoncée n'est pas respectée ; le remède est indiqué.")
-  , dt ("To check" // "À vérifier") <> dd ("the rule has found what only a person can decide, and shows it." // "la règle a trouvé ce que seule une personne peut trancher, et le montre.")
+  , dt ("Changes to make" // "Changements à faire") <> dd ("a stated rule is broken; the remedy is given." // "une règle énoncée n'est pas respectée ; le remède est indiqué.")
+  , dt ("Points to decide" // "Points à décider") <> dd ("the rule has found what only a person can decide, and shows it." // "la règle a trouvé ce que seule une personne peut trancher, et le montre.")
   , dt ("Could be lighter" // "Pourrait être allégé") <> dd ("nothing is broken; fewer bytes would do the same." // "rien n'est enfreint ; moins d'octets feraient autant.")
   , "</dl>"
   ]
@@ -66,13 +66,19 @@ report l release st = T.unlines $
 
     overview =
       [ "<h2>" <> t ("The pages" // "Les pages") <> "</h2>", "<table>"
-      , "<thead><tr><th scope=\"col\">" <> t ("Page" // "Page") <> "</th><th scope=\"col\">" <> t ("To mend" // "À corriger") <> "</th><th scope=\"col\">"
-          <> t ("To check" // "À vérifier") <> "</th><th scope=\"col\">" <> t ("Lighter" // "À alléger") <> "</th></tr></thead>", "<tbody>" ]
+      , "<thead><tr><th scope=\"col\">" <> t ("Page" // "Page") <> "</th><th scope=\"col\">" <> t ("To change" // "À changer") <> "</th><th scope=\"col\">"
+          <> t ("To decide" // "À décider") <> "</th><th scope=\"col\">" <> t ("To lighten" // "À alléger") <> "</th></tr></thead>", "<tbody>" ]
       ++ [ "<tr><th scope=\"row\"><a href=\"#p" <> num i <> "\">" <> esc (url (oBody o)) <> "</a></th>" <> T.concat ["<td>" <> num (count v fs) <> "</td>" | v <- [Fail, Review, Hint]] <> "</tr>"
          | (i, o) <- zip [1 :: Int ..] pages, let fs = assess st o ]
       ++ ["</tbody>", "</table>"]
 
     count v fs = length [() | f <- fs, fVerdict f == v]
+
+    -- What holds first, then what is left: a count said in words where it is none or one.
+    tally none one many k
+      | k == 0 = t none
+      | k == 1 = "1 " <> t one
+      | otherwise = esc (num k) <> " " <> t many
 
     page' :: (Int, Obs) -> [Text]
     page' (i, o) = let b = oBody o; fs = assess st o in
@@ -80,10 +86,12 @@ report l release st = T.unlines $
       , "<p class=\"meta\">" <> t ("Observed on " // "Observée le ") <> esc (date l (at b)) <> maybe "" ((" · " <>) . esc) (browser b)
           <> (if truncated (page b) == Just True then t (" · page too large: only its first surfaces were read" // " · page trop grande : seules ses premières surfaces ont été lues") else "") <> "</p>"
       , p ("<strong>" <> T.intercalate " · "
-            [ esc (num (count Fail fs)) <> " " <> t ("to mend" // "à corriger"), esc (num (count Review fs)) <> " " <> t ("to check" // "à vérifier")
-            , esc (num (count Hint fs)) <> " " <> t ("could be lighter" // "à alléger"), esc (num (count Pass fs)) <> " " <> t ("checks pass" // "contrôles passent") ] <> "</strong>"
+            [ tally ("no check passes" // "aucun contrôle ne passe") ("check passes" // "contrôle passe") ("checks pass" // "contrôles passent") (count Pass fs)
+            , tally ("nothing to change" // "rien à changer") ("change to make" // "changement à faire") ("changes to make" // "changements à faire") (count Fail fs)
+            , tally ("nothing to decide" // "rien à décider") ("point to decide" // "point à décider") ("points to decide" // "points à décider") (count Review fs)
+            , tally ("nothing to lighten" // "rien à alléger") ("to lighten" // "à alléger") ("to lighten" // "à alléger") (count Hint fs) ] <> "</strong>"
            <> since o fs) ]
-      ++ concat [ group n title fs v | (n, title, v) <- [ (2 :: Int, "To mend" // "À corriger", Fail), (2, "To check" // "À vérifier", Review), (2, "Could be lighter" // "Pourrait être allégé", Hint) ] ]
+      ++ concat [ group n title fs v | (n, title, v) <- [ (2 :: Int, "Changes to make" // "Changements à faire", Fail), (2, "Points to decide" // "Points à décider", Review), (2, "Could be lighter" // "Pourrait être allégé", Hint) ] ]
       ++ [ hd 2 (t ("Criterion by criterion" // "Critère par critère")), "<ul>" ]
       ++ [ "<li>" <> t (cTitle c) <> " · " <> summary [f | f <- fs, cId (fCrit f) == cId c] <> "</li>" | c <- criteria ]
       ++ [ "</ul>", hd 2 (t ("Footprint" // "Empreinte")) ]

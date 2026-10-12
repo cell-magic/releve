@@ -13,6 +13,9 @@ comes back for review.
   remedy under its criterion and what that criterion is for, the lightest
   work first, then what was not looked at. With `-` for the corpus it reads
   observations from standard input and keeps nothing.
+- **What holds, first.** Each page's report opens with what passes, then
+  what is left: "38 checks pass · 8 changes to make · 5 points to decide ·
+  nothing to lighten". A count of none is said in words.
 - **Two languages.** Whatever a rule says, it says in English and in
   French. `facts` stays in English, as the reviewer's working document.
 - **Plain words, and no claim.** A report says nothing of audits,
