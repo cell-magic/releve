@@ -169,7 +169,8 @@ sudo bash serve/install.sh releve.you.example https://you.example/robot
 `serve/install.sh` builds relevé in a folder of its own, runs the three
 sets of checks there, and only then starts the service: a unit that keeps
 none of its output, confined to what it needs, behind a proxy (Caddy) that
-keeps no log of requests, failed ones included. It then asks the running
+keeps no log of requests, failed ones included, and does not pass the
+visitor's address on to the service. It then asks the running
 service for a report and says what came back. Run again, it renews: the
 service stays as it was until the checks pass, and returns to what it was
 if no report comes back. `--playwright VERSION` brings a newer browser

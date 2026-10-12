@@ -144,7 +144,8 @@ check("its own pages, read by its own rules, are asked for nothing" + "".join("\
 
 # Installed by its own recipe, it keeps none of its output and stands behind a proxy that logs no request.
 recipe = (Path(serve.__file__).parent / "install.sh").read_text(encoding="utf-8")
-check("its recipe keeps no output and no log of requests", all(x in recipe for x in ("StandardOutput=null", "StandardError=null", "exclude http.log.error"))
+check("its recipe keeps no output and no log of requests, and tells the service nothing of who asked",
+      all(x in recipe for x in ("StandardOutput=null", "StandardError=null", "exclude http.log.error", "header_up -X-Forwarded-For"))
       and "output file" not in recipe)
 
 # A service whose browser cannot start is of no use, and does not pretend: it ends, to be started again.

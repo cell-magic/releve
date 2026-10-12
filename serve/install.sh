@@ -160,7 +160,10 @@ $name {
 	request_body {
 		max_size 3MB
 	}
-	reverse_proxy 127.0.0.1:8000
+	# The service is not told who asked: the visitor's address stops here.
+	reverse_proxy 127.0.0.1:8000 {
+		header_up -X-Forwarded-For
+	}
 }
 PROXY
 install -d -o releve -g releve -m 0750 /var/lib/releve
