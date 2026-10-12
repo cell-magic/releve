@@ -16,6 +16,11 @@ comes back for review.
 - **What holds, first.** Each page's report opens with what passes, then
   what is left: "38 checks pass · 8 changes to make · 5 points to decide ·
   nothing to lighten". A count of none is said in words.
+- **The order of mending.** The reading no longer says what mending one
+  criterion alone would give back, figures that could not be added up. It
+  gives the criteria in the order that leaves fewest steps at each turn,
+  each after those before it, down to the page with nothing failing: the
+  gains add up.
 - **Two languages.** Whatever a rule says, it says in English and in
   French. `facts` stays in English, as the reviewer's working document.
 - **Plain words, and no claim.** A report says nothing of audits,

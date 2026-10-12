@@ -154,7 +154,12 @@ report l release st = T.unlines $
           <> dd (let said = max 1 (round (rBits r / 8)) :: Int; each = transfer (network b) `div` said
                  in num said <> " bytes of text, by an estimate; " <> num each <> " bytes travel for each." // num said <> " octets de texte, par estimation ; " <> num each <> " octets voyagent pour chacun.")
       , "</dl>" ]
-      ++ [ p (T.intercalate " " [ t ("Mending “" // "Corriger « ") <> t (title' c) <> t ("” alone gives back " <> steps' k <> "." // " » seul rend " <> etapes k <> ".") | (c, k) <- rReturns r ]) | not (null (rReturns r)) ]
+      ++ (if null (rMending r) then [] else
+           [ p (t ("The order of mending. Each line mends one criterion, after those above it, and says how many steps then remain. The gains add up, down to the page with nothing failing."
+                   // "L'ordre des corrections. Chaque ligne corrige un critère, après ceux du dessus, et dit combien d'étapes restent alors. Les gains s'additionnent, jusqu'à la page où rien n'échoue."))
+           , "<ol>" ]
+           ++ [ "<li>" <> t ("“" // "« ") <> t (title' c) <> t ("”: " // " » : ") <> t (steps' k // etapes k) <> "</li>" | (c, k) <- rMending r ]
+           ++ [ "</ol>" ])
       ++ [ "<p class=\"meta\">" <> t ("The reader who holds up to " <> num ceiling' <> " is a convention, as a reference device is in a test of speed: it takes what comes first on the page, and fewer things at once where the page fails them."
               // "Le lecteur qui en saisit jusqu'à " <> num ceiling' <> " est une convention, comme l'appareil de référence d'un essai de vitesse : il prend ce qui vient en premier dans la page, et moins de choses à la fois là où la page lui fait défaut.") <> "</p>" ]
       where

@@ -97,3 +97,4 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - the page says 126 bytes; 4319 bytes travel for each
 - one at a time, by ear: 12 steps
 - up to 4 at a time: 17 steps as the page stands · 16 with nothing failing (between 16 and 16 at this depth and size)
+- mending, in order: page-lang leaves 17 steps, zoom leaves 17 steps, reflow leaves 16 steps

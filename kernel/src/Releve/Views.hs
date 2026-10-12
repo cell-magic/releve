@@ -84,7 +84,7 @@ lecture b r =
   , "- one at a time, by ear: " <> plural (rSerial r) "step"
   , "- up to " <> n ceiling' <> " at a time: " <> plural (rSteps r) "step" <> " as the page stands · " <> n (rClear r)
       <> " with nothing failing (between " <> n (rLower r) <> " and " <> n (rUpper r) <> " at this depth and size)" ]
-  ++ [ "- mending " <> c <> " alone gives back " <> plural k "step" | (c, k) <- rReturns r ]
+  ++ [ "- mending, in order: " <> T.intercalate ", " [ c <> " leaves " <> plural k "step" | (c, k) <- rMending r ] | not (null (rMending r)) ]
   where
     n = T.pack . show
     spoken = round (rBits r / 8) :: Int
@@ -162,7 +162,7 @@ atlas st o = object
   , "reading" .= fmap (\r -> object
       [ "events" .= rEvents r, "unsaid" .= rUnsaid r, "unshown" .= rUnshown r, "depth" .= rDepth r
       , "bits" .= (round (rBits r) :: Int), "serial" .= rSerial r, "steps" .= rSteps r, "clear" .= rClear r
-      , "lower" .= rLower r, "upper" .= rUpper r, "returns" .= M.fromList (rReturns r)
+      , "lower" .= rLower r, "upper" .= rUpper r, "mending" .= [object ["criterion" .= c, "steps" .= k] | (c, k) <- rMending r]
       , "order" .= fmap sequence' (rShape r) ]) (readingOf b fs)
   ]
   where

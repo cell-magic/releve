@@ -11,7 +11,8 @@
 --   constant below is a stated convention.
 module Releve.Reading (Reading (..), Misfit (..), Shape (..), reading, readingOf, aperture, ceiling') where
 
-import Data.List (groupBy, nub, sortOn)
+import Data.List (delete, groupBy, minimumBy, nub, sortOn)
+import Data.Ord (comparing)
 import Data.Maybe (listToMaybe, mapMaybe)
 import qualified Data.Set as S
 import Data.Text (Text)
@@ -172,7 +173,8 @@ data Reading = Reading
   , rClear :: Int            -- ^ steps with nothing failing
   , rSteps :: Int            -- ^ steps as the page stands
   , rSerial :: Int           -- ^ steps one at a time, by ear
-  , rReturns :: [(Text, Int)] -- ^ steps given back by mending one criterion alone
+  , rMending :: [(Text, Int)] -- ^ the criteria in the order that gives back most at each turn, with the steps
+                              --   left once each is mended after those before it
   , rShape :: Maybe Shape    -- ^ what must be taken in order, and what need not
   }
 
@@ -185,8 +187,8 @@ reading :: [Ev] -> [Misfit] -> Reading
 reading es misfits = Reading
   { rEvents = n, rUnsaid = count unsaid, rUnshown = count (\(e, b) -> heard b && not (eShown e))
   , rDepth = d, rBits = sum [b | (_, b) <- kept], rLower = max d (up n), rUpper = min n ((n + (ceiling' - 1) * d) `div` ceiling')
-  , rClear = steps 0 S.empty g, rSteps = now, rSerial = count (heard . snd)
-  , rReturns = [(c, r) | c <- nub (map mCriterion misfits), let r = now - without c, r > 0]
+  , rClear = clear, rSteps = now, rSerial = count (heard . snd)
+  , rMending = mending (nub [c | Misfit c e <- misfits, e /= Nothing || c `elem` whole]) misfits now
   , rShape = g
   }
   where
@@ -201,4 +203,12 @@ reading es misfits = Reading
     up x = (x + ceiling' - 1) `div` ceiling'
     load ms = steps (length (nub [c | Misfit c _ <- ms, c `elem` whole])) (S.fromList [i | Misfit c (Just i) <- ms, c `notElem` whole]) g
     now = load misfits
-    without c = load [m | m <- misfits, mCriterion m /= c]
+    clear = steps 0 S.empty g
+    -- Each turn mends the criterion that leaves fewest steps, after those before it (the first
+    -- in order when none gives back alone), so the gains add up and the last line is the page
+    -- with nothing failing. Criteria that touch no event are left out: they cost no step.
+    mending cs ms cur
+      | cur <= clear || null cs = []
+      | otherwise = (c, best) : mending (delete c cs) (without c ms) best
+      where (best, c) = minimumBy (comparing fst) [(load (without k ms), k) | k <- cs]
+    without c = filter ((/= c) . mCriterion)

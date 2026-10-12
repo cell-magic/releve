@@ -237,6 +237,11 @@ def main():
     check("on two hundred nestings, the steps stay between the bounds the depth and the size set",
           all(x["events"] == len(es) and max(x["depth"], -(-len(es) // 4)) == x["lower"] <= x["clear"] <= x["upper"] <= len(es)
               for (es, _), x in zip(pages, r)))
+    check("the order of mending ends at the page with nothing failing, each line leaving no more steps than the one before",
+          all((x["mending"] == []) == (x["steps"] == x["clear"])
+              and all(a["steps"] >= b["steps"] for a, b in zip(x["mending"], x["mending"][1:]))
+              and (not x["mending"] or (x["mending"][0]["steps"] <= x["steps"] and x["mending"][-1]["steps"] == x["clear"]))
+              for x in r))
     check("failures never shorten a reading, and failing everywhere makes it serial",
           all(x["clear"] <= x["steps"] <= len(es) and (bad or x["steps"] == x["clear"]) and (len(bad) < len(es) or x["steps"] == len(es))
               for (es, bad), x in zip(pages, r)))

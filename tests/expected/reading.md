@@ -72,4 +72,4 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - the page says 189 bytes; 24 bytes travel for each
 - one at a time, by ear: 38 steps
 - up to 4 at a time: 16 steps as the page stands · 13 with nothing failing (between 10 and 15 at this depth and size)
-- mending text-contrast alone gives back 3 steps
+- mending, in order: text-contrast leaves 13 steps
