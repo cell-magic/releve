@@ -52,13 +52,13 @@ RENEW = 40        # observations after which the browser is started afresh
 
 WORDS = {
     "en": {
-        "title": "relevé", "lead": "Give the address of a page. It is opened once, in a browser, by the robot releve-observe; "
+        "title": "Free page report", "lead": "Give the address of a page. It is opened once, in a browser, by the robot releve-observe; "
         "what it shows is read by rule, and the report is the answer. Nothing is kept: no account, no cookie, no record of the address.",
-        "address": "Address of the page", "record": "Record of earlier observations, if one was kept (optional)",
-        "go": "Observe the page", "language": "Language of the report",
-        "keep": "Keeping the record", "keepit": "This service keeps nothing. To follow this page over time, keep its record: "
+        "address": "Address of the page (URL)", "record": "Earlier record, to compare (optional)",
+        "go": "Get the report", "language": "Language of the report",
+        "keep": "Following this page over time", "keepit": "This service keeps nothing. To follow this page over time, keep its record: "
         "hand it back with the next request, and the report will say what was mended, what is new and what stands.",
-        "download": "Download the record", "again": "Observe another page",
+        "download": "Download the record", "file": ".gz file", "again": "Report on another page",
         "no": "The page was not observed", "busy": "Others are waiting. Ask again in a minute.",
         "why": {
             "not a web address": "This is not a web address. It begins with https:// or http://.",
@@ -80,13 +80,13 @@ WORDS = {
                     "Oceania": "Oceania", "unknown": "Region not stated"},
     },
     "fr": {
-        "title": "relevé", "lead": "Indiquez l'adresse d'une page. Elle est ouverte une fois, dans un navigateur, par le robot releve-observe ; "
+        "title": "État des lieux gratuit", "lead": "Indiquez l'adresse d'une page. Elle est ouverte une fois, dans un navigateur, par le robot releve-observe ; "
         "ce qu'elle montre est lu par des règles, et le rapport est la réponse. Rien n'est conservé : ni compte, ni cookie, ni trace de l'adresse.",
-        "address": "Adresse de la page", "record": "Relevé des observations précédentes, si vous l'avez gardé (facultatif)",
-        "go": "Observer la page", "language": "Langue du rapport",
-        "keep": "Garder le relevé", "keepit": "Ce service ne conserve rien. Pour suivre cette page dans le temps, gardez son relevé : "
+        "address": "Adresse de la page (URL)", "record": "Relevé précédent, pour comparer (facultatif)",
+        "go": "Obtenir l'état des lieux", "language": "Langue du rapport",
+        "keep": "Suivre cette page dans le temps", "keepit": "Ce service ne conserve rien. Pour suivre cette page dans le temps, gardez son relevé : "
         "joignez-le à votre prochaine demande, et le rapport dira ce qui a été corrigé, ce qui est nouveau et ce qui persiste.",
-        "download": "Télécharger le relevé", "again": "Observer une autre page",
+        "download": "Télécharger le relevé", "file": "fichier .gz", "again": "Un autre état des lieux",
         "no": "La page n'a pas été observée", "busy": "D'autres demandes attendent. Réessayez dans une minute.",
         "why": {
             "not a web address": "Ce n'est pas une adresse web. Elle commence par https:// ou http://.",
@@ -385,7 +385,7 @@ class Door(BaseHTTPRequestHandler):
         name = "releve-" + re.sub(r"[^a-z0-9.-]+", "-", (observer.place(observation["url"]) or ("", "page"))[1].lower()) + ".jsonl.gz"
         keep = (f'<h2>{w["keep"]}</h2>\n<p>{w["keepit"]}</p>\n'
                 f'<p><a download="{name}" href="data:application/gzip;base64,{base64.b64encode(record).decode("ascii")}">{w["download"]}</a>'
-                f' ({len(record) // 1024 + 1} k{"B" if lang == "en" else "o"})</p>\n<h2>{w["again"]}</h2>\n{form(lang)}')
+                f' ({w["file"]}, {len(record) // 1024 + 1} k{"B" if lang == "en" else "o"})</p>\n<h2>{w["again"]}</h2>\n{form(lang)}')
         self.answer(200, lang, unescape(title), body + keep)
 
     def refuse(self, lang, why):

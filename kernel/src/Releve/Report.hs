@@ -59,8 +59,8 @@ report l release st = T.unlines $
     pages = latest st
     single = length pages == 1
     heading' = case pages of
-      [o] -> "Relevé · " <> url (oBody o)
-      _ -> "Relevé · " <> say l (num (length pages) <> " pages" // num (length pages) <> " pages")
+      [o] -> say l ("Report · " // "État des lieux · ") <> url (oBody o)
+      _ -> say l ("Report · " <> num (length pages) <> " pages" // "État des lieux · " <> num (length pages) <> " pages")
     hd :: Int -> Text -> Text
     hd n x = let k = num (if single then n else n + 1) in "<h" <> k <> ">" <> x <> "</h" <> k <> ">"
 

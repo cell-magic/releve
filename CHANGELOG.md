@@ -21,6 +21,10 @@ comes back for review.
   gives the criteria in the order that leaves fewest steps at each turn,
   each after those before it, down to the page with nothing failing: the
   gains add up.
+- **Names that say what they do.** A report is titled "Report" ("État des
+  lieux") and the address it covers. The service's form names what it
+  gives: "Free page report", a button "Get the report", a field for the
+  earlier record "to compare"; the record downloads as a ".gz file".
 - **Two languages.** Whatever a rule says, it says in English and in
   French. `facts` stays in English, as the reviewer's working document.
 - **Plain words, and no claim.** A report says nothing of audits,
