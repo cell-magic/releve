@@ -63,7 +63,7 @@ WORDS = {
         "why": {
             "not a web address": "This is not a web address. It begins with https:// or http://.",
             "not public": "Only public addresses of the web are observed.",
-            "robots.txt refuses": "This site's robots.txt asks robots to stay out, and the robot obeys. To let it in, add to robots.txt: "
+            "robots.txt refuses": "This site’s robots.txt asks robots to stay out, and the robot obeys. To let it in, add to robots.txt: "
                                   "User-agent: releve-observe, then Allow: /",
             "robots.txt unreachable": "This site did not answer for its robots.txt, so the robot stayed out.",
             "recently": "This site was observed a moment ago. Ask again in a few seconds.",
@@ -73,40 +73,40 @@ WORDS = {
         },
         "left": [(r".*", r"The robot left the page alone: \g<0>.")],
         "counts": "What the service counts", "countsit": "By week: how many reports were given, in which language, how many followed a record "
-        "handed back, and the broad region a browser's language setting points to. No address, no time finer than the week, nothing about any one "
+        "handed back, and the broad region a browser’s language setting points to. No address, no time finer than the week, nothing about any one "
         "request. A week is shown once it has ended; a region counted fewer than five times in it is shown as “fewer than 5”.",
         "columns": ["Week", "Reports", "Following a record", "In English", "In French"], "few": "fewer than 5", "none": "Nothing counted yet.",
         "regions": {"Europe": "Europe", "North America": "North America", "South America": "South America", "Asia": "Asia", "Africa": "Africa",
                     "Oceania": "Oceania", "unknown": "Region not stated"},
     },
     "fr": {
-        "title": "État des lieux gratuit", "lead": "Indiquez l'adresse d'une page. Elle est ouverte une fois, dans un navigateur, par le robot releve-observe ; "
-        "ce qu'elle montre est lu par des règles, et le rapport est la réponse. Rien n'est conservé : ni compte, ni cookie, ni trace de l'adresse.",
+        "title": "État des lieux gratuit", "lead": "Indiquez l’adresse d’une page. Elle est ouverte une fois, dans un navigateur, par le robot releve-observe ; "
+        "ce qu’elle montre est lu par des règles, et le rapport est la réponse. Rien n’est conservé : ni compte, ni cookie, ni trace de l’adresse.",
         "address": "Adresse de la page (URL)", "record": "Relevé précédent, pour comparer (facultatif)",
-        "go": "Obtenir l'état des lieux", "language": "Langue du rapport",
+        "go": "Obtenir l’état des lieux", "language": "Langue du rapport",
         "keep": "Suivre cette page dans le temps", "keepit": "Ce service ne conserve rien. Pour suivre cette page dans le temps, gardez son relevé : "
         "joignez-le à votre prochaine demande, et le rapport dira ce qui a été corrigé, ce qui est nouveau et ce qui persiste.",
         "download": "Télécharger le relevé", "file": "fichier .gz", "again": "Un autre état des lieux",
-        "no": "La page n'a pas été observée", "busy": "D'autres demandes attendent. Réessayez dans une minute.",
+        "no": "La page n’a pas été observée", "busy": "D’autres demandes attendent. Réessayez dans une minute.",
         "why": {
-            "not a web address": "Ce n'est pas une adresse web. Elle commence par https:// ou http://.",
+            "not a web address": "Ce n’est pas une adresse web. Elle commence par https:// ou http://.",
             "not public": "Seules les adresses publiques du web sont observées.",
             "robots.txt refuses": "Le fichier robots.txt de ce site demande aux robots de rester dehors, et le robot obéit. Pour le laisser entrer, "
                                   "ajouter à robots.txt : User-agent: releve-observe, puis Allow: /",
-            "robots.txt unreachable": "Ce site n'a pas répondu pour son robots.txt ; le robot est resté dehors.",
-            "recently": "Ce site vient d'être observé. Réessayez dans quelques secondes.",
-            "record": "Ce relevé ne peut pas être lu, ou ses scellés ne tiennent pas. Envoyez le fichier tel qu'il a été téléchargé.",
-            "full": "Ce relevé contient déjà autant de pages qu'il peut en contenir.",
+            "robots.txt unreachable": "Ce site n’a pas répondu pour son robots.txt ; le robot est resté dehors.",
+            "recently": "Ce site vient d’être observé. Réessayez dans quelques secondes.",
+            "record": "Ce relevé ne peut pas être lu, ou ses scellés ne tiennent pas. Envoyez le fichier tel qu’il a été téléchargé.",
+            "full": "Ce relevé contient déjà autant de pages qu’il peut en contenir.",
             "slow": "La page a mis trop de temps à répondre.",
         },
-        "left": [(r"answered (\d+)", r"La page a répondu \1 ; le robot l'a laissée."),
-                 (r"a challenge stands before the content", "Une vérification anti-robot précède le contenu ; le robot n'insiste pas."),
-                 (r"leads to .*", "La page mène à une adresse fermée au robot ; il ne l'a pas suivie."),
-                 (r".*", "La page n'a pas pu être chargée.")],
+        "left": [(r"answered (\d+)", r"La page a répondu \1 ; le robot l’a laissée."),
+                 (r"a challenge stands before the content", "Une vérification anti-robot précède le contenu ; le robot n’insiste pas."),
+                 (r"leads to .*", "La page mène à une adresse fermée au robot ; il ne l’a pas suivie."),
+                 (r".*", "La page n’a pas pu être chargée.")],
         "counts": "Ce que le service compte", "countsit": "Par semaine : combien de rapports ont été remis, en quelle langue, combien faisaient suite "
         "à un relevé rendu, et la grande région que désigne le réglage de langue du navigateur. Ni adresse, ni heure plus fine que la semaine, rien "
         "qui concerne une demande en particulier. Une semaine paraît une fois achevée ; une région comptée moins de cinq fois y est indiquée « moins de 5 ».",
-        "columns": ["Semaine", "Rapports", "Après un relevé", "En anglais", "En français"], "few": "moins de 5", "none": "Rien n'est encore compté.",
+        "columns": ["Semaine", "Rapports", "Après un relevé", "En anglais", "En français"], "few": "moins de 5", "none": "Rien n’est encore compté.",
         "regions": {"Europe": "Europe", "North America": "Amérique du Nord", "South America": "Amérique du Sud", "Asia": "Asie", "Africa": "Afrique",
                     "Oceania": "Océanie", "unknown": "Région non indiquée"},
     },

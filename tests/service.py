@@ -112,7 +112,7 @@ check("obeys robots.txt, and says how to be let in", "asks robots to stay out" i
       and not [h for h in hits if h == (closed, "/page")])
 
 code, heads, text = ask(door, "localhost/one", "fr")
-check("takes web addresses only", "Ce n'est pas une adresse web" in text)
+check("takes web addresses only", "Ce n’est pas une adresse web" in text)
 
 for address, verdict in [("http://127.0.0.1/", "not public"), ("http://10.1.2.3/x", "not public"), ("http://169.254.169.254/latest/", "not public"),
                          ("http://[::1]/", "not public"), ("https://93.184.216.34:8443/", "not public"), ("https://93.184.216.34/", None),
