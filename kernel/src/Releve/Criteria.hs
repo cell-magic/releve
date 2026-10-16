@@ -20,7 +20,7 @@ import Releve.Colour
 import Releve.Types
 
 version :: Text
-version = "8"
+version = "9"
 
 criteria :: [Criterion]
 criteria =
@@ -144,6 +144,18 @@ criteria =
       ("The focus mark is a keyboard user's only position indicator."
        // "La marque du focus est le seul repère de position au clavier.")
       focusVisible
+  , Criterion "focus-obscured" ("The focus is not hidden by the page" // "Le focus n'est pas caché par la page") "WCAG 2.4.11" Medium
+      ("A focused element under a sticky header or a banner leaves the keyboard user without a mark."
+       // "Un élément focalisé sous un en-tête fixe ou un bandeau laisse l'utilisateur du clavier sans repère.")
+      focusObscured
+  , Criterion "target-size" ("Targets are large enough, or have room" // "Les cibles sont assez grandes, ou ont de la place") "WCAG 2.5.8" Medium
+      ("A target under 24 px with neighbours close by is easy to miss, by finger, by a trembling hand or a hard pointer."
+       // "Une cible de moins de 24 px aux voisines proches se manque facilement, au doigt, d'une main tremblante ou avec un pointeur difficile.")
+      targetSize
+  , Criterion "authentication" ("Signing in asks nothing to remember or copy" // "Se connecter ne demande rien à mémoriser ni à recopier") "WCAG 3.3.8" Medium
+      ("A password manager and pasting spare the reader a test of memory."
+       // "Un gestionnaire de mots de passe et le collage épargnent au lecteur une épreuve de mémoire.")
+      authentication
   , Criterion "keyboard-trap" ("The keyboard can leave what it enters" // "Le clavier peut quitter ce où il entre") "RGAA 12.9 · WCAG 2.1.2" Medium
       ("Without a mouse, a trap makes the rest of the page unreachable."
        // "Sans souris, un piège rend le reste de la page inaccessible.")
@@ -821,6 +833,56 @@ focusVisible o = walked o $ \k -> case (checked k, unseen k) of
   (n, []) -> [onPage Pass (both (num n) <> (if n == 1 then " stop, focus visible" // " arrêt, focus visible" else " stops, focus visible at each" // " arrêts, focus visible à chacun")) Nothing]
   (_, ss) -> [ onSel o x Fail ("no visible focus" // "focus invisible")
                  (Just ("add a :focus-visible outline that contrasts with its surroundings" // "ajouter un contour :focus-visible contrasté")) | x <- ss ]
+
+-- | A stop is hidden when every point of it on the screen lies under one other element, of the
+--   page's own content, that does not hold it. Partly hidden is not hidden.
+focusObscured :: Observation -> [Mark]
+focusObscured o = walked o $ \k -> case obscured k of
+  Nothing -> [onPage NA ("not recorded by the observer of that time" // "non relevé par l'observateur d'alors") Nothing]
+  Just [] -> [onPage Pass (both (num (stops k)) <> (" stops, none hidden" // " arrêts, aucun caché")) Nothing]
+  Just xs -> [ onSel o at Fail (("hidden under " // "caché sous ") <> both by')
+                 (Just ("leave it room, with scroll-padding beside a fixed header or banner, or move what covers it" // "lui laisser la place, avec scroll-padding à côté d'un en-tête ou d'un bandeau fixe, ou déplacer ce qui le couvre")) | (at, by') <- xs ]
+
+-- | Each pointer target, link, button or field, at least 24 by 24 px, or with a circle of 24 px about
+--   its centre that meets no other target and no other small target's circle. A target set in a
+--   sentence, or drawn by the browser as it comes, is the exception WCAG makes.
+targetSize :: Observation -> [Mark]
+targetSize o = case targets of
+  [] -> [onPage NA ("no target on the page" // "aucune cible dans la page") Nothing]
+  _ | all (null . excepted . fst) targets -> [onPage NA ("not recorded by the observer of that time" // "non relevé par l'observateur d'alors") Nothing]
+  _ -> case small of
+    [] -> [onPage Pass (both (num (length targets)) <> (" targets, each 24 × 24 px or more, or in running text" // " cibles, chacune de 24 × 24 px ou plus, ou dans le texte courant")) Nothing]
+    xs -> [ case crowd t of
+              Nothing -> on s Pass (size' b <> (", with room around it" // ", avec de la place autour")) Nothing
+              Just (d, n) -> on s Fail (size' b <> ("; " // " ; ") <> n <> both (" " <> num (round d) <> " px") <> (" from its centre" // " de son centre"))
+                               (Just ("make it 24 × 24 px or more, or leave it room" // "lui donner 24 × 24 px ou plus, ou de la place"))
+          | t@(s, b) <- xs ]
+  where
+    targets = [ (s, b) | s <- surfaces o, kind s `elem` ["link", "button", "control"], visible s, Just b@[_, _, w, h] <- [box s], w > 1, h > 1 ]
+    small = [ t | t@(s, [_, _, w, h]) <- targets, excepted s == Just "", w < 24 || h < 24 ]
+    centre [x, y, w, h] = (x + w / 2, y + h / 2)
+    centre _ = (0, 0)
+    gap (cx, cy) [x, y, w, h] = sqrt (sq (maximum [0, x - cx, cx - x - w]) + sq (maximum [0, y - cy, cy - y - h]))
+    gap _ _ = 1 / 0
+    sq v = v * v
+    apart (a, b) (c, d) = sqrt (sq (a - c) + sq (b - d))
+    crowd (s, b) = listToMaybe (sortOn fst (
+      [ (d, named t) | (t, c) <- targets, sel t /= sel s, let d = gap (centre b) c, d < 12 ]
+      ++ [ (d, named t) | (t, c) <- small, sel t /= sel s, let d = apart (centre b) (centre c), d < 24 ]))
+    named t = maybe (both (sel t)) quote (name t >>= \x -> if T.null x then Nothing else Just x)
+    size' [_, _, w, h] = both (int w <> " × " <> int h <> " px")
+    size' _ = mempty
+
+-- | A field for a password or a one-time code: whether signing in can do without memory or copying is
+--   put to a person; a field that turns password managers away says so.
+authentication :: Observation -> [Mark]
+authentication o = case [s | s <- surfacesOf "control" o, itype s == Just "password" || maybe False ("one-time-code" `T.isInfixOf`) (auto s)] of
+  [] -> [onPage NA ("no password or code field on the page" // "aucun champ de mot de passe ou de code dans la page") Nothing]
+  fs -> [ asking ("Can a person sign in without remembering, copying or solving anything: is pasting allowed, a password manager welcome, or another way offered?"
+                  // "Peut-on se connecter sans rien mémoriser, recopier ni résoudre : le collage est-il permis, un gestionnaire de mots de passe accepté, ou un autre moyen proposé ?")
+            (on s Review (("password or code field" // "champ de mot de passe ou de code") <> maybe "" (\a -> both (", autocomplete=\"" <> a <> "\"")) (auto s))
+               (if auto s == Just "off" then Just ("let a password manager fill it: autocomplete=\"current-password\"" // "laisser un gestionnaire de mots de passe le remplir : autocomplete=\"current-password\"") else Nothing))
+        | s <- fs ]
 
 keyboardTrap :: Observation -> [Mark]
 keyboardTrap o = walked o $ \k -> case (ended k, trap k) of

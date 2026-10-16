@@ -1,7 +1,7 @@
 # Relevé · http://localhost:8765/page.html
 
-Observation `d38dbbbd` · 2026-10-16T10:47:19+00:00 · criteria v8 · screenshot `69b8f09771544ffb` · Chromium 141.0.7390.37  
-22 surfaces · 8 fail · 30 review · 0 hint · 42 pass · first observation of this page
+Observation `46ce2831` · 2026-10-16T10:47:19+00:00 · criteria v9 · screenshot `69b8f09771544ffb` · Chromium 141.0.7390.37  
+22 surfaces · 8 fail · 31 review · 0 hint · 42 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
 To correct a line, change its verdict word or add a note after `//`, then run `releve correct`.
@@ -17,7 +17,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - **FAIL** paired-colours · `body > main > p.plain:nth-of-type(9) > a` · text colour set, no background set → set a background colour on it or on a parent {551c30af}
 - **FAIL** link-visible · `body > main > p.plain:nth-of-type(9) > a` · looks like the text around it: no underline, contrast under 3:1 → underline it, or set it at 3:1 against the text around it {ca0c625e}
 
-## Review (30)
+## Review (31)
 
 - **REVIEW** text-contrast · `body > main > p:nth-of-type(5) > span.pulse` · #505050 on #ffffff · 8.04:1, needs 4.50:1 · “New” · partly transparent (opacity 0.68), may be mid-animation {56c8ffd4}
 - **REVIEW** lang-code · page · page language lang="en" → set lang to the language the page is written in {037a9ec3}
@@ -49,6 +49,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - **REVIEW** review-consultation · page · RGAA 13.10 · this page → add buttons for each gesture {37fe54af}
 - **REVIEW** review-consultation · page · RGAA 13.11 · this page → act on release, not on press {e41e32b7}
 - **REVIEW** review-consultation · page · RGAA 13.12 · this page → add a control, and a setting to turn motion off {ba389baa}
+- **REVIEW** review-consultation · page · WCAG 2.5.7 · this page → add buttons or a tap-to-place alternative {b1d1a7c2}
 
 ## By criterion
 
@@ -82,6 +83,9 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - tab-order: 1 of 1 pass
 - hidden-focus: 1 of 1 pass
 - focus-visible: 1 of 1 pass
+- focus-obscured: n/a · not recorded by the observer of that time
+- target-size: n/a · not recorded by the observer of that time
+- authentication: n/a · no password or code field on the page
 - keyboard-trap: 1 of 1 pass
 - lang-code: 1 of 5 pass
 - direction: 0 of 1 pass
@@ -121,7 +125,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - review-presentation: 0 of 5 pass
 - review-forms: n/a · no form fields on the page
 - review-navigation: 0 of 2 pass
-- review-consultation: 0 of 5 pass
+- review-consultation: 0 of 6 pass
 
 ## Footprint
 

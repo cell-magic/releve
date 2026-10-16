@@ -1,7 +1,7 @@
 # Relevé · http://localhost:8765/consent.html
 
-Observation `75268035` · 2026-10-16T17:26:24+00:00 · criteria v8 · screenshot `88ff273ba7962254` · Chromium 141.0.7390.37  
-16 surfaces · 0 fail · 15 review · 0 hint · 42 pass · first observation of this page
+Observation `e4ef0dce` · 2026-10-16T18:55:42+00:00 · criteria v9 · screenshot `88ff273ba7962254` · Chromium 141.0.7390.37  
+16 surfaces · 0 fail · 15 review · 0 hint · 45 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
 To correct a line, change its verdict word or add a note after `//`, then run `releve correct`.
@@ -56,6 +56,9 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - tab-order: 1 of 1 pass
 - hidden-focus: 1 of 1 pass
 - focus-visible: 1 of 1 pass
+- focus-obscured: 1 of 1 pass
+- target-size: 2 of 2 pass
+- authentication: n/a · no password or code field on the page
 - keyboard-trap: 1 of 1 pass
 - lang-code: 0 of 2 pass
 - direction: n/a · no right-to-left script on the page
@@ -95,7 +98,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - review-presentation: 0 of 5 pass
 - review-forms: n/a · no form fields on the page
 - review-navigation: 0 of 2 pass
-- review-consultation: 0 of 5 pass
+- review-consultation: 0 of 6 pass
 
 ## Footprint
 

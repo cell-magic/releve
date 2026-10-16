@@ -1,7 +1,7 @@
 # Relevé · http://localhost:8765/structure.html
 
-Observation `0dbd2e5e` · 2026-10-16T10:47:34+00:00 · criteria v8 · screenshot `7d6520591fc7f158` · Chromium 141.0.7390.37  
-25 surfaces · 8 fail · 38 review · 0 hint · 44 pass · first observation of this page
+Observation `dc383006` · 2026-10-16T10:47:34+00:00 · criteria v9 · screenshot `7d6520591fc7f158` · Chromium 141.0.7390.37  
+25 surfaces · 8 fail · 39 review · 0 hint · 44 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
 To correct a line, change its verdict word or add a note after `//`, then run `releve correct`.
@@ -17,7 +17,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - **FAIL** presentation · page · attribute color used 1 time → move it to the style sheet {ff9632c6}
 - **FAIL** no-popup · page · tried to open 1 window by itself → open a window on the reader's action only {b8861d84}
 
-## Review (38)
+## Review (39)
 
 - **REVIEW** heading-look · `body > main:nth-of-type(1) > div.big:nth-of-type(1)` · “Set large and not marked” is set at 28 px, the running text at 16 px, and it is not a heading → if it titles what follows, mark it h1 to h6 {7d2e3189}
 - **REVIEW** heading-look · `body > main:nth-of-type(1) > div.bold:nth-of-type(2)` · “Set bold before plain text” is set bolder than the text that follows, and it is not a heading → if it titles what follows, mark it h1 to h6 {3b219feb}
@@ -57,6 +57,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - **REVIEW** review-consultation · page · RGAA 13.10 · this page → add buttons for each gesture {37fe54af}
 - **REVIEW** review-consultation · page · RGAA 13.11 · this page → act on release, not on press {e41e32b7}
 - **REVIEW** review-consultation · page · RGAA 13.12 · this page → add a control, and a setting to turn motion off {ba389baa}
+- **REVIEW** review-consultation · page · WCAG 2.5.7 · this page → add buttons or a tap-to-place alternative {b1d1a7c2}
 
 ## By criterion
 
@@ -90,6 +91,9 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - tab-order: 1 of 1 pass
 - hidden-focus: 1 of 1 pass
 - focus-visible: n/a · nothing on the page takes the focus
+- focus-obscured: n/a · not recorded by the observer of that time
+- target-size: n/a · no target on the page
+- authentication: n/a · no password or code field on the page
 - keyboard-trap: n/a · nothing on the page takes the focus
 - lang-code: 0 of 2 pass
 - direction: n/a · no right-to-left script on the page
@@ -129,7 +133,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - review-presentation: 0 of 5 pass
 - review-forms: n/a · no form fields on the page
 - review-navigation: 0 of 2 pass
-- review-consultation: 0 of 5 pass
+- review-consultation: 0 of 6 pass
 
 ## Footprint
 

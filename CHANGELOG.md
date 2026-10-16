@@ -1,5 +1,28 @@
 # Changes
 
+## 0.7.0
+
+Criteria move from v8 to v9. WCAG 2.2 at levels A and AA, where the RGAA
+stops: its six new criteria addressed, 55 of 55.
+
+- **target-size, WCAG 2.5.8.** Each link, button and field at least 24 by
+  24 px, or with a circle of 24 px about its centre that meets no other
+  target. The observer records why a target's size is not the author's: a
+  link set in a sentence, a checkbox the browser draws.
+- **focus-obscured, WCAG 2.4.11.** At each Tab, the observer looks at what
+  lies over the focused element; one element of the page's own over the
+  whole of it, a fixed header or a banner, fails.
+- **authentication, WCAG 3.3.8.** A password or code field puts the
+  question: can a person sign in without remembering, copying or solving
+  anything? A field set to `autocomplete="off"` says it turns password
+  managers away.
+- **Asked and declared.** WCAG 2.5.7 (dragging) joins the consultation
+  questions where a page runs script, 3.3.7 (redundant entry) the form
+  questions; 3.2.6 (consistent help) is declared for the site, beside the
+  contact links seen.
+- **Frameworks.** WCAG 2.2 AA is a framework of its own, ISO/IEC
+  40500:2025; the laws that cite 2.1 or 2.0 keep their version.
+
 ## 0.6.0
 
 Criteria move from v7 to v8. The laws and standards a site answers to

@@ -1,7 +1,8 @@
 -- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
 -- SPDX-License-Identifier: EUPL-1.2
 {-# LANGUAGE OverloadedStrings #-}
--- | The RGAA 4.1.2 criteria that no rule decides from what a page shows. Each
+-- | The RGAA 4.1.2 criteria that no rule decides from what a page shows, and
+--   the WCAG 2.2 criteria the RGAA does not hold that only a person can. Each
 --   is put to the reviewer as one question for the page, and is not put where
 --   the page holds nothing it applies to: no video, no question on video. The
 --   questions are this tool's short form; the official text prevails.
@@ -21,21 +22,29 @@ data Theme = Theme
 checklist :: [Criterion]
 checklist = map criterion themes
   where
-    criterion th = Criterion (tId th) (tTitle th) (both ("RGAA " <> T.intercalate " · " [i | (i, _, _) <- tItems th])) Medium
+    criterion th = Criterion (tId th) (tTitle th) (both (T.intercalate " · " [ r <> " " <> T.intercalate " · " is | (r, is) <- refs th ])) Medium
       ("Criteria only a reviewer can decide, one question each." // "Critères que seul un relecteur peut trancher, une question chacun.")
       (judge th)
     judge th o = case tApplies th o of
       Nothing -> [Mark NA Nothing (tNone th) Nothing Nothing]
       Just seen -> [ case unasked i o of
-                       Just why -> Mark NA Nothing (both ("RGAA " <> i <> " · ") <> why) Nothing Nothing
-                       Nothing -> Mark Review Nothing (both ("RGAA " <> i <> " · ") <> seen) (Just fix) (Just q)
+                       Just why -> Mark NA Nothing (both (cite i <> " · ") <> why) Nothing Nothing
+                       Nothing -> Mark Review Nothing (both (cite i <> " · ") <> seen) (Just fix) (Just q)
                    | (i, q, fix) <- tItems th ]
+    -- The texts a theme's questions come from, in order, each with its numbers.
+    refs th = foldr (\(r, i) acc -> case acc of (r', is) : rest | r' == r -> (r, i : is) : rest; _ -> (r, [i]) : acc) []
+                    [ T.breakOnEnd " " (cite i) & \(r, n) -> (T.stripEnd r, n) | (i, _, _) <- tItems th ]
+    x & f = f x
+
+-- | How a question names its criterion: the RGAA's by number alone, another text's by its name and number.
+cite :: Text -> Text
+cite i = if T.any (== ' ') i then i else "RGAA " <> i
 
 -- | Why a question is not put to this page, though its theme applies: what it asks
 --   about cannot exist there. Shortcuts, gestures and motion need a script.
 unasked :: Text -> Observation -> Maybe Phrase
 unasked i o
-  | i `elem` ["12.10", "13.10", "13.11", "13.12"], not (scripted o) = Just noScript
+  | i `elem` ["12.10", "13.10", "13.11", "13.12", "WCAG 2.5.7"], not (scripted o) = Just noScript
   | i == "11.7", not (any ((== Just True) . grouped) fields) = Just ("no group of fields" // "aucun groupe de champs")
   | i == "11.8", not (any ((`elem` [Just "select-one", Just "select-multiple"]) . itype) fields) = Just ("no list of options" // "aucune liste d'options")
   | otherwise = Nothing
@@ -106,7 +115,8 @@ themes =
       , ("11.8", "Are the options of each list grouped where they belong together?" // "Les options de chaque liste sont-elles regroupées quand elles vont ensemble ?", "group them with <optgroup>" // "les regrouper avec <optgroup>")
       , ("11.10", "Are required fields and expected formats shown, and errors named?" // "Les champs requis et formats attendus sont-ils indiqués, et les erreurs nommées ?", "state required fields and formats; name each error" // "indiquer champs requis et formats ; nommer chaque erreur")
       , ("11.11", "Do error messages suggest a correction where one is known?" // "Les messages d'erreur proposent-ils une correction quand elle est connue ?", "suggest the correction" // "proposer la correction")
-      , ("11.12", "Can data be checked, corrected or confirmed before a form with legal or financial effect is sent?" // "Les données peuvent-elles être vérifiées, corrigées ou confirmées avant l'envoi d'un formulaire à effet juridique ou financier ?", "add a review step before sending" // "ajouter une étape de vérification avant l'envoi") ]
+      , ("11.12", "Can data be checked, corrected or confirmed before a form with legal or financial effect is sent?" // "Les données peuvent-elles être vérifiées, corrigées ou confirmées avant l'envoi d'un formulaire à effet juridique ou financier ?", "add a review step before sending" // "ajouter une étape de vérification avant l'envoi")
+      , ("WCAG 3.3.7", "In a process of several steps, is what was entered before filled in again or offered to choose, rather than asked anew?" // "Dans une démarche en plusieurs étapes, ce qui a déjà été saisi est-il prérempli ou proposé au choix, plutôt que redemandé ?", "fill it in from the earlier step, or offer it to choose" // "le préremplir depuis l'étape précédente, ou le proposer au choix") ]
   , Theme "review-navigation" ("Navigation, reviewed" // "Navigation, à relire") always ("" // "")
       [ ("12.10", "Can single-key shortcuts be turned off or remapped?" // "Les raccourcis à une seule touche peuvent-ils être désactivés ou modifiés ?", "add a modifier key, or a setting to turn them off" // "ajouter une touche de modification, ou un réglage pour les désactiver")
       , ("12.11", "Is content shown on hover, focus or activation reachable by keyboard?" // "Le contenu affiché au survol, au focus ou à l'activation est-il accessible au clavier ?", "make it reachable with Tab" // "le rendre accessible avec Tab") ]
@@ -115,7 +125,8 @@ themes =
       , ("13.9", "Can the page be used in both portrait and landscape?" // "La page s'utilise-t-elle en portrait comme en paysage ?", "remove the orientation lock" // "retirer le blocage d'orientation")
       , ("13.10", "Can every multi-point or path gesture be done with a single point too?" // "Chaque geste complexe peut-il aussi se faire d'un seul point ?", "add buttons for each gesture" // "ajouter des boutons pour chaque geste")
       , ("13.11", "Can a single-pointer action be cancelled before it completes?" // "Une action au pointeur peut-elle être annulée avant d'aboutir ?", "act on release, not on press" // "agir au relâchement, pas à l'appui")
-      , ("13.12", "Can features that use device motion be used another way?" // "Les fonctions liées au mouvement de l'appareil s'utilisent-elles autrement ?", "add a control, and a setting to turn motion off" // "ajouter une commande, et un réglage pour désactiver le mouvement") ]
+      , ("13.12", "Can features that use device motion be used another way?" // "Les fonctions liées au mouvement de l'appareil s'utilisent-elles autrement ?", "add a control, and a setting to turn motion off" // "ajouter une commande, et un réglage pour désactiver le mouvement")
+      , ("WCAG 2.5.7", "Can everything done by dragging also be done by single taps or clicks?" // "Tout ce qui se fait en glissant peut-il aussi se faire par simples appuis ou clics ?", "add buttons or a tap-to-place alternative" // "ajouter des boutons ou une alternative par appuis successifs") ]
   ]
   where
     always _ = Just ("this page" // "cette page")

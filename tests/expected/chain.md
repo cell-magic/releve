@@ -1,12 +1,12 @@
 # Relevé · http://localhost:8765/chain.html
 
-Observation `aecf1a77` · 2026-10-16T10:46:45+00:00 · criteria v8 · screenshot `bcba28db4bdab626` · Chromium 141.0.7390.37  
-5 surfaces · 0 fail · 27 review · 0 hint · 29 pass · first observation of this page
+Observation `01f0d4df` · 2026-10-16T10:46:45+00:00 · criteria v9 · screenshot `bcba28db4bdab626` · Chromium 141.0.7390.37  
+5 surfaces · 0 fail · 28 review · 0 hint · 29 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
 To correct a line, change its verdict word or add a note after `//`, then run `releve correct`.
 
-## Review (27)
+## Review (28)
 
 - **REVIEW** image-alt · `body > main > img` · alt="", marked decorative → add an alternative describing the image {52885b61}
 - **REVIEW** lang-code · page · page language lang="en" → set lang to the language the page is written in {037a9ec3}
@@ -35,6 +35,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - **REVIEW** review-consultation · page · RGAA 13.10 · this page → add buttons for each gesture {37fe54af}
 - **REVIEW** review-consultation · page · RGAA 13.11 · this page → act on release, not on press {e41e32b7}
 - **REVIEW** review-consultation · page · RGAA 13.12 · this page → add a control, and a setting to turn motion off {ba389baa}
+- **REVIEW** review-consultation · page · WCAG 2.5.7 · this page → add buttons or a tap-to-place alternative {b1d1a7c2}
 
 ## By criterion
 
@@ -68,6 +69,9 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - tab-order: 1 of 1 pass
 - hidden-focus: 1 of 1 pass
 - focus-visible: n/a · nothing on the page takes the focus
+- focus-obscured: n/a · not recorded by the observer of that time
+- target-size: n/a · no target on the page
+- authentication: n/a · no password or code field on the page
 - keyboard-trap: n/a · nothing on the page takes the focus
 - lang-code: 0 of 2 pass
 - direction: n/a · no right-to-left script on the page
@@ -107,7 +111,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - review-presentation: 0 of 5 pass
 - review-forms: n/a · no form fields on the page
 - review-navigation: 0 of 2 pass
-- review-consultation: 0 of 5 pass
+- review-consultation: 0 of 6 pass
 
 ## Footprint
 

@@ -45,7 +45,7 @@ usage = unlines
 
 -- | The release, as in releve.cabal; tests/run.py holds the two together.
 release :: String
-release = "0.6.0"
+release = "0.7.0"
 
 -- | The same bytes on every system: UTF-8, and line feeds alone on the way out.
 plain :: IO ()

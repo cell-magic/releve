@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/hostile.html
 
-Observation `ebe41dfe` · 2026-10-16T10:47:06+00:00 · criteria v8 · screenshot `47e373c1b407f785` · Chromium 141.0.7390.37  
+Observation `cd0fc67d` · 2026-10-16T10:47:06+00:00 · criteria v9 · screenshot `47e373c1b407f785` · Chromium 141.0.7390.37  
 8 surfaces · 4 fail · 19 review · 0 hint · 32 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
@@ -67,6 +67,9 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - tab-order: 1 of 1 pass
 - hidden-focus: 1 of 1 pass
 - focus-visible: 1 of 1 pass
+- focus-obscured: n/a · not recorded by the observer of that time
+- target-size: n/a · not recorded by the observer of that time
+- authentication: n/a · no password or code field on the page
 - keyboard-trap: 1 of 1 pass
 - lang-code: 0 of 2 pass
 - direction: n/a · no right-to-left script on the page
@@ -106,7 +109,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - review-presentation: 0 of 5 pass
 - review-forms: n/a · no form fields on the page
 - review-navigation: 0 of 2 pass
-- review-consultation: 0 of 5 pass
+- review-consultation: 0 of 6 pass
 
 ## Footprint
 

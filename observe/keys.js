@@ -27,5 +27,20 @@
   if (!el || el === document.body || el === document.documentElement) return { at: null };
   const tag = el.tagName.toLowerCase();
   const r = el.getBoundingClientRect();
-  return { at: path(el), frame: tag === "iframe" || tag === "frame", box: [r.x, r.y, r.width, r.height] };
+  // What the page's own content lays over the focused element: where every point of it that is on the
+  // screen lies under one other element that does not hold it, that element (WCAG 2.4.11).
+  const W = innerWidth, H = innerHeight, points = [];
+  for (const fx of [0.15, 0.5, 0.85]) for (const fy of [0.2, 0.5, 0.8]) {
+    const x = r.x + r.width * fx, y = r.y + r.height * fy;
+    if (x >= 0 && y >= 0 && x < W && y < H) points.push([x, y]);
+  }
+  const over = points.map(([x, y]) => { let n = document.elementFromPoint(x, y); while (n && n.shadowRoot && n.shadowRoot.elementFromPoint(x, y) && n.shadowRoot.elementFromPoint(x, y) !== n) n = n.shadowRoot.elementFromPoint(x, y); return n; })
+    .map(n => !n || n === el || el.contains(n) || n.contains(el) || (n.control === el) ? null : n);
+  let by = null;
+  if (points.length && over.every(Boolean)) {
+    const top = n => { for (let x = n; x && x.nodeType === 1; x = x.parentElement) if (/fixed|sticky/.test(getComputedStyle(x).position)) return x; return n; };
+    const covers = [...new Set(over.map(top))];
+    if (covers.length === 1) by = path(covers[0]);
+  }
+  return { at: path(el), frame: tag === "iframe" || tag === "frame", box: [r.x, r.y, r.width, r.height], by };
 }

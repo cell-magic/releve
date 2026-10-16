@@ -1,7 +1,7 @@
 # Relevé · http://localhost:8765/names.html
 
-Observation `5d3f336a` · 2026-10-16T10:47:15+00:00 · criteria v8 · screenshot `145463d2a82d3273` · Chromium 141.0.7390.37  
-31 surfaces · 4 fail · 26 review · 0 hint · 52 pass · first observation of this page
+Observation `ff6f075b` · 2026-10-16T10:47:15+00:00 · criteria v9 · screenshot `145463d2a82d3273` · Chromium 141.0.7390.37  
+31 surfaces · 4 fail · 27 review · 0 hint · 52 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
 To correct a line, change its verdict word or add a note after `//`, then run `releve correct`.
@@ -13,7 +13,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - **FAIL** label-in-name · `#e` · shows “Your address”, is named “E-mail” → begin the name with the visible words {7d8d56c1}
 - **FAIL** hidden-focus · `#content > div > a` · takes the focus under aria-hidden → take it out of the tab order, or remove aria-hidden {e6ad7dd1}
 
-## Review (26)
+## Review (27)
 
 - **REVIEW** link-name · `#content > ul > li:nth-of-type(3) > a` · link “read more” depends on its context → name the destination {368b6d3f}
 - **REVIEW** link-name · `#content > ul > li:nth-of-type(4) > a` · link “read more” depends on its context → name the destination {f4c95753}
@@ -38,6 +38,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - **REVIEW** review-forms · page · RGAA 11.10 · 1 form field → state required fields and formats; name each error {ba9fa8ea}
 - **REVIEW** review-forms · page · RGAA 11.11 · 1 form field → suggest the correction {98d973b3}
 - **REVIEW** review-forms · page · RGAA 11.12 · 1 form field → add a review step before sending {f7c65275}
+- **REVIEW** review-forms · page · WCAG 3.3.7 · 1 form field → fill it in from the earlier step, or offer it to choose {d94c9ce3}
 - **REVIEW** review-navigation · page · RGAA 12.11 · this page → make it reachable with Tab {879ef122}
 - **REVIEW** review-consultation · page · RGAA 13.7 · this page → remove the flashing {8ea4a450}
 - **REVIEW** review-consultation · page · RGAA 13.9 · this page → remove the orientation lock {04984447}
@@ -74,6 +75,9 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - tab-order: 0 of 1 pass
 - hidden-focus: 0 of 1 pass
 - focus-visible: 1 of 1 pass
+- focus-obscured: n/a · not recorded by the observer of that time
+- target-size: n/a · not recorded by the observer of that time
+- authentication: n/a · no password or code field on the page
 - keyboard-trap: 1 of 1 pass
 - lang-code: 0 of 2 pass
 - direction: n/a · no right-to-left script on the page
@@ -111,9 +115,9 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - review-title: 0 of 1 pass
 - review-structure: 0 of 1 pass
 - review-presentation: 0 of 5 pass
-- review-forms: 0 of 7 pass
+- review-forms: 0 of 8 pass
 - review-navigation: 0 of 2 pass
-- review-consultation: 0 of 5 pass
+- review-consultation: 0 of 6 pass
 
 ## Footprint
 

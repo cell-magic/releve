@@ -1,7 +1,7 @@
 # Relevé · http://localhost:8765/forms.html
 
-Observation `79ee185c` · 2026-10-16T10:47:02+00:00 · criteria v8 · screenshot `82dd9fc6e34bafbe` · Chromium 141.0.7390.37  
-41 surfaces · 2 fail · 23 review · 0 hint · 70 pass · first observation of this page
+Observation `e7a98527` · 2026-10-16T10:47:02+00:00 · criteria v9 · screenshot `82dd9fc6e34bafbe` · Chromium 141.0.7390.37  
+41 surfaces · 2 fail · 24 review · 0 hint · 70 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
 To correct a line, change its verdict word or add a note after `//`, then run `releve correct`.
@@ -11,7 +11,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - **FAIL** group-legend · `body > main > form > fieldset:nth-of-type(2)` · group of fields without a legend → add a \<legend>, or aria-label on the group {379bc0bb}
 - **FAIL** autocomplete · `#c` · autocomplete="e-mail" is not a purpose a field can declare → use autocomplete="email" {415dfbc6}
 
-## Review (23)
+## Review (24)
 
 - **REVIEW** field-group · `body > main > form > p:nth-of-type(1) > label:nth-of-type(1) > input` · 3 radio buttons named “colour” stand outside any group → wrap them in a \<fieldset> with a \<legend> {7c106751}
 - **REVIEW** autocomplete · `#d` · the field “First name” declares no purpose → if it asks for the visitor's own data, add autocomplete="given-name" {aaa7d0b5}
@@ -33,6 +33,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - **REVIEW** review-forms · page · RGAA 11.10 · 16 form fields → state required fields and formats; name each error {97480f5a}
 - **REVIEW** review-forms · page · RGAA 11.11 · 16 form fields → suggest the correction {b90ac4b8}
 - **REVIEW** review-forms · page · RGAA 11.12 · 16 form fields → add a review step before sending {7429ae7e}
+- **REVIEW** review-forms · page · WCAG 3.3.7 · 16 form fields → fill it in from the earlier step, or offer it to choose {f3b7f937}
 - **REVIEW** review-navigation · page · RGAA 12.11 · this page → make it reachable with Tab {879ef122}
 - **REVIEW** review-consultation · page · RGAA 13.7 · this page → remove the flashing {8ea4a450}
 - **REVIEW** review-consultation · page · RGAA 13.9 · this page → remove the orientation lock {04984447}
@@ -69,6 +70,9 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - tab-order: 1 of 1 pass
 - hidden-focus: 1 of 1 pass
 - focus-visible: 1 of 1 pass
+- focus-obscured: n/a · not recorded by the observer of that time
+- target-size: n/a · not recorded by the observer of that time
+- authentication: n/a · no password or code field on the page
 - keyboard-trap: 1 of 1 pass
 - lang-code: 0 of 2 pass
 - direction: n/a · no right-to-left script on the page
@@ -106,9 +110,9 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - review-title: 0 of 1 pass
 - review-structure: 0 of 1 pass
 - review-presentation: 0 of 5 pass
-- review-forms: 0 of 7 pass
+- review-forms: 0 of 8 pass
 - review-navigation: 0 of 2 pass
-- review-consultation: 0 of 5 pass
+- review-consultation: 0 of 6 pass
 
 ## Footprint
 

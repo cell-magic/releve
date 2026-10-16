@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/tables.html
 
-Observation `49aa6e8f` · 2026-10-16T10:47:38+00:00 · criteria v8 · screenshot `aba3d0c3bae2700c` · Chromium 141.0.7390.37  
+Observation `602fbf5f` · 2026-10-16T10:47:38+00:00 · criteria v9 · screenshot `aba3d0c3bae2700c` · Chromium 141.0.7390.37  
 36 surfaces · 5 fail · 19 review · 0 hint · 55 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
@@ -68,6 +68,9 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - tab-order: 1 of 1 pass
 - hidden-focus: 1 of 1 pass
 - focus-visible: n/a · nothing on the page takes the focus
+- focus-obscured: n/a · not recorded by the observer of that time
+- target-size: n/a · no target on the page
+- authentication: n/a · no password or code field on the page
 - keyboard-trap: n/a · nothing on the page takes the focus
 - lang-code: 0 of 2 pass
 - direction: n/a · no right-to-left script on the page
@@ -107,7 +110,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - review-presentation: 0 of 5 pass
 - review-forms: n/a · no form fields on the page
 - review-navigation: 0 of 2 pass
-- review-consultation: 0 of 5 pass
+- review-consultation: 0 of 6 pass
 
 ## Footprint
 

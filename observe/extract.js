@@ -263,6 +263,17 @@
       hidden,
     };
     const add = (kind, extra) => surfaces.push(Object.assign({ kind }, base, extra));
+    // Why a target's size is not the author's to answer for (WCAG 2.5.8): set in a sentence, or drawn by the browser.
+    const excepted = () => {
+      if (["checkbox", "radio"].includes(el.type) && !/none/.test(cs.appearance || "")) return "native";
+      let h = el.parentElement;
+      while (h && !/^(block|list-item|table-cell)/.test(getComputedStyle(h).display)) h = h.parentElement;
+      if (!h) return null;
+      const others = [...h.querySelectorAll('a[href], button, [role="link"], [role="button"], input, select, textarea')].map(n => n.innerText || n.value || "").join(" ");
+      let rest = h.innerText || "";
+      for (const t of others.split(/\s+/).filter(Boolean)) rest = rest.replace(t, " ");
+      return (rest.match(/\p{L}{2,}/gu) || []).length >= 3 ? "inline" : null;
+    };
 
     if (tag === "img")
       add("img", { alt: el.hasAttribute("alt") ? clip(el.getAttribute("alt")) : null, src: el.currentSrc || el.src, lazy: el.loading === "lazy",
@@ -275,11 +286,11 @@
                      tracks: [...el.querySelectorAll("track")].map(t => t.kind) });
     if (((tag === "a" && el.hasAttribute("href")) || role === "link") && role !== "button") {
       const [name, by] = naming(el);
-      add("link", { name: clip(name), by, label: clip(el.innerText), href: el.href ? String(el.href).slice(0, 300) : null });
+      add("link", { name: clip(name), by, label: clip(el.innerText), href: el.href ? String(el.href).slice(0, 300) : null, excepted: excepted() || "" });
     }
     if (tag === "button" || role === "button" || (tag === "input" && ["submit", "reset", "button", "image"].includes(el.type))) {
       const [name, by] = naming(el);
-      add("button", { name: clip(name), by, label: clip(tag === "input" ? el.value : el.innerText) });
+      add("button", { name: clip(name), by, label: clip(tag === "input" ? el.value : el.innerText), excepted: excepted() || "" });
     }
     if ((tag === "input" && !["hidden", "submit", "reset", "button", "image"].includes(el.type))
         || tag === "select" || tag === "textarea" || role === "textbox" || role === "combobox") {
@@ -288,7 +299,7 @@
                        itype: el.type || tag, placeholder: el.hasAttribute("placeholder") ? clip(el.getAttribute("placeholder")) : null,
                        auto: el.getAttribute("autocomplete"), hint: clip([el.getAttribute("name"), el.id].filter(Boolean).join(" ")),
                        set: ["radio", "checkbox"].includes(el.type) ? el.getAttribute("name") : null,
-                       grouped: !!el.closest('fieldset, [role="group"], [role="radiogroup"]') });
+                       grouped: !!el.closest('fieldset, [role="group"], [role="radiogroup"]'), excepted: excepted() || "" });
     }
     if (tag === "fieldset" || role === "group" || role === "radiogroup") {
       const legend = tag === "fieldset" && [...el.children].find(c => c.tagName === "LEGEND");

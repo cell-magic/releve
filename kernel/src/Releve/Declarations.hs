@@ -39,7 +39,8 @@ official i
 -- | Where the provisions of other texts are published.
 elsewhere :: [(Text, Text)]
 elsewhere =
-  [ ("WCAG 1.2.4", "https://www.w3.org/TR/WCAG21/#captions-live")
+  [ ("WCAG 1.2.4", "https://www.w3.org/TR/WCAG22/#captions-live")
+  , ("WCAG 3.2.6", "https://www.w3.org/TR/WCAG22/#consistent-help")
   , ("EAA article 13(2)", "https://eur-lex.europa.eu/eli/dir/2019/882/oj")
   , ("BITV 2.0 §4", "https://www.gesetze-im-internet.de/bitv_2_0/__4.html")
   , ("AODA section 14", "https://www.ontario.ca/laws/statute/05a11")
@@ -52,7 +53,7 @@ elsewhere =
 family :: Item -> Phrase
 family it | iRef it == "RGAA" = "Navigation across pages" // "Navigation entre les pages"
 family it | iRef it == "AI Act" = "Artificial intelligence, beyond the page" // "Intelligence artificielle, au-delà de la page"
-family it | iRef it == "WCAG" = "Live audio and video" // "Son et vidéo en direct"
+family it | iRef it == "WCAG" = "Across pages, beyond the RGAA" // "D'une page à l'autre, au-delà du RGAA"
 family it | iRef it /= "RGESN" = "Other laws and standards" // "Autres lois et normes"
 family it = case T.takeWhile (/= '.') (iId it) of
   "1" -> "Strategy" // "Stratégie"
@@ -149,6 +150,9 @@ items =
   ]
   ++
   [ Item "WCAG" "1.2.4" ("If the site shows live video with sound, is it captioned as it is shown?" // "Si le site diffuse de la vidéo en direct avec du son, est-elle sous-titrée en direct ?") media
+  , Item "WCAG" "3.2.6" ("Where the site offers help, contact details, a contact form, a chat or a page of answers, is it found in the same place among the other content on every page that has it?"
+                       // "Là où le site offre de l'aide, coordonnées, formulaire de contact, messagerie ou page de réponses, se trouve-t-elle au même endroit parmi les autres contenus sur chaque page qui l'offre ?")
+      helpSeen
   , Item "EAA" "article 13(2)" ("If the service falls under the European Accessibility Act, does it publish how it meets the accessibility requirements, in writing and in an accessible form?"
                                // "Si le service relève de l'acte européen sur l'accessibilité, publie-t-il comment il satisfait aux exigences d'accessibilité, par écrit et sous une forme accessible ?")
       (linked ["accessibility", "accessibilité", "barrierefreiheit"])
@@ -207,6 +211,9 @@ items =
     origins o = case [x | s <- surfaces o, kind s == "img", Just x <- [origin s]] of
       [] -> Just ("no image on the page states its origin" // "aucune image de la page ne déclare son origine")
       xs -> Just ((n (length xs) <> " images state their origin") // (n (length xs) <> " images déclarent leur origine"))
+    helpSeen o = case nub [x | s <- surfaces o, kind s == "link", Just h <- [href s], any (`T.isPrefixOf` T.toLower h) ["mailto:", "tel:"], Just x <- [name s]] of
+      [] -> Just ("no mailto: or tel: link on the page" // "aucun lien mailto: ou tel: dans la page")
+      xs -> Just (("contact links: " // "liens de contact : ") <> both (T.intercalate ", " (take 3 xs)))
     linked ws o = case nub [x | s <- surfaces o, kind s == "link", Just x <- [name s], any (`T.isInfixOf` T.toLower x) ws] of
       [] -> Just ("no such link on the page" // "aucun lien de ce nom dans la page")
       xs -> Just (("links: " // "liens : ") <> both (T.intercalate ", " (take 3 xs)))

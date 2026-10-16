@@ -52,6 +52,7 @@ data Surface = Surface
   , controls :: Maybe Bool, tracks :: Maybe [Text]
   , rows :: Maybe Int, cols :: Maybe Int, heads :: Maybe Int, across :: Maybe Bool, bare :: Maybe Int, marks :: Maybe Int
   , lazy :: Maybe Bool, origin :: Maybe Text, manifest :: Maybe Bool   -- ^ loaded when reached; what the file says of its making
+  , excepted :: Maybe Text  -- ^ why a target's size is not the author's: "inline", set in a sentence; "native", drawn by the browser
   } deriving (Show, Generic, FromJSON)
 
 instance ToJSON Surface where
@@ -106,10 +107,11 @@ data Consent = Consent { prompt :: Bool, cmp :: Maybe Text, framed :: Maybe Bool
 data Rtl = Rtl { chars :: Int, marked :: Bool } deriving (Show, Generic, FromJSON, ToJSON)
 
 -- | The page taken by the keyboard alone, Tab after Tab from the top: how many
---   stops were reached, how the walk ended, where the focus could not leave, and
---   which stops showed nothing when they took the focus.
+--   stops were reached, how the walk ended, where the focus could not leave,
+--   which stops showed nothing when they took the focus, and which lay hidden.
 data Keys = Keys
   { stops :: Int, ended :: Text, trap :: Maybe Text, checked :: Int, unseen :: [Text]
+  , obscured :: Maybe [(Text, Text)]  -- ^ stops the page's own content lay over whole, and what did; since observer 0.7
   } deriving (Show, Generic, FromJSON, ToJSON)
 
 -- | One response of those that brought the page: what it is, what it weighs,

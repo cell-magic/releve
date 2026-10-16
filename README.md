@@ -107,8 +107,8 @@ that hold for a whole site: the 64 RGESN 2024 criteria on how the service
 is decided, built, hosted and run, the 5 RGAA criteria on a set of pages
 (navigation systems, menus, site map, search), paragraphs 2 to 4 of
 article 50 of the AI Act, for what an AI system does beyond the page, and
-8 provisions other laws and standards add to what a page shows: WCAG 1.2.4
-(live captions), article 13(2) of the European Accessibility Act, §4 of the
+9 provisions other laws and standards add to what a page shows: WCAG 1.2.4
+(live captions) and 3.2.6 (consistent help), article 13(2) of the European Accessibility Act, §4 of the
 BITV 2.0, section 14 of the AODA, §1798.135 of the CPRA and §7025 of its
 regulations, article 25 of the DSA and article 24 of the PIPL. Each line
 holds the owner's answer, yes, no, n/a or open, a note after `//`, and
@@ -240,7 +240,7 @@ commented with the reading it should produce. The recorded observations
 and expected reports sit beside them, so any change in judgement shows up
 as a diff to review.
 
-## Criteria (v8)
+## Criteria (v9)
 
 | id | checks | source |
 |---|---|---|
@@ -274,6 +274,9 @@ as a diff to review.
 | tab-order | the keyboard follows the order of the page | RGAA 12.8 · WCAG 2.4.3 |
 | hidden-focus | nothing hidden takes the focus | RGAA 10.8 · WCAG 4.1.2 |
 | focus-visible | the focus can be seen | RGAA 10.7 · WCAG 2.4.7 |
+| focus-obscured | the focus is not hidden by the page's own content, such as a fixed header or a banner | WCAG 2.4.11 |
+| target-size | targets are 24 × 24 px or more, or have room; a target in a sentence, or drawn by the browser, is the exception | WCAG 2.5.8 |
+| authentication | signing in asks nothing to remember or copy; a field that turns password managers away says so | WCAG 3.3.8 |
 | keyboard-trap | the keyboard can leave what it enters | RGAA 12.9 · WCAG 2.1.2 |
 | lang-code | language codes are valid; a person says they are right | RGAA 8.4 · 8.7 · 8.8 · WCAG 3.1.1 · 3.1.2 |
 | direction | right-to-left text declares its direction | RGAA 8.10 · WCAG 1.3.2 |
@@ -302,7 +305,7 @@ as a diff to review.
 | lazy-images | images far down the page wait to be reached | RGESN 6.5; the threshold (two screens) is the tool's |
 | image-weight | images are not larger than shown | RGESN 6.4; the threshold (2×) is the tool's |
 | image-format | heavy images use a modern format | RGESN 5.1; the threshold (30 kB) is the tool's |
-| review-images … review-consultation | twelve themes of questions, one per RGAA criterion no rule decides, put to the reviewer for each page, and once for pages that share a template where it asks of the page as a whole; a theme, or a question, is not applicable where the page holds nothing it applies to | RGAA 1.6–1.9 · 2.2 · 3.1 · 3.3 · 4.1–4.13 · 5.1–5.5 · 7.1–7.5 · 8.6 · 9.4 · 10.3 · 10.9 · 10.10 · 10.13 · 10.14 · 11.3–11.12 · 12.10 · 12.11 · 13.7 · 13.9–13.12 |
+| review-images … review-consultation | twelve themes of questions, one per RGAA criterion no rule decides, and WCAG 2.5.7 (dragging) and 3.3.7 (redundant entry), put to the reviewer for each page, and once for pages that share a template where it asks of the page as a whole; a theme, or a question, is not applicable where the page holds nothing it applies to | RGAA 1.6–1.9 · 2.2 · 3.1 · 3.3 · 4.1–4.13 · 5.1–5.5 · 7.1–7.5 · 8.6 · 9.4 · 10.3 · 10.9 · 10.10 · 10.13 · 10.14 · 11.3–11.12 · 12.10 · 12.11 · 13.7 · 13.9–13.12 |
 
 Rules, questions and declarations together cover each of the 106 RGAA
 criteria and the 78 RGESN criteria once, and each of the 7 paragraphs of
@@ -325,7 +328,8 @@ and the guide sets it out as a table:
 
 | text | where | provisions | addressed |
 |---|---|---|---|
-| WCAG 2.1 AA | the W3C standard the laws refer to | 50 | 50 |
+| WCAG 2.2 AA | the W3C's current standard, ISO/IEC 40500:2025 | 55 | 55 |
+| WCAG 2.1 AA | the version the laws refer to | 50 | 50 |
 | EN 301 549 · EAA | European Union | WCAG 2.1 AA, and article 13(2) | 51 |
 | RGAA 4.1.2 | France | 106 criteria | 106 |
 | BITV 2.0 | Germany, federal public bodies | WCAG 2.1 AA, and §4 | 51 |
@@ -343,8 +347,7 @@ and the guide sets it out as a table:
 | PIPL article 24 | China, automated decisions | declared | 1 |
 
 Addressed says what a record covers. It says nothing of whether a site
-conforms to any of them; the texts prevail. WCAG 2.2 is not yet among
-them.
+conforms to any of them; the texts prevail.
 
 Each criterion is one entry in `kernel/src/Releve/Criteria.hs`: what it
 checks, its source, what it is for, and one pure function. Whatever a

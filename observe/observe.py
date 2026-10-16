@@ -167,7 +167,8 @@ def walk(page):
     """The page by keyboard alone, from the top: Tab after Tab, until the focus leaves the page, goes
     round without reaching the rest, holds still, or TABS presses have been made. At each of the first
     LOOKS stops, the screen with the element focused is compared with the screen with it left: where
-    not one pixel differs, the focus shows nothing. Facts only: which stops, how it ended."""
+    not one pixel differs, the focus shows nothing. At each stop, what of the page's own content lies
+    over the whole of the focused element. Facts only: which stops, how it ended."""
     def shot(clip=None):
         return page.screenshot(clip=clip, animations="disabled", caret="hide")
 
@@ -190,7 +191,7 @@ def walk(page):
 
     page.evaluate("window.scrollTo(0, 0)")
     page.evaluate_handle(DEEPEST).evaluate("e => e && e.blur && e.blur()")
-    order, unseen, looked, ended, trap, held = [], [], 0, "cap", None, 0
+    order, unseen, looked, ended, trap, held, under = [], [], 0, "cap", None, 0, []
     for _ in range(TABS):
         page.keyboard.press("Tab")
         here = page.evaluate(KEYS)
@@ -217,13 +218,15 @@ def walk(page):
             ended, trap = ("cycled", None) if at == order[0] else ("loop", at)
             break
         order.append(at)
+        if here.get("by") and len(under) < 20:
+            under.append([at, here["by"]])
         if looked < LOOKS and not here["frame"]:
             visible = seen(here)
             if visible is not None:
                 looked += 1
                 if not visible:
                     unseen.append(at)
-    return {"stops": len(order), "ended": ended, "trap": trap, "checked": looked, "unseen": unseen[:20]}
+    return {"stops": len(order), "ended": ended, "trap": trap, "checked": looked, "unseen": unseen[:20], "obscured": under}
 
 
 def observe(browser, url, agent, shots, closed, shut=None):

@@ -301,7 +301,7 @@ def main():
                 out.add(tok)
         return out
     lines = [l for l in releve("criteria")[1].decode("utf-8").splitlines() if "RGAA" in l]
-    asked_of = [numbers(l.split("RGAA", 1)[1]) for l in lines if l.startswith("review-")]
+    asked_of = [numbers(l.split("RGAA", 1)[1].split("WCAG")[0]) for l in lines if l.startswith("review-")]
     ruled_by = [numbers(l.split("RGAA", 1)[1].split("WCAG")[0]) for l in lines if not l.startswith("review-")]
     declared_rgaa = set(re.findall(r"^- RGAA (\S+) · open · ", doc, re.M))
     every = [x for group in asked_of + ruled_by for x in group] + sorted(declared_rgaa)
@@ -319,10 +319,10 @@ def main():
     check("an answer that cannot be read is refused, with everything else", code == 1 and "yes, no, n/a or open" in said and d.read_bytes() == before)
     plain, asked = releve("report", "en", d)[1].decode("utf-8"), releve("report", "en", d, "--ask")[1].decode("utf-8")
     check("the report says what is declared, and asking, the answer in force is already chosen",
-          "1 yes · 0 no · 1 not applicable · 78 open" in plain and "Anna Teterkina" in plain and "2 are declared so far" in plain
-          and 'id="d-rgesn-1-3-yes" name="d-rgesn-1-3" value="yes" checked' in asked and asked.count("<fieldset>") >= 80)
+          "1 yes · 0 no · 1 not applicable · 79 open" in plain and "Anna Teterkina" in plain and "2 are declared so far" in plain
+          and 'id="d-rgesn-1-3-yes" name="d-rgesn-1-3" value="yes" checked' in asked and asked.count("<fieldset>") >= 81)
     releve("declare", d, feed=edited(releve("declarations", d)[1].decode("utf-8"), (r"^- RGESN 1\.3 · yes", "- RGESN 1.3 · open")))
-    check("a declaration withdrawn is open again", "0 yes · 0 no · 1 not applicable · 79 open" in releve("report", "en", d)[1].decode("utf-8")
+    check("a declaration withdrawn is open again", "0 yes · 0 no · 1 not applicable · 80 open" in releve("report", "en", d)[1].decode("utf-8")
           and releve("verify", d)[0] == 0)
 
     # Article 50 of the AI Act: each of its 7 paragraphs read by a rule, declared by the owner for what no page
@@ -338,7 +338,7 @@ def main():
     # The frameworks: each as its provisions. A WCAG-based text is the success criteria it names,
     # and what it asks beyond them; the RGAA reaches WCAG by its own correspondence.
     fw = {f["framework"]: f for f in map(json.loads, releve("frameworks")[1].decode("utf-8").splitlines())}
-    sizes = {"WCAG 2.1 AA": 50, "EN 301 549 · EAA": 51, "BITV 2.0": 51, "Section 508": 38, "ADA Title II": 50, "AODA": 37,
+    sizes = {"WCAG 2.2 AA": 55, "WCAG 2.1 AA": 50, "EN 301 549 · EAA": 51, "BITV 2.0": 51, "Section 508": 38, "ADA Title II": 50, "AODA": 37,
              "JIS X 8341-3:2016": 38, "DDA 1992": 38, "RGAA 4.1.2": 106, "RGESN 2024": 78, "AI Act article 50": 7, "CCPA · CPRA": 3}
     check("each framework counts its provisions, and every one is addressed",
           all(fw[n]["of"] == k for n, k in sizes.items()) and all(f["addressed"] == f["of"] and not f["open"] and f["source"].startswith("https://") for f in fw.values())
@@ -368,6 +368,18 @@ def main():
           and "Continue without accepting" in consent(None)
           and "no way to refuse beside it" in alone and alike == "- consent-choice: 1 of 1 pass" and "no prompt for consent on arrival" in none
           and "seen: links: Do Not Sell or Share My Personal Information" in cp and "seen: links: Leichte Sprache" in cp)
+
+    # WCAG 2.2, where the RGAA stops: crowded small targets fail, a small one with room, a link in a
+    # sentence and the browser's own checkbox do not; a fixed sheet over the focused element fails;
+    # a password field is put to a person, and one that turns password managers away says so.
+    tg = (HERE / "expected" / "targets.md").read_text(encoding="utf-8")
+    check("WCAG 2.2: target size, focus not obscured, accessible authentication",
+          len(re.findall(r"^- \*\*FAIL\*\* target-size", tg, re.M)) == 3 and "“Two” 20 px from its centre" in tg
+          and "- target-size: 6 of 9 pass" in tg and "excepted" not in tg
+          and len(re.findall(r"^- \*\*FAIL\*\* focus-obscured .* hidden under body > div.banner", tg, re.M)) >= 2
+          and re.search(r"^- \*\*REVIEW\*\* authentication · `#pass` · .*autocomplete=\"off\" → let a password manager fill it", tg, re.M)
+          and "WCAG 3.3.7 · 3 form fields" in tg and "WCAG 2.5.7 · this page" in tg
+          and "target-size: n/a · not recorded by the observer of that time" in (HERE / "expected" / "fixture.md").read_text(encoding="utf-8"))
 
     # A question is put only where what it asks about can exist: shortcuts, gestures and motion
     # need a script; a legend needs a group; option groups need a list.

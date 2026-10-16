@@ -1,7 +1,7 @@
 # Relevé · http://localhost:8765/reading.html
 
-Observation `2096bd57` · 2026-10-16T10:47:30+00:00 · criteria v8 · screenshot `b99cd51906b48b4a` · Chromium 141.0.7390.37  
-54 surfaces · 6 fail · 28 review · 0 hint · 75 pass · first observation of this page
+Observation `58428b88` · 2026-10-16T10:47:30+00:00 · criteria v9 · screenshot `b99cd51906b48b4a` · Chromium 141.0.7390.37  
+54 surfaces · 6 fail · 29 review · 0 hint · 75 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
 To correct a line, change its verdict word or add a note after `//`, then run `releve correct`.
@@ -15,7 +15,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - **FAIL** text-contrast · `#main > ul:nth-of-type(2) > li.pale:nth-of-type(4)` · #aaaaaa on #ffffff · 2.32:1, needs 4.50:1 · “Pale four” → use #767676 {f4432bf5}
 - **FAIL** focus-visible · `body > a.unseen` · no visible focus → add a :focus-visible outline that contrasts with its surroundings {57470045}
 
-## Review (28)
+## Review (29)
 
 - **REVIEW** image-alt · `#main > p:nth-of-type(2) > img` · alt="", marked decorative → add an alternative describing the image {4aab7636}
 - **REVIEW** lang-code · page · page language lang="en" → set lang to the language the page is written in {037a9ec3}
@@ -42,6 +42,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - **REVIEW** review-forms · page · RGAA 11.10 · 2 form fields → state required fields and formats; name each error {65b0422d}
 - **REVIEW** review-forms · page · RGAA 11.11 · 2 form fields → suggest the correction {b4ef0857}
 - **REVIEW** review-forms · page · RGAA 11.12 · 2 form fields → add a review step before sending {daf591d6}
+- **REVIEW** review-forms · page · WCAG 3.3.7 · 2 form fields → fill it in from the earlier step, or offer it to choose {170dec98}
 - **REVIEW** review-navigation · page · RGAA 12.11 · this page → make it reachable with Tab {879ef122}
 - **REVIEW** review-consultation · page · RGAA 13.7 · this page → remove the flashing {8ea4a450}
 - **REVIEW** review-consultation · page · RGAA 13.9 · this page → remove the orientation lock {04984447}
@@ -78,6 +79,9 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - tab-order: 1 of 1 pass
 - hidden-focus: 1 of 1 pass
 - focus-visible: 0 of 1 pass
+- focus-obscured: n/a · not recorded by the observer of that time
+- target-size: n/a · not recorded by the observer of that time
+- authentication: n/a · no password or code field on the page
 - keyboard-trap: 1 of 1 pass
 - lang-code: 0 of 2 pass
 - direction: n/a · no right-to-left script on the page
@@ -115,9 +119,9 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - review-title: 0 of 1 pass
 - review-structure: 0 of 1 pass
 - review-presentation: 0 of 5 pass
-- review-forms: 0 of 7 pass
+- review-forms: 0 of 8 pass
 - review-navigation: 0 of 2 pass
-- review-consultation: 0 of 5 pass
+- review-consultation: 0 of 6 pass
 
 ## Footprint
 

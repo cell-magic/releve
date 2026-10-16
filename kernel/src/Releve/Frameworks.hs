@@ -8,7 +8,7 @@
 --   correspondence the RGAA itself states. Addressed means a rule reads it, a
 --   question puts it to a person, or the owner answers it; it says nothing of
 --   whether a site conforms.
-module Releve.Frameworks (Framework (..), frameworks, coverage, addressed, touched, crosswalk, wcag20, wcag21) where
+module Releve.Frameworks (Framework (..), frameworks, coverage, addressed, touched, crosswalk, wcag20, wcag21, wcag22) where
 
 import Data.Char (isDigit)
 import Data.List (nub, (\\))
@@ -23,11 +23,13 @@ data Framework = Framework
   { fName :: Text, fWhere :: Phrase, fBasis :: Phrase, fUrl :: Text
   , fParts :: [Text] }   -- ^ its provisions, each as "WCAG 1.1.1", "RGAA 1.1", "BITV 2.0 §4", or a rule's id
 
--- | The WCAG success criteria of levels A and AA: those of 2.0, then those 2.1 added.
-wcag20, wcag21 :: [Text]
+-- | The WCAG success criteria of levels A and AA: those of 2.0, then those 2.1 added, then 2.2,
+--   which added six and made 4.1.1 obsolete.
+wcag20, wcag21, wcag22 :: [Text]
 wcag20 = T.words "1.1.1 1.2.1 1.2.2 1.2.3 1.2.4 1.2.5 1.3.1 1.3.2 1.3.3 1.4.1 1.4.2 1.4.3 1.4.4 1.4.5 2.1.1 2.1.2 2.2.1 2.2.2 2.3.1 \
                  \2.4.1 2.4.2 2.4.3 2.4.4 2.4.5 2.4.6 2.4.7 3.1.1 3.1.2 3.2.1 3.2.2 3.2.3 3.2.4 3.3.1 3.3.2 3.3.3 3.3.4 4.1.1 4.1.2"
 wcag21 = wcag20 ++ T.words "1.3.4 1.3.5 1.4.10 1.4.11 1.4.12 1.4.13 2.1.4 2.5.1 2.5.2 2.5.3 2.5.4 4.1.3"
+wcag22 = (wcag21 \\ ["4.1.1"]) ++ T.words "2.4.11 2.5.7 2.5.8 3.2.6 3.3.7 3.3.8"
 
 -- | Each RGAA 4.1.2 criterion and the WCAG success criteria it answers to, as the
 --   RGAA's own data states them (DINUM, criteres.json, Licence Ouverte 2.0).
@@ -78,7 +80,9 @@ touched ref = nub (concatMap (spans . drop 1 . dropWhile (/= ref) . T.words . en
 
 frameworks :: [Framework]
 frameworks =
-  [ Framework "WCAG 2.1 AA" ("Worldwide: the W3C standard the laws below refer to" // "Monde : la norme du W3C à laquelle renvoient les textes suivants")
+  [ Framework "WCAG 2.2 AA" ("Worldwide: the W3C's current standard, ISO/IEC 40500:2025" // "Monde : la norme actuelle du W3C, ISO/IEC 40500:2025")
+      ("levels A and AA" // "niveaux A et AA") "https://www.w3.org/TR/WCAG22/" (w wcag22)
+  , Framework "WCAG 2.1 AA" ("Worldwide: the version the laws below refer to" // "Monde : la version à laquelle renvoient les textes suivants")
       ("levels A and AA" // "niveaux A et AA") "https://www.w3.org/TR/WCAG21/" (w wcag21)
   , Framework "EN 301 549 · EAA" ("European Union: products and services under the European Accessibility Act, and public bodies" // "Union européenne : produits et services relevant de l'acte européen sur l'accessibilité, et organismes publics")
       ("EN 301 549 V3.2.1 chapter 9, WCAG 2.1 AA; Directive 2019/882 article 13(2)" // "EN 301 549 V3.2.1 chapitre 9, WCAG 2.1 AA ; directive 2019/882 article 13(2)")

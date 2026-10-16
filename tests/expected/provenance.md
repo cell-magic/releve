@@ -1,12 +1,12 @@
 # Relevé · http://localhost:8765/provenance.html
 
-Observation `02fb0bec` · 2026-10-16T10:47:22+00:00 · criteria v8 · screenshot `b152eddf1b09f457` · Chromium 141.0.7390.37  
-10 surfaces · 0 fail · 48 review · 2 hint · 39 pass · first observation of this page
+Observation `01c9b0c4` · 2026-10-16T10:47:22+00:00 · criteria v9 · screenshot `b152eddf1b09f457` · Chromium 141.0.7390.37  
+10 surfaces · 0 fail · 49 review · 2 hint · 39 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
 To correct a line, change its verdict word or add a note after `//`, then run `releve correct`.
 
-## Review (48)
+## Review (49)
 
 - **REVIEW** image-alt · `body > main > p:nth-of-type(1) > img:nth-of-type(1)` · alt “A harbour at dawn” → rewrite the alternative to describe the image {9be020d8}
 - **REVIEW** image-alt · `body > main > p:nth-of-type(1) > img:nth-of-type(2)` · alt “A lighthouse at dusk” → rewrite the alternative to describe the image {08f4dd06}
@@ -56,6 +56,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - **REVIEW** review-consultation · page · RGAA 13.10 · this page → add buttons for each gesture {37fe54af}
 - **REVIEW** review-consultation · page · RGAA 13.11 · this page → act on release, not on press {e41e32b7}
 - **REVIEW** review-consultation · page · RGAA 13.12 · this page → add a control, and a setting to turn motion off {ba389baa}
+- **REVIEW** review-consultation · page · WCAG 2.5.7 · this page → add buttons or a tap-to-place alternative {b1d1a7c2}
 
 ## Hint (2)
 
@@ -94,6 +95,9 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - tab-order: 1 of 1 pass
 - hidden-focus: 1 of 1 pass
 - focus-visible: n/a · nothing on the page takes the focus
+- focus-obscured: n/a · not recorded by the observer of that time
+- target-size: n/a · no target on the page
+- authentication: n/a · no password or code field on the page
 - keyboard-trap: n/a · nothing on the page takes the focus
 - lang-code: 0 of 2 pass
 - direction: n/a · no right-to-left script on the page
@@ -133,7 +137,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - review-presentation: 0 of 5 pass
 - review-forms: n/a · no form fields on the page
 - review-navigation: 0 of 2 pass
-- review-consultation: 0 of 5 pass
+- review-consultation: 0 of 6 pass
 
 ## Footprint
 

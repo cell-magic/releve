@@ -1,0 +1,41 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
+     SPDX-License-Identifier: EUPL-1.2
+     WCAG 2.2. Expected reading: the three crowded 16 px icons fail target
+     size, the spaced one and the link in a sentence pass, the checkbox is the
+     browser's own; the links under the fixed banner fail focus-obscured; the
+     password field turns password managers away and is put to a person. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Targets</title>
+<style>
+  body { font: 16px/1.5 sans-serif; margin: 0 0 10rem; color: #222; background: #fff; }
+  main { max-width: 40rem; margin: 2rem auto; padding: 0 1rem; }
+  .icons a { display: inline-block; width: 16px; height: 16px; margin-right: 4px; background: #0b57d0; }
+  .alone { display: inline-block; width: 16px; height: 16px; margin: 0 40px; background: #0b57d0; }
+  .far { margin-top: 1400px; }
+  .banner { position: fixed; left: 0; right: 0; bottom: 0; height: 70vh; background: #333; color: #fff; padding: 1rem; }
+  .banner p { margin: 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Targets</h1>
+  <p class="icons"><a href="/one" aria-label="One"></a><a href="/two" aria-label="Two"></a><a href="/three" aria-label="Three"></a></p>
+  <p><a class="alone" href="/alone" aria-label="Alone"></a></p>
+  <p>Read the <a href="/terms">terms of use</a> before you sign in to the service.</p>
+  <form action="/sign-in" method="post">
+    <p><label for="user">Email</label> <input id="user" name="user" type="email" autocomplete="username"></p>
+    <p><label for="pass">Password</label> <input id="pass" name="pass" type="password" autocomplete="off"></p>
+    <p><input id="keep" name="keep" type="checkbox"> <label for="keep">Keep me signed in</label></p>
+    <p><button type="submit">Sign in</button></p>
+  </form>
+  <p class="far"><a href="/below">Below the fold</a></p>
+  <p><a href="/further">Further below</a></p>
+</main>
+<div class="banner"><p>A sheet fixed to the bottom of the screen, over most of the content.</p></div>
+<script>document.documentElement.dataset.ready = "1";</script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 # Relevé · http://localhost:8765/keyboard.html
 
-Observation `c274ca26` · 2026-10-16T10:47:10+00:00 · criteria v8 · screenshot `518436acc78dbd65` · Chromium 141.0.7390.37  
-16 surfaces · 3 fail · 33 review · 0 hint · 42 pass · first observation of this page
+Observation `77c294d8` · 2026-10-16T10:47:10+00:00 · criteria v9 · screenshot `518436acc78dbd65` · Chromium 141.0.7390.37  
+16 surfaces · 3 fail · 35 review · 0 hint · 42 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
 To correct a line, change its verdict word or add a note after `//`, then run `releve correct`.
@@ -12,7 +12,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - **FAIL** focus-visible · `body > main > p:nth-of-type(6) > span.hold` · no visible focus → add a :focus-visible outline that contrasts with its surroundings {cab2a99a}
 - **FAIL** keyboard-trap · `body > main > p:nth-of-type(6) > span.hold` · focus held: Tab, Shift+Tab and Escape blocked → release Tab and Shift+Tab {1279a36e}
 
-## Review (33)
+## Review (35)
 
 - **REVIEW** image-alt · `body > main > img:nth-of-type(1)` · alt “The harbour at dawn” → rewrite the alternative to describe the image {32805ed0}
 - **REVIEW** image-alt · `body > main > img:nth-of-type(2)` · alt="", marked decorative → add an alternative describing the image {fbcdbc1e}
@@ -40,6 +40,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - **REVIEW** review-forms · page · RGAA 11.10 · 1 form field → state required fields and formats; name each error {ba9fa8ea}
 - **REVIEW** review-forms · page · RGAA 11.11 · 1 form field → suggest the correction {98d973b3}
 - **REVIEW** review-forms · page · RGAA 11.12 · 1 form field → add a review step before sending {f7c65275}
+- **REVIEW** review-forms · page · WCAG 3.3.7 · 1 form field → fill it in from the earlier step, or offer it to choose {d94c9ce3}
 - **REVIEW** review-navigation · page · RGAA 12.10 · this page → add a modifier key, or a setting to turn them off {1114b1f0}
 - **REVIEW** review-navigation · page · RGAA 12.11 · this page → make it reachable with Tab {879ef122}
 - **REVIEW** review-consultation · page · RGAA 13.7 · this page → remove the flashing {8ea4a450}
@@ -47,6 +48,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - **REVIEW** review-consultation · page · RGAA 13.10 · this page → add buttons for each gesture {37fe54af}
 - **REVIEW** review-consultation · page · RGAA 13.11 · this page → act on release, not on press {e41e32b7}
 - **REVIEW** review-consultation · page · RGAA 13.12 · this page → add a control, and a setting to turn motion off {ba389baa}
+- **REVIEW** review-consultation · page · WCAG 2.5.7 · this page → add buttons or a tap-to-place alternative {b1d1a7c2}
 
 ## By criterion
 
@@ -80,6 +82,9 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - tab-order: 1 of 1 pass
 - hidden-focus: 1 of 1 pass
 - focus-visible: 0 of 2 pass
+- focus-obscured: n/a · not recorded by the observer of that time
+- target-size: n/a · not recorded by the observer of that time
+- authentication: n/a · no password or code field on the page
 - keyboard-trap: 0 of 1 pass
 - lang-code: 0 of 2 pass
 - direction: n/a · no right-to-left script on the page
@@ -117,9 +122,9 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - review-title: 0 of 1 pass
 - review-structure: 0 of 1 pass
 - review-presentation: 0 of 5 pass
-- review-forms: 0 of 7 pass
+- review-forms: 0 of 8 pass
 - review-navigation: 0 of 2 pass
-- review-consultation: 0 of 5 pass
+- review-consultation: 0 of 6 pass
 
 ## Footprint
 

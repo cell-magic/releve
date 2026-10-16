@@ -1,7 +1,7 @@
 # Relevé · http://localhost:8765/fixture.html
 
-Observation `249ef8c0` · 2026-10-16T10:46:58+00:00 · criteria v8 · screenshot `c331abf4b86e8edc` · Chromium 141.0.7390.37  
-29 surfaces · 15 fail · 41 review · 3 hint · 37 pass · first observation of this page
+Observation `f37ea6d9` · 2026-10-16T10:46:58+00:00 · criteria v9 · screenshot `c331abf4b86e8edc` · Chromium 141.0.7390.37  
+29 surfaces · 15 fail · 42 review · 3 hint · 37 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
 To correct a line, change its verdict word or add a note after `//`, then run `releve correct`.
@@ -24,7 +24,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - **FAIL** paired-colours · `body > p.pale:nth-of-type(1)` · text colour set, no background set → set a background colour on it or on a parent {53dc264c}
 - **FAIL** paired-colours · `body > p.ok:nth-of-type(2)` · text colour set, no background set → set a background colour on it or on a parent {4713f7a8}
 
-## Review (41)
+## Review (42)
 
 - **REVIEW** main-region · page · no main landmark → wrap the main content in \<main> {f5adde0e}
 - **REVIEW** heading-order · `body > h3` · h1 then h3 “Skipped a level” → h2 {d3953980}
@@ -64,6 +64,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - **REVIEW** review-forms · page · RGAA 11.10 · 2 form fields → state required fields and formats; name each error {65b0422d}
 - **REVIEW** review-forms · page · RGAA 11.11 · 2 form fields → suggest the correction {b4ef0857}
 - **REVIEW** review-forms · page · RGAA 11.12 · 2 form fields → add a review step before sending {daf591d6}
+- **REVIEW** review-forms · page · WCAG 3.3.7 · 2 form fields → fill it in from the earlier step, or offer it to choose {170dec98}
 - **REVIEW** review-navigation · page · RGAA 12.11 · this page → make it reachable with Tab {879ef122}
 - **REVIEW** review-consultation · page · RGAA 13.7 · this page → remove the flashing {8ea4a450}
 - **REVIEW** review-consultation · page · RGAA 13.9 · this page → remove the orientation lock {04984447}
@@ -106,6 +107,9 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - tab-order: 1 of 1 pass
 - hidden-focus: 1 of 1 pass
 - focus-visible: 1 of 1 pass
+- focus-obscured: n/a · not recorded by the observer of that time
+- target-size: n/a · not recorded by the observer of that time
+- authentication: n/a · no password or code field on the page
 - keyboard-trap: 1 of 1 pass
 - lang-code: n/a · the page states no language
 - direction: n/a · no right-to-left script on the page
@@ -143,9 +147,9 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - review-title: n/a · the page has no title
 - review-structure: 0 of 1 pass
 - review-presentation: 0 of 5 pass
-- review-forms: 0 of 7 pass
+- review-forms: 0 of 8 pass
 - review-navigation: 0 of 2 pass
-- review-consultation: 0 of 5 pass
+- review-consultation: 0 of 6 pass
 
 ## Footprint
 

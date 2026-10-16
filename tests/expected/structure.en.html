@@ -29,7 +29,7 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <h1>Report · http://localhost:8765/structure.html</h1>
 <p>Automated observation of one rendered page, by rule. It is not a conformity audit. What no rule can decide is listed as an open question.</p>
 <h2>Method</h2>
-<p>Each page was rendered in a browser at 1280 px and 320 px. Recorded: names given to assistive technology, colors as rendered, bytes transferred. The page was then navigated by keyboard alone. 70 criteria then read the record. Each is a rule in plain code. No trained model is involved: the same record gives the same report.</p>
+<p>Each page was rendered in a browser at 1280 px and 320 px. Recorded: names given to assistive technology, colors as rendered, bytes transferred. The page was then navigated by keyboard alone. 73 criteria then read the record. Each is a rule in plain code. No trained model is involved: the same record gives the same report.</p>
 <dl>
 <dt>Fixes</dt><dd>A stated rule is broken. The remedy is given.</dd>
 <dt>Open questions</dt><dd>Beyond what a rule can decide. Answers are recorded as the reviewer's, beside the rule's reading, and lapse when the element changes.</dd>
@@ -37,7 +37,7 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 </dl>
 
 <p class="meta">Observed on 16 October 2026, 10:47 UTC · Chromium 141.0.7390.37</p>
-<p><strong>44 checks pass · 8 fixes · 38 open questions · no lighter options</strong></p>
+<p><strong>44 checks pass · 8 fixes · 39 open questions · no lighter options</strong></p>
 <h2>Fixes (8)</h2>
 <h3>The main content is marked</h3>
 <p>Lets a reader skip what every page repeats. <span class="meta">RGAA 9.2 · 12.6 · WCAG 2.4.1 · light fix</span></p>
@@ -63,7 +63,7 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <ul>
 <li>tried to open 1 window by itself<br><strong>Fix: </strong>open a window on the reader's action only</li>
 </ul>
-<h2>Open questions (38)</h2>
+<h2>Open questions (39)</h2>
 <h3>What looks like a heading is one</h3>
 <p>A heading styled but not marked is invisible to assistive technology. <span class="meta">RGAA 9.1 · WCAG 1.3.1 · thresholds (tool) · light fix</span></p>
 <ul>
@@ -141,13 +141,14 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <li>RGAA 12.11 · this page<br><strong>Question: </strong>Is content shown on hover, focus or activation reachable by keyboard?</li>
 </ul>
 <h3>Consultation, reviewed</h3>
-<p>Criteria only a reviewer can decide, one question each. <span class="meta">RGAA 13.7 · 13.9 · 13.10 · 13.11 · 13.12 · moderate fix</span></p>
+<p>Criteria only a reviewer can decide, one question each. <span class="meta">RGAA 13.7 · 13.9 · 13.10 · 13.11 · 13.12 · WCAG 2.5.7 · moderate fix</span></p>
 <ul>
 <li>RGAA 13.7 · this page<br><strong>Question: </strong>Does nothing flash more than three times a second?</li>
 <li>RGAA 13.9 · this page<br><strong>Question: </strong>Can the page be used in both portrait and landscape?</li>
 <li>RGAA 13.10 · this page<br><strong>Question: </strong>Can every multi-point or path gesture be done with a single point too?</li>
 <li>RGAA 13.11 · this page<br><strong>Question: </strong>Can a single-pointer action be cancelled before it completes?</li>
 <li>RGAA 13.12 · this page<br><strong>Question: </strong>Can features that use device motion be used another way?</li>
+<li>WCAG 2.5.7 · this page<br><strong>Question: </strong>Can everything done by dragging also be done by single taps or clicks?</li>
 </ul>
 <h3>Videos carry captions</h3>
 <p>Speech and sound for those who cannot hear, or have sound off. <span class="meta">RGAA 4.3 · WCAG 1.2.2 · heavy fix</span></p>
@@ -186,6 +187,9 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <li>The keyboard follows the order of the page · 1 of 1 pass</li>
 <li>Nothing hidden takes the focus · 1 of 1 pass</li>
 <li>The focus can be seen · not applicable: nothing on the page takes the focus</li>
+<li>The focus is not hidden by the page · not applicable: not recorded by the observer of that time</li>
+<li>Targets are large enough, or have room · not applicable: no target on the page</li>
+<li>Signing in asks nothing to remember or copy · not applicable: no password or code field on the page</li>
 <li>The keyboard can leave what it enters · not applicable: nothing on the page takes the focus</li>
 <li>Language codes are valid and right · 0 of 2 pass</li>
 <li>Right-to-left text declares its direction · not applicable: no right-to-left script on the page</li>
@@ -225,7 +229,7 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <li>Presentation, reviewed · 0 of 5 pass</li>
 <li>Forms, reviewed · not applicable: no form fields on the page</li>
 <li>Navigation, reviewed · 0 of 2 pass</li>
-<li>Consultation, reviewed · 0 of 5 pass</li>
+<li>Consultation, reviewed · 0 of 6 pass</li>
 </ul>
 <h2>Footprint</h2>
 <p>39 elements in the document · 3 requests · 3 kB transferred · 0 third-party hosts</p>
@@ -242,7 +246,7 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <p class="meta">A reader holding up to 4 at a time is a convention, like a reference device in a speed test. Failures reduce what it holds.</p>
 <h2 id="declarations">Declarations</h2>
 <p>Criteria not visible from a page: how the service is decided, built, hosted and run, how its pages fit together, what its AI does beyond the page, and what other laws and standards ask of it. Declared once by the owner for the whole record. The official texts prevail.</p>
-<p><strong>0 yes · 0 no · 0 not applicable · 80 open</strong></p>
+<p><strong>0 yes · 0 no · 0 not applicable · 81 open</strong></p>
 <h3>Strategy</h3>
 <p>Open: <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.1/">RGESN 1.1</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.2/">RGESN 1.2</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.3/">RGESN 1.3</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.4/">RGESN 1.4</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.5/">RGESN 1.5</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.6/">RGESN 1.6</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.7/">RGESN 1.7</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.8/">RGESN 1.8</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.9/">RGESN 1.9</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.10/">RGESN 1.10</a></p>
 <h3>Specifications</h3>
@@ -265,14 +269,14 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <p>Open: <a href="https://accessibilite.numerique.gouv.fr/methode/criteres-et-tests/#12.1">RGAA 12.1</a>, <a href="https://accessibilite.numerique.gouv.fr/methode/criteres-et-tests/#12.2">RGAA 12.2</a>, <a href="https://accessibilite.numerique.gouv.fr/methode/criteres-et-tests/#12.3">RGAA 12.3</a>, <a href="https://accessibilite.numerique.gouv.fr/methode/criteres-et-tests/#12.4">RGAA 12.4</a>, <a href="https://accessibilite.numerique.gouv.fr/methode/criteres-et-tests/#12.5">RGAA 12.5</a></p>
 <h3>Artificial intelligence, beyond the page</h3>
 <p>Open: <a href="https://eur-lex.europa.eu/eli/reg/2024/1689/oj#art_50">AI Act 50(2)</a>, <a href="https://eur-lex.europa.eu/eli/reg/2024/1689/oj#art_50">AI Act 50(3)</a>, <a href="https://eur-lex.europa.eu/eli/reg/2024/1689/oj#art_50">AI Act 50(4)</a></p>
-<h3>Live audio and video</h3>
-<p>Open: <a href="https://www.w3.org/TR/WCAG21/#captions-live">WCAG 1.2.4</a></p>
+<h3>Across pages, beyond the RGAA</h3>
+<p>Open: <a href="https://www.w3.org/TR/WCAG22/#captions-live">WCAG 1.2.4</a>, <a href="https://www.w3.org/TR/WCAG22/#consistent-help">WCAG 3.2.6</a></p>
 <h3>Other laws and standards</h3>
 <p>Open: <a href="https://eur-lex.europa.eu/eli/dir/2019/882/oj">EAA article 13(2)</a>, <a href="https://www.gesetze-im-internet.de/bitv_2_0/__4.html">BITV 2.0 §4</a>, <a href="https://www.ontario.ca/laws/statute/05a11">AODA section 14</a>, <a href="https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&amp;sectionNum=1798.135">CPRA §1798.135</a>, <a href="https://cppa.ca.gov/regulations/">CPRA regulations §7025</a>, <a href="https://eur-lex.europa.eu/eli/reg/2022/2065/oj">DSA article 25</a>, <a href="https://www.cac.gov.cn/2021-08/20/c_1631050028355286.htm">PIPL article 24</a></p>
 <h2>What was not looked at</h2>
-<p>These rules touch 101 of the 106 criteria of the RGAA 4.1.2, 14 of the 78 of the RGESN 2024, and 5 paragraphs of article 50 of the AI Act. The other 64 RGESN criteria, the 5 RGAA criteria on the set of pages and 3 paragraphs of article 50, for what no page shows, and 8 provisions of other laws and standards are declared by the owner; 0 are declared so far. Paragraph 50(6) keeps the other rules on high-risk systems and on transparency in force. Paragraph 50(7) is addressed to the Commission, which encourages codes of practice.</p>
+<p>These rules touch 101 of the 106 criteria of the RGAA 4.1.2, 14 of the 78 of the RGESN 2024, and 5 paragraphs of article 50 of the AI Act. The other 64 RGESN criteria, the 5 RGAA criteria on the set of pages and 3 paragraphs of article 50, for what no page shows, and 9 provisions of other laws and standards are declared by the owner; 0 are declared so far. Paragraph 50(6) keeps the other rules on high-risk systems and on transparency in force. Paragraph 50(7) is addressed to the Commission, which encourages codes of practice.</p>
 <p>Each page was observed once, at two widths. Not observed: content shown only after an action, such as an open menu, a sent form or a dialog; content behind a login; frames from other sites.</p>
-<p class="meta">relevé 0.6.0 · criteria v8</p>
+<p class="meta">relevé 0.7.0 · criteria v9</p>
 </main>
 </body>
 </html>
