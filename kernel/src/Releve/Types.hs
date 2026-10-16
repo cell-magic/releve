@@ -85,12 +85,30 @@ data Page = Page
   , tabbed :: Maybe [Text], hiddenFocus :: Maybe [Text], skip :: Maybe Text, before :: Maybe Int, mains :: Maybe Int
   , refresh :: Maybe Text, opened :: Maybe Int
   , asked :: Maybe [Text], grows :: Maybe [Double], tls :: Maybe Text, ipv6 :: Maybe Bool
+  , keys :: Maybe Keys  -- ^ recorded since observer 0.5
+  -- also since observer 0.5: languages within the page, right-to-left script, emoji, words set by the style
+  -- sheet, colours without a background, links that blend in, clicks no key reaches, what moves without end,
+  -- text cut once a reader widens its spacing, and how much script the markup carries
+  , langs :: Maybe [(Text, Text)], rtl :: Maybe Rtl, emoji :: Maybe Int, generated :: Maybe [(Text, Text)]
+  , unpaired :: Maybe [Text], blended :: Maybe [Text], clickable :: Maybe [(Text, Text)], moving :: Maybe [Text], spaced :: Maybe [Text]
+  , scripted :: Maybe Int
+  , inline :: Maybe Text  -- ^ a digest of the style sheets written into the page
+  } deriving (Show, Generic, FromJSON, ToJSON)
+
+data Rtl = Rtl { chars :: Int, marked :: Bool } deriving (Show, Generic, FromJSON, ToJSON)
+
+-- | The page taken by the keyboard alone, Tab after Tab from the top: how many
+--   stops were reached, how the walk ended, where the focus could not leave, and
+--   which stops showed nothing when they took the focus.
+data Keys = Keys
+  { stops :: Int, ended :: Text, trap :: Maybe Text, checked :: Int, unseen :: [Text]
   } deriving (Show, Generic, FromJSON, ToJSON)
 
 -- | One response of those that brought the page: what it is, what it weighs,
 --   how it travelled, whether the browser may keep it, whose it is.
 data Resource = Resource
   { xUrl :: Text, xKind :: Text, xMime :: Text, xBytes :: Int, xProto :: Text, xEncoded :: Text, xCached :: Bool, xThird :: Bool
+  , xFrom :: Maybe Text  -- ^ the address that asked for it, recorded since observer 0.5
   } deriving (Show, Generic)
 
 instance FromJSON Resource where parseJSON = genericParseJSON evJSON
@@ -133,22 +151,40 @@ instance FromJSON Verdict where
 --   unchanged.
 data Correction = Correction
   { obs :: Text, finding :: Text, verdict :: Verdict, note :: Maybe Text, seen :: Text
-  } deriving (Show, Generic, FromJSON, ToJSON)
+  -- | An answer given once for pages that share a template: the observations it was given on,
+  --   and the template they were built on. It holds on those pages, and on their later
+  --   observations, while the template stays the same. Since 0.5; absent, the answer is the page's own.
+  , covers :: Maybe [Text], template :: Maybe Text
+  } deriving (Show, Generic, FromJSON)
 
-data Event = Observed Observation | Corrected Correction deriving Show
+instance ToJSON Correction where
+  toJSON = genericToJSON defaultOptions { omitNothingFields = True }
+  toEncoding = genericToEncoding defaultOptions { omitNothingFields = True }
+
+-- | The owner's answer to a criterion that no rule can see from a page:
+--   "yes", "no", "n/a", or "open" to withdraw one. It holds for the whole record
+--   until the next answer to the same criterion.
+data Declaration = Declaration { dCriterion :: Text, dAnswer :: Text, dNote :: Maybe Text } deriving (Show, Generic)
+
+instance FromJSON Declaration where parseJSON = genericParseJSON evJSON
+instance ToJSON Declaration where toJSON = genericToJSON evJSON
+
+data Event = Observed Observation | Corrected Correction | Declared Declaration deriving Show
 
 instance ToJSON Event where
   toJSON = \case
     Observed o  -> object ["observed" .= o]
     Corrected c -> object ["corrected" .= c]
+    Declared d  -> object ["declared" .= d]
 
 instance FromJSON Event where
   parseJSON = withObject "event" $ \o ->
-    (Observed <$> o .: "observed") <|> (Corrected <$> o .: "corrected")
+    (Observed <$> o .: "observed") <|> (Corrected <$> o .: "corrected") <|> (Declared <$> o .: "declared")
 
--- | What one criterion says about one surface.
+-- | What one criterion says about one surface. Where only a person can
+--   decide, the question they answer: yes means it holds, no that it does not.
 data Mark = Mark
-  { mVerdict :: Verdict, mSurface :: Maybe Surface, mSeen :: Phrase, mChange :: Maybe Phrase }
+  { mVerdict :: Verdict, mSurface :: Maybe Surface, mSeen :: Phrase, mChange :: Maybe Phrase, mAsk :: Maybe Phrase }
 
 -- | How much work mending it usually is.
 data Effort = Light | Medium | Heavy deriving (Eq, Ord, Show)
@@ -164,4 +200,5 @@ data Finding = Finding
   , fNote :: Maybe Text, fSurface :: Maybe Surface, fSeen :: Phrase, fChange :: Maybe Phrase
   , fNew :: Bool, fAge :: Int
   , fLapsed :: Bool  -- ^ a person read it otherwise before what is seen changed
+  , fAsk :: Maybe Phrase  -- ^ the question a person answers, where the rule cannot decide
   }

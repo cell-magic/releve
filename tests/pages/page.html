@@ -1,0 +1,53 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr> -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<!-- Page: what the page states of itself, and what only its styles say.
+
+     lang-code       FAIL    a passage marked lang="english", not a language code
+                     REVIEW  the page says it is in English; and the German passage
+                     PASS    the link “Français”, which names its language in that language
+     direction       FAIL    Hebrew text, and nothing declares the direction
+     text-spacing    FAIL    the box whose height cuts its text once spacing is set
+     motion          REVIEW  the badge that pulses without end
+     clickable       FAIL    the box that answers the pointer and no key
+     generated-text  FAIL    words set by the style sheet before the price
+     paired-colours  FAIL    the two paragraphs given a colour and no background, and the link in the second
+     link-visible    FAIL    the link the same colour as its sentence, not underlined
+     cryptic         REVIEW  the emoji
+     captcha         REVIEW  the CAPTCHA the page loads
+     documents       REVIEW  the PDF it offers -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Page</title>
+  <style>
+    body { font: 16px/1.4 sans-serif; margin: 2rem; color: #000; }
+    .tinted { color: #333; }
+    .plain a { color: #222; text-decoration: none; }
+    .plain { color: #222; }
+    .price::before { content: "From "; }
+    .box { height: 1.5em; line-height: 1.4; overflow: hidden; width: 10rem; }
+    .pulse { display: inline-block; animation: pulse 1s infinite; }
+    @keyframes pulse { 50% { opacity: .5; } }
+    .tap { cursor: pointer; display: inline-block; padding: .3rem; border: 1px solid #999; }
+  </style>
+  <script src="recaptcha/api.js"></script>
+</head>
+<body style="background: none">
+  <main>
+    <h1>Page</h1>
+    <p>An English sentence, then <span lang="de">ein deutscher Satz</span>, then <span lang="english">another</span>.</p>
+    <p>Also in <a href="#fr" lang="fr">Français</a>.</p>
+    <p>שלום עולם, written right to left.</p>
+    <p class="box">Fits until spaced out</p>
+    <p><span class="pulse">New</span> on the page.</p>
+    <p><span class="tap" onclick="this.textContent = 'Opened'">Open the menu</span></p>
+    <p class="price">12 €</p>
+    <p class="tinted">A paragraph given a colour of its own.</p>
+    <p class="plain">Read <a href="#more">the details</a> before you sign.</p>
+    <p>Thanks 🙂</p>
+    <p><a href="report.pdf">The annual report</a></p>
+  </main>
+</body>
+</html>

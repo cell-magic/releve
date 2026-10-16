@@ -60,7 +60,10 @@ def asked(*urls):
     corpus = Path(tempfile.mkdtemp()) / "c"
     subprocess.run([serve.RELEVE, "ingest", str(corpus)], input=seen, capture_output=True)
     facts = subprocess.run([serve.RELEVE, "facts", str(corpus), "--all"], capture_output=True).stdout.decode("utf-8")
-    return len(seen.splitlines()), re.findall(r"^- \*\*(?:FAIL|REVIEW|HINT)\*\*.*$", facts, re.M)
+    # What only a person can answer is put to the page's owner on every page: the reviewer's questions, and
+    # the language each page and passage is in. Everything else a rule finds is a finding.
+    return len(seen.splitlines()), [l for l in re.findall(r"^- \*\*(?:FAIL|REVIEW|HINT)\*\*.*$", facts, re.M)
+                                    if not re.match(r"- \*\*REVIEW\*\* (review-[\w-]+|lang-code) · (page|\d+ pages( \([^)]*\))?) · ", l)]
 
 
 def kept(text):
@@ -98,7 +101,7 @@ check("leaves a site alone that it has just visited", "observed a moment ago" in
 
 threading.Event().wait(serve.PAUSE + 0.2)
 code, heads, text = ask(door, f"http://localhost:{open_}/one", "en", record, accept="en-GB,en;q=0.9")
-check("reads a record handed back, and says what stands", "Since the observation of" in text and "1 standing" in text)
+check("reads a record handed back, and says what stands", "Since " in text and re.search(r"\b\d+ unchanged\.", text) is not None)
 check("hands the record back longer by one observation", len(gzip.decompress(kept(text)).splitlines()) == 2)
 
 forged = gzip.compress(gzip.decompress(record).replace(b"Words of the page", b"Words of another"))
@@ -139,10 +142,74 @@ except Exception as e:
     hidden = getattr(e, "code", None) == 404
 check("shows its counts on no page", hidden)
 
+# What only a person can decide is put to them, and their answers come back with the record they belong to.
+shelf["/pictured"] = ("<!doctype html><html lang=en><title>Pictured</title><main><h1>Pictured</h1><p>Before the picture.</p>"
+                      "<img src=/x.png alt='A harbour at dawn' width=40 height=40><p>After it.</p></main></html>")
+threading.Event().wait(serve.PAUSE + 0.2)
+code, heads, questions = ask(door, f"http://localhost:{open_}/pictured", "en")
+asking = sorted(set(re.findall(r'<fieldset><legend>Does the alternative describe the image\?</legend><input type="radio" id="a-[\w-]+-pass" name="(a-[\w-]+)"', questions)))
+held = re.search(r'<form method="post" action="/answer" enctype="multipart/form-data">\s*<input type="hidden" name="lang" value="en">\s*'
+                 r'<input type="hidden" name="kept" value="([^"]+)">', questions)
+check("puts what only a person can decide as a question, in a form that carries the record back",
+      len(asking) == 1 and held is not None and base64.b64decode(held.group(1)) == kept(questions)
+      and "Does the alternative describe the image?" in questions and '<button type="submit">' in questions)
+
+
+def send(fields):
+    mark = uuid.uuid4().hex
+    body = b"".join(b"--" + mark.encode() + b'\r\nContent-Disposition: form-data; name="' + n.encode() + b'"\r\n\r\n' + v.encode() + b"\r\n"
+                    for n, v in fields.items())
+    r = urlopen(Request(f"http://127.0.0.1:{door}/answer", data=body + b"--" + mark.encode() + b"--\r\n",
+                        headers={"Content-Type": "multipart/form-data; boundary=" + mark}))
+    return r.read().decode("utf-8")
+
+
+before, tallied = len(hits), counts.read_text()
+answered = send({"lang": "en", "kept": held.group(1), asking[0]: "pass", "n-" + asking[0][2:]: "the harbour, as the caption says\nsecond line {x}"})
+check("records a person's answer in the record, beside the rule's, and visits no page for it",
+      "1 answer recorded." in answered and "Confirmed by the reviewer (1)" in answered and "the harbour, as the caption says second line {x}" in answered
+      and f'name="{asking[0]}"' not in answered and len(hits) == before and counts.read_text() == tallied)
+grown = gzip.decompress(kept(answered))
+check("hands back the record longer by the answer, sealed as before", len(grown.splitlines()) == 2 and b'"corrected"' in grown
+      and grown.startswith(gzip.decompress(kept(questions))))
+corpus = Path(tempfile.mkdtemp()) / "c"
+corpus.write_bytes(gzip.decompress(record))
+said = subprocess.run([serve.RELEVE, "facts", str(corpus)], capture_output=True).stdout.decode("utf-8")
+shown = re.search(r"^- \*\*FAIL\*\* image-alt .* \{(\w+)\}$", said, re.M).group(1)
+first_oid = re.search(r"^Observation `(\w+)`", said, re.M).group(1)
+refused = send({"lang": "en", "kept": base64.b64encode(record).decode(), f"a-{first_oid}-{shown}": "pass"})
+check("does not let an answer argue away a failure the rule can show", "No answers submitted." in refused
+      and len(gzip.decompress(kept(refused)).splitlines()) == len(gzip.decompress(record).splitlines()))
+forgery = send({"lang": "en", "kept": base64.b64encode(forged).decode(), asking[0]: "pass"})
+check("takes answers only with a record whose seals hold", "its seals do not hold" in forgery)
+
+declared = send({"lang": "en", "kept": base64.b64encode(kept(answered)).decode(), "d-rgesn-1-3": "yes", "dn-rgesn-1-3": "Anna", "d-rgesn-9-1": "n/a", "dn-rgesn-9-1": ""})
+check("records the owner's declarations with the record, and only what changed",
+      "2 answers recorded." in declared and "1 yes · 0 no · 1 not applicable · 67 open" in declared
+      and 'id="d-rgesn-1-3-yes" name="d-rgesn-1-3" value="yes" checked' in declared and len(hits) == before
+      and "0 answers" not in send({"lang": "en", "kept": base64.b64encode(kept(declared)).decode(), "d-rgesn-1-3": "yes", "dn-rgesn-1-3": "Anna"})
+      and "No answers submitted." in send({"lang": "en", "kept": base64.b64encode(kept(declared)).decode(), "d-rgesn-1-3": "yes", "dn-rgesn-1-3": "Anna"}))
+
+# A question asked of the page as a whole comes once for the pages built on the same template; one answer covers them.
+shelf["/pictured-too"] = shelf["/pictured"].replace("Pictured", "Pictured too")
+threading.Event().wait(serve.PAUSE + 0.2)
+code, heads, two = ask(door, f"http://localhost:{open_}/pictured-too", "en", record=kept(questions))
+pooled = sorted(set(re.findall(r'name="(a-site-\w+-\w+)" value="pass"', two)))
+check("asks what the pages' template decides once for the pages that share it, not on each page",
+      code == 200 and "The whole site" in two and len(pooled) > 3 and "On each of these pages: Is no information given by color alone?" in two
+      and two.count("Is no information given by color alone?") == 1)
+held_two = re.search(r'<input type="hidden" name="kept" value="([^"]+)">', two).group(1)
+covered = send({"lang": "en", "kept": held_two, pooled[0]: "pass", "n-" + pooled[0][2:]: "checked on both"})
+grown = gzip.decompress(kept(covered)).splitlines()
+check("records one answer for every page that shares the template, and asks it no more",
+      "1 answer recorded." in covered and "Answered for these pages (1)" in covered and "checked on both" in covered
+      and f'name="{pooled[0]}"' not in covered and b'"covers":[' in grown[-1] and grown[-1].count(b'","') >= 1)
+
 # The service is held to what it asks of others: its own pages, read by its own rules, are asked for nothing.
 shelf["/answer"] = first
-read, lines = asked(f"http://127.0.0.1:{door}/", f"http://127.0.0.1:{door}/fr/", f"http://localhost:{open_}/answer")
-check("its own pages, read by its own rules, are asked for nothing" + "".join("\n      " + l for l in lines), read == 3 and not lines)
+shelf["/questions"] = questions
+read, lines = asked(f"http://127.0.0.1:{door}/", f"http://127.0.0.1:{door}/fr/", f"http://localhost:{open_}/answer", f"http://localhost:{open_}/questions")
+check("its own pages, read by its own rules, are found wanting in nothing a rule decides" + "".join("\n      " + l for l in lines), read == 4 and not lines)
 
 # Installed by its own recipe, it keeps none of its output and stands behind a proxy that logs no request.
 recipe = (Path(serve.__file__).parent / "install.sh").read_text(encoding="utf-8")

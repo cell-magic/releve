@@ -1,5 +1,83 @@
 # Changes
 
+## 0.5.0
+
+Criteria move from v5 to v6: 46 rules where there were 44. A person now
+answers what a rule cannot decide, in the report itself.
+
+- **Open questions.** Where a rule cannot decide, the report asks:
+  "Is the image decorative?", "Does the alternative describe the image?".
+  Every image the rule cannot judge is now asked about, where an image
+  with an alternative used to pass unread: RGAA 1.1 to 1.3 ask a person,
+  and the report no longer answers for them. An image shorter or narrower
+  than 4 px is taken to carry nothing.
+- **Answered where it is read.** `releve report en|fr CORPUS --ask` gives
+  each point to decide yes, no and a note. The service sets them in a form
+  that sends the answers back with the record; they go through `releve
+  correct`, the one way a reading is recorded, and the report comes back as
+  it now stands. Only a point the rule itself left to a person is put as a
+  question: a failure a rule can show is not argued away.
+- **The reviewer's answers, labelled.** A report counts the reviewer's
+  answers, marks each with the rule's reading, and lists what the reviewer
+  confirmed under its own heading.
+- **Plainer words.** Fixes, open questions and lighter options replace
+  changes to make, points to decide and could be lighter.
+- **An image with what stands around it.** A point to decide about an image
+  shows its file, and the words the page says just before and after it.
+- **The keyboard.** The observer takes each page by Tab, after recording it.
+  Two rules read the walk: `focus-visible` (RGAA 10.7) fails a stop where not
+  one pixel of the screen changes when it takes the focus, so it may miss an
+  unseen focus and never names a seen one; `keyboard-trap` (RGAA 12.9) fails
+  an element that Tab, Shift+Tab and Escape cannot leave, and asks a person
+  whether a round that does not reach the rest of the page has a way out.
+  Observations made before 0.5 are not judged on them.
+- **Declarations.** The 64 RGESN criteria no rule can see from a page are
+  declared by the service's owner: `releve declarations` lists them with the
+  answers in force and what the latest observation saw, `releve declare`
+  records the changed lines as events of the record. The report ends with
+  them, linked to the official text; the service sets them in its form,
+  answered already where they were. Rules and declarations together cover
+  all 78 RGESN criteria, each once.
+- **Every RGAA criterion, once.** Eleven new rules read what the observer
+  now records: language codes (8.4, 8.7, 8.8), reading direction (8.10),
+  text cut by wider spacing (10.12), endless motion (13.8), clicks no key
+  reaches (7.3), words set by the style sheet (10.2), text colours without a
+  background (10.5), links that blend into their sentence (10.6), emoji
+  (13.5, 13.6), CAPTCHAs (1.4, 1.5) and office documents (13.3, 13.4).
+  Twelve themes put the 47 criteria no rule decides to the reviewer, one
+  question each, not applicable where the page holds nothing they apply to.
+  The 5 criteria on a set of pages (12.1 to 12.5) are declared by the owner.
+  Rules, questions and declarations cover the 106 criteria, each once.
+- **Shorter words.** Each criterion's purpose is one plain statement; the
+  method, the reading and the scope are said in fewer words.
+- **The longest chain.** The observer records which address asked for each
+  request. The footprint names the longest run of requests in which each
+  waited on the one before, and says what it costs: as many round trips in
+  a row, whatever the connection. A measure, not a verdict.
+- **First run on a live site.** Twelve pages of bureaudessurfaces.fr, with
+  what that run showed corrected. A question is put only where what it asks
+  about can exist: the observer counts the script a page carries, and a page
+  with none is not asked about scripted components, shortcuts, gestures or
+  device motion (RGAA 7.1, 7.2, 7.4, 7.5, 12.10, 13.10 to 13.12); a form is
+  asked about legends only with a group of fields (11.7), about option
+  groups only with a list (11.8). A link whose words are its language's own
+  name, "Français" marked `fr`, passes without a question. The longest chain
+  names a site's home by its host. The observer writes its records in ASCII
+  alone, so no shell can re-encode them on the way to a file. The criteria
+  digest now covers the questions as well as the rules.
+- **Asked once for the whole site.** On that run, 132 of 199 questions
+  were the same 11 asked on each of 12 pages: what a page asks of itself
+  as a whole (colours, quotations, presentation, hover content, flashing,
+  orientation, scripts) is the template's to decide. Pages share a template
+  when they load the same style sheets and scripts at the same sizes and
+  carry the same inline style sheets; the observer records a digest of the
+  latter. `releve facts --all`, the report and the service now put such a
+  question once, for the pages that share it, and one answer, recorded as
+  one event, covers every page counted with it. It holds on each while the
+  page keeps that template: a page that changes it is asked again, and so is
+  a page first seen later. Questions about what a page holds stay with the
+  page. A correction records the observations it covers and the template.
+
 ## 0.4.0
 
 Criteria move from v2 to v5: 44 rules where there were 17. The English of

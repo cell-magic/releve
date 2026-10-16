@@ -13,42 +13,53 @@ import Data.Maybe (listToMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Releve.Criteria (criteria, version)
+import Releve.Declarations
+import qualified Data.Map.Strict as M
 import Releve.Footprint
 import Releve.Kernel
 import Releve.Reading
 import Releve.Types
 
--- | A report on the latest observation of every page of the corpus.
-report :: Lang -> Text -> State -> Text
-report l release st = T.unlines $
+-- | A report on the latest observation of every page of the corpus. Asking,
+--   each point to decide that the rule left to a person comes with its question
+--   and the controls to answer it, for a form around the report to send back.
+report :: Lang -> Bool -> Text -> State -> Text
+report l asking release st = T.unlines $
   [ "<!doctype html>", "<html lang=\"" <> (if l == En then "en" else "fr") <> "\">", "<head>", "<meta charset=\"utf-8\">"
   , "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
   , "<title>" <> esc (heading') <> "</title>", "<style>", style, "</style>", "</head>", "<body>", "<main>"
   , "<h1>" <> esc heading' <> "</h1>"
   , p (t ((if single then "Automated observation of one rendered page" else "Automated observation of " <> num (length pages) <> " rendered pages")
-           <> ", by rule. It is not a conformity audit: a rule decides what a rule can, and puts the rest to a person."
+           <> ", by rule. It is not a conformity audit. What no rule can decide is listed as an open question."
           // (if single then "Observation automatisée d'une page rendue" else "Observation automatisée de " <> num (length pages) <> " pages rendues")
-           <> ", par des règles. Ce n'est pas un audit de conformité : une règle tranche ce qu'une règle peut trancher, et soumet le reste à une personne."))
+           <> ", par des règles. Ce n'est pas un audit de conformité. Ce qu'aucune règle ne peut trancher figure en question ouverte."))
   , "<h2>" <> t ("Method" // "Méthode") <> "</h2>"
-  , p (t ("A browser opened each page as a reader's would, at 1280 px and again at 320 px, and recorded what it showed: the names assistive technology is given, the colours as rendered, the bytes that travelled. "
-          // "Un navigateur a ouvert chaque page comme le ferait celui d'un lecteur, à 1280 px puis à 320 px, et a consigné ce qu'elle montrait : les noms donnés aux technologies d'assistance, les couleurs telles que rendues, les octets transférés. ")
-       <> esc (num (length criteria)) <> t (" criteria then read that record. Each is a rule in plain code; no trained model takes part, so the same record gives the same report."
-          // " critères ont ensuite lu ce relevé. Chacun est une règle en code clair ; aucun modèle entraîné n'intervient, de sorte que le même relevé donne le même rapport."))
+  , p (t ("Each page was rendered in a browser at 1280 px and 320 px. Recorded: names given to assistive technology, colors as rendered, bytes transferred. "
+          // "Chaque page a été rendue dans un navigateur à 1280 px et 320 px. Relevés : noms donnés aux technologies d'assistance, couleurs rendues, octets transférés. ")
+       <> t ("The page was then navigated by keyboard alone. "
+          // "La page a ensuite été parcourue au clavier seul. ")
+       <> esc (num (length criteria)) <> t (" criteria then read the record. Each is a rule in plain code. No trained model is involved: the same record gives the same report."
+          // " critères ont ensuite lu le relevé. Chacun est une règle en code clair. Aucun modèle entraîné n'intervient : le même relevé donne le même rapport."))
   , "<dl>"
-  , dt ("Changes to make" // "Changements à faire") <> dd ("a stated rule is broken; the remedy is given." // "une règle énoncée n'est pas respectée ; le remède est indiqué.")
-  , dt ("Points to decide" // "Points à décider") <> dd ("the rule has found what only a person can decide, and shows it." // "la règle a trouvé ce que seule une personne peut trancher, et le montre.")
-  , dt ("Could be lighter" // "Pourrait être allégé") <> dd ("nothing is broken; fewer bytes would do the same." // "rien n'est enfreint ; moins d'octets feraient autant.")
+  , dt ("Fixes" // "Corrections") <> dd ("A stated rule is broken. The remedy is given." // "Une règle énoncée n'est pas respectée. Le remède est indiqué.")
+  , dt ("Open questions" // "Questions ouvertes") <> dd ("Beyond what a rule can decide. Answers are recorded as the reviewer's, beside the rule's reading, and lapse when the element changes."
+                                                       // "Au-delà de ce qu'une règle peut trancher. Les réponses sont consignées comme celles du relecteur, à côté de la lecture de la règle, et tombent quand l'élément change.")
+  , dt ("Lighter options" // "Allègements") <> dd ("Nothing is broken. Fewer bytes would do the same." // "Rien n'est enfreint. Moins d'octets feraient autant.")
   , "</dl>"
   ]
   ++ (if length pages > 1 then overview else [])
+  ++ whole
   ++ concatMap page' (zip [1 ..] pages)
+  ++ statement
   ++ [ "<h2>" <> t ("What was not looked at" // "Ce qui n'a pas été regardé") <> "</h2>"
      , p (t ("These rules touch " <> num (length (touched "RGAA")) <> " of the 106 criteria of the RGAA 4.1.2, " <> num (length (touched "RGESN")) <> " of the 78 of the RGESN 2024, and "
-              <> num (length (touched "art.")) <> " paragraphs of article 50 of the AI Act. To touch a criterion is not to settle it: most ask for a person's judgement, or for a declaration of the owner's, beyond what a rule can see."
+              <> num (length (touched "art.")) <> " paragraphs of article 50 of the AI Act. The other " <> num (length [i | i <- items, iRef i == "RGESN"]) <> " RGESN criteria and "
+              <> num (length [i | i <- items, iRef i == "RGAA"]) <> " RGAA criteria on the set of pages are declared by the owner; " <> num (M.size (declared st)) <> " are declared so far."
             // "Ces règles touchent " <> num (length (touched "RGAA")) <> " des 106 critères du RGAA 4.1.2, " <> num (length (touched "RGESN")) <> " des 78 du RGESN 2024, et "
-              <> num (length (touched "art.")) <> " paragraphes de l'article 50 du règlement sur l'IA. Toucher un critère n'est pas le solder : la plupart demandent le jugement d'une personne, ou une déclaration du responsable du site, au-delà de ce qu'une règle peut voir."))
-     , p (t ("One page was observed at one moment and at two widths. What appears only after an action (a menu opened, a form sent, a dialogue), what stands behind a login, and what lies inside frames from other sites were not observed."
-            // "Une page a été observée à un moment donné et à deux largeurs. Ce qui n'apparaît qu'après une action (un menu ouvert, un formulaire envoyé, une boîte de dialogue), ce qui se trouve derrière une connexion, et ce que contiennent les cadres venus d'autres sites n'ont pas été observés."))
+              <> num (length (touched "art.")) <> " paragraphes de l'article 50 du règlement sur l'IA. Les " <> num (length [i | i <- items, iRef i == "RGESN"]) <> " autres critères du RGESN et les "
+              <> num (length [i | i <- items, iRef i == "RGAA"]) <> " critères du RGAA portant sur l'ensemble des pages sont déclarés par le responsable ; " <> num (M.size (declared st)) <> " le sont à ce jour."))
+     , p (t ("Each page was observed once, at two widths. Not observed: content shown only after an action, such as an open menu, a sent form or a dialog; content behind a login; frames from other sites."
+            // "Chaque page a été observée une fois, à deux largeurs. Non observés : ce qui n'apparaît qu'après une action, comme un menu ouvert, un formulaire envoyé ou une boîte de dialogue ; ce qui est derrière une connexion ; les cadres d'autres sites."))
      , "<p class=\"meta\">relevé " <> esc release <> " · " <> t ("criteria v" // "critères v") <> esc version <> "</p>"
      , "</main>", "</body>", "</html>" ]
   where
@@ -66,11 +77,65 @@ report l release st = T.unlines $
 
     overview =
       [ "<h2>" <> t ("The pages" // "Les pages") <> "</h2>", "<table>"
-      , "<thead><tr><th scope=\"col\">" <> t ("Page" // "Page") <> "</th><th scope=\"col\">" <> t ("To change" // "À changer") <> "</th><th scope=\"col\">"
-          <> t ("To decide" // "À décider") <> "</th><th scope=\"col\">" <> t ("To lighten" // "À alléger") <> "</th></tr></thead>", "<tbody>" ]
+      , "<thead><tr><th scope=\"col\">" <> t ("Page" // "Page") <> "</th><th scope=\"col\">" <> t ("Fixes" // "Corrections") <> "</th><th scope=\"col\">"
+          <> t ("Questions" // "Questions") <> "</th><th scope=\"col\">" <> t ("Lighter" // "Allègements") <> "</th></tr></thead>", "<tbody>" ]
       ++ [ "<tr><th scope=\"row\"><a href=\"#p" <> num i <> "\">" <> esc (url (oBody o)) <> "</a></th>" <> T.concat ["<td>" <> num (count v fs) <> "</td>" | v <- [Fail, Review, Hint]] <> "</tr>"
-         | (i, o) <- zip [1 :: Int ..] pages, let fs = assess st o ]
+         | (i, o) <- zip [1 :: Int ..] pages, let fs = own o (assess st o) ]
       ++ ["</tbody>", "</table>"]
+      ++ [ p (t (num (length ps) <> (if length ps == 1 then " question is" else " questions are") <> " asked once for pages that share a template: "
+                 // num (length ps) <> (if length ps == 1 then " question est posée" else " questions sont posées") <> " une fois pour les pages qui partagent un gabarit : ")
+              <> "<a href=\"#site\">" <> t ("the whole site" // "tout le site") <> "</a>" <> t ("." // ".")) | not (null ps) ]
+
+    -- Questions asked of the page as a whole, once for the pages built on the same template.
+    ps = pools st
+    pooledHere o = [fId f | q <- ps, (x, f) <- pEntries q, oId x == oId o]
+    own o fs = [f | f <- fs, fId f `notElem` pooledHere o]
+    pageNo o = maybe "" num (lookup (oId o) (zip (map oId pages) [1 :: Int ..]))
+    whole = case nub (map pKey ps) of
+      [] -> []
+      ks -> [ hd 1 ("<span id=\"site\">" <> t ("The whole site" // "Tout le site") <> "</span>")
+            , p (t ("Questions asked of the page as a whole come back word for word on pages built on the same style sheets and scripts. They are asked here once. "
+                    <> "An answer holds on the pages counted with it while they keep that template; a page that changes it, or a page first seen later, is asked again."
+                    // "Les questions posées sur la page entière reviennent mot pour mot sur les pages bâties sur les mêmes feuilles de styles et scripts. Elles sont posées ici une fois. "
+                    <> "Une réponse vaut pour les pages comptées avec elle tant qu'elles gardent ce gabarit ; une page qui en change, ou vue pour la première fois plus tard, est interrogée à nouveau.")) ]
+            ++ concatMap (template' (length ks > 1)) ks
+            ++ (if asking && any (\q -> poolVerdict q == Review) ps then [p ("<button type=\"submit\">" <> t ("Submit answers" // "Envoyer les réponses") <> "</button>")] else [])
+    poolVerdict q = case nub [(fVerdict f, fNote f) | (_, f) <- pEntries q] of
+      [(v, _)] -> v
+      _ -> Review
+    template' several k =
+      let mine = [q | q <- ps, pKey q == k]
+          os = [o | o <- pages, oId o `elem` [oId x | q <- mine, (x, _) <- pEntries q]]
+          open' = [q | q <- mine, poolVerdict q == Review]
+          done = [q | q <- mine, poolVerdict q /= Review]
+          link' o = "<a href=\"#p" <> pageNo o <> "\">" <> esc (url (oBody o)) <> "</a>"
+      in [ hd 2 (esc (maybe "" pHost (listToMaybe mine)) <> " · " <> t (num (length os) <> " pages" // num (length os) <> " pages")
+                 <> (if several then " · " <> t ("template " // "gabarit ") <> "<code>" <> esc k <> "</code>" else ""))
+         , "<p class=\"meta\">" <> T.intercalate ", " (map link' os) <> "</p>" ]
+         ++ (if null open' then [] else [hd 3 (t ("Open questions" // "Questions ouvertes") <> " (" <> num (length open') <> ")"), "<ul>"] ++ map (poolItem os) open' ++ ["</ul>"])
+         ++ (if null done then [] else [hd 3 (t ("Answered for these pages" // "Répondu pour ces pages") <> " (" <> num (length done) <> ")"), "<ul>"] ++ map (poolItem os) done ++ ["</ul>"])
+    poolItem os q =
+      let f = pFinding q
+          c = fCrit f
+          v = poolVerdict q
+          n = case nub [fNote g | (_, g) <- pEntries q] of [x] -> x; _ -> Nothing
+          count' = length (pEntries q)
+          which = if count' < length os then " (" <> T.intercalate ", " [esc (url (oBody o)) | (o, _) <- pEntries q] <> ")" else ""
+      in T.concat
+           [ "<li><strong>", t (cTitle c), "</strong> · ", t (T.replace " · this page" "" (en (fSeen f)) // T.replace " · cette page" "" (fr (fSeen f)))
+           , " · ", t (num count' <> " pages" // num count' <> " pages"), which
+           , if v == Review then "" else "<br><strong>" <> t (verdictWord' v) <> "</strong> · " <> t ("reviewer's answer; rule: open" // "réponse du relecteur ; règle : ouverte")
+           , maybe "" (\x -> "<br><em>" <> esc x <> "</em>") n
+           , if v /= Review then ""
+             else if asking then controls' ("site-" <> pKey q) (each' <> lowerFr (question c f)) f
+             else "<br><strong>" <> t ("Question: " // "Question : ") <> "</strong>" <> t (each' <> lowerFr (question c f))
+           , "</li>" ]
+    each' = "On each of these pages: " // "Sur chacune de ces pages : "
+    lowerFr (Phrase e f') = Phrase e (T.toLower (T.take 1 f') <> T.drop 1 f')
+    verdictWord' v = case v of
+      Pass -> "Yes" // "Oui"
+      Fail -> "No" // "Non"
+      _ -> verdictWord v
 
     count v fs = length [() | f <- fs, fVerdict f == v]
 
@@ -81,19 +146,31 @@ report l release st = T.unlines $
       | otherwise = esc (num k) <> " " <> t many
 
     page' :: (Int, Obs) -> [Text]
-    page' (i, o) = let b = oBody o; fs = assess st o in
+    page' (i, o) = let b = oBody o; every = assess st o; fs = own o every; k' = length (pooledHere o) in
       [ if single then "" else "<h2 id=\"p" <> num i <> "\">" <> esc (url b) <> "</h2>"
       , "<p class=\"meta\">" <> t ("Observed on " // "Observée le ") <> esc (date l (at b)) <> maybe "" ((" · " <>) . esc) (browser b)
-          <> (if truncated (page b) == Just True then t (" · page too large: only its first surfaces were read" // " · page trop grande : seules ses premières surfaces ont été lues") else "") <> "</p>"
+          <> (if truncated (page b) == Just True then t (" · page too large: first surfaces only" // " · page trop grande : premières surfaces seulesses premières surfaces ont été lues") else "") <> "</p>"
       , p ("<strong>" <> T.intercalate " · "
             [ tally ("no check passes" // "aucun contrôle ne passe") ("check passes" // "contrôle passe") ("checks pass" // "contrôles passent") (count Pass fs)
-            , tally ("nothing to change" // "rien à changer") ("change to make" // "changement à faire") ("changes to make" // "changements à faire") (count Fail fs)
-            , tally ("nothing to decide" // "rien à décider") ("point to decide" // "point à décider") ("points to decide" // "points à décider") (count Review fs)
-            , tally ("nothing to lighten" // "rien à alléger") ("to lighten" // "à alléger") ("to lighten" // "à alléger") (count Hint fs) ] <> "</strong>"
-           <> since o fs) ]
-      ++ concat [ group n title fs v | (n, title, v) <- [ (2 :: Int, "Changes to make" // "Changements à faire", Fail), (2, "Points to decide" // "Points à décider", Review), (2, "Could be lighter" // "Pourrait être allégé", Hint) ] ]
+            , tally ("no fixes" // "aucune correction") ("fix" // "correction") ("fixes" // "corrections") (count Fail fs)
+            , tally ("no open questions" // "aucune question ouverte") ("open question" // "question ouverte") ("open questions" // "questions ouvertes") (count Review fs)
+            , tally ("no lighter options" // "aucun allègement") ("lighter option" // "allègement") ("lighter options" // "allègements") (count Hint fs) ] <> "</strong>"
+           <> (case length (decided fs) of
+                 0 -> ""
+                 k -> "<br>" <> tally ("" // "") ("answer by the reviewer" // "réponse du relecteur") ("answers by the reviewer" // "réponses du relecteur") k)
+           <> (if k' == 0 then "" else "<br>" <> "<a href=\"#site\">" <> tally ("" // "") ("question asked once for the whole site" // "question posée une fois pour tout le site")
+                                                                        ("questions asked once for the whole site" // "questions posées une fois pour tout le site") k' <> "</a>")
+           <> since o every) ]
+      ++ concat [ group b n title fs v | (n, title, v) <- [ (2 :: Int, "Fixes" // "Corrections", Fail), (2, "Open questions" // "Questions ouvertes", Review), (2, "Lighter options" // "Allègements", Hint) ] ]
+      ++ (if asking && any answerable fs then [p ("<button type=\"submit\">" <> t ("Submit answers" // "Envoyer les réponses") <> "</button>")] else [])
+      ++ (case [f | f <- decided fs, fVerdict f == Pass] of
+            [] -> []
+            xs -> hd 2 (t ("Confirmed by the reviewer" // "Confirmé par le relecteur") <> " (" <> num (length xs) <> ")")
+                    : p (t ("Confirmed by the reviewer, not by rule. Each confirmation lapses when the element changes."
+                            // "Confirmé par le relecteur, non par une règle. Chaque confirmation tombe quand l'élément change."))
+                    : concat [ criterion b 3 c [f | f <- xs, cId (fCrit f) == cId c] | c <- criteria, any ((== cId c) . cId . fCrit) xs ])
       ++ [ hd 2 (t ("Criterion by criterion" // "Critère par critère")), "<ul>" ]
-      ++ [ "<li>" <> t (cTitle c) <> " · " <> summary [f | f <- fs, cId (fCrit f) == cId c] <> "</li>" | c <- criteria ]
+      ++ [ "<li>" <> t (cTitle c) <> " · " <> summary [f | f <- every, cId (fCrit f) == cId c] <> "</li>" | c <- criteria ]
       ++ [ "</ul>", hd 2 (t ("Footprint" // "Empreinte")) ]
       ++ weight b
       ++ maybe [] (lecture b) (readingOf b fs)
@@ -104,64 +181,150 @@ report l release st = T.unlines $
         let open f = fVerdict f `elem` [Fail, Review, Hint]
             was = [fId f | f <- assess st q, open f]
             now = [fId f | f <- fs, open f]
-        in "<br>" <> t ("Since the observation of " // "Depuis l'observation du ") <> esc (date l (at (oBody q))) <> t (": " // " : ")
-             <> esc (num (length [x | x <- was, x `notElem` now])) <> t (" no longer found, " // " ne sont plus constatés, ")
+        in "<br>" <> t ("Since " // "Depuis le ") <> esc (date l (at (oBody q))) <> t (": " // " : ")
+             <> esc (num (length [x | x <- was, x `notElem` now])) <> t (" resolved, " // " résolus, ")
              <> esc (num (length [x | x <- now, x `notElem` was])) <> t (" new, " // " nouveaux, ")
-             <> esc (num (length [x | x <- now, x `elem` was])) <> t (" standing." // " persistent.")
+             <> esc (num (length [x | x <- now, x `elem` was])) <> t (" unchanged." // " inchangés.")
 
     -- Within a verdict: the lightest work first, then the order of the criteria.
-    group n title fs v = case [f | f <- fs, fVerdict f == v] of
+    group b n title fs v = case [f | f <- fs, fVerdict f == v] of
       [] -> []
       xs -> hd n (t title <> " (" <> num (length xs) <> ")")
-        : concat [ criterion (n + 1) c [f | f <- xs, cId (fCrit f) == cId c] | c <- sortOn cEffort criteria, any ((== cId c) . cId . fCrit) xs ]
+        : concat [ criterion b (n + 1) c [f | f <- xs, cId (fCrit f) == cId c] | c <- sortOn cEffort criteria, any ((== cId c) . cId . fCrit) xs ]
 
-    criterion n c xs =
+    -- The criteria no rule can see from a page, declared once for the whole record. Asking, each comes with
+    -- yes, no, not applicable and a note, the answer in force already chosen; otherwise the answered ones
+    -- stand in full and the open ones are named, by family.
+    statement =
+      let said = declared st
+          now = oBody <$> resolve st Nothing
+          answer i = maybe "open" dAnswer (M.lookup (cited i) said)
+          count' a = length [i | i <- items, answer i == a]
+          fams = foldl (\acc x -> if any ((== family x) . family) acc then acc else acc ++ [x]) [] items
+          link i = "<a href=\"" <> esc (official i) <> "\">" <> esc (cited i) <> "</a>"
+          seen' i = maybe "" (\x -> "<br>" <> t ("Seen: " // "Constaté : ") <> t x) (now >>= iSeen i)
+          noted i = maybe "" (\x -> "<br><em>" <> esc x <> "</em>") (M.lookup (cited i) said >>= dNote)
+          shown a = case a of
+            "yes" -> "Yes" // "Oui"
+            "no" -> "No" // "Non"
+            "n/a" -> "Not applicable" // "Sans objet"
+            _ -> "Open" // "Ouverte"
+          k i = "d-" <> T.toLower (iRef i) <> "-" <> T.replace "." "-" (iId i)
+          choice i v w = "<input type=\"radio\" id=\"" <> k i <> "-" <> T.replace "/" "" v <> "\" name=\"" <> k i <> "\" value=\"" <> v <> "\""
+                         <> (if answer i == v then " checked" else "") <> "> <label for=\"" <> k i <> "-" <> T.replace "/" "" v <> "\">" <> t w <> "</label>"
+          control i = "<fieldset><legend>" <> t (iAsk i) <> "</legend>" <> choice i "yes" ("Yes" // "Oui") <> " " <> choice i "no" ("No" // "Non") <> " "
+                      <> choice i "n/a" ("Not applicable" // "Sans objet")
+                      <> "<label for=\"dn-" <> T.drop 2 (k i) <> "\">" <> t ("Note" // "Note") <> "</label><input type=\"text\" id=\"dn-" <> T.drop 2 (k i) <> "\" name=\"dn-" <> T.drop 2 (k i)
+                      <> "\" maxlength=\"200\" autocomplete=\"off\" value=\"" <> esc (maybe "" id (M.lookup (cited i) said >>= dNote)) <> "\"></fieldset>"
+          entry i
+            | asking = "<li>" <> link i <> seen' i <> control i <> "</li>"
+            | otherwise = "<li>" <> link i <> " · " <> t (iAsk i) <> "<br><strong>" <> t (shown (answer i)) <> "</strong>" <> noted i <> seen' i <> "</li>"
+      in [ "<h2 id=\"declarations\">" <> t ("Declarations" // "Déclarations") <> "</h2>"
+         , p (t ("Criteria not visible from a page: how the service is decided, built, hosted and run, and how its pages fit together. Declared once by the owner for the whole record. The official texts prevail."
+                // "Critères invisibles depuis une page : comment le service est décidé, construit, hébergé et exploité, et comment ses pages s'articulent. Déclarés une fois par le responsable pour tout le relevé. Les textes officiels prévalent."))
+         , p ("<strong>" <> T.intercalate " · " [ esc (num (count' a)) <> " " <> t w | (a, w) <- [("yes", "yes" // "oui"), ("no", "no" // "non"), ("n/a", "not applicable" // "sans objet"), ("open", "open" // "ouvertes")] ] <> "</strong>") ]
+         ++ concat [ "<h3>" <> t (family f) <> "</h3>" : (if asking then ["<ul>"] ++ map entry xs ++ ["</ul>"]
+                                            else ["<ul>" | not (null done)] ++ map entry done ++ ["</ul>" | not (null done)]
+                                                 ++ [ p (t ("Open: " // "Ouvertes : ") <> T.intercalate ", " (map link open')) | not (null open') ])
+                   | f <- fams, let xs = [i | i <- items, family i == family f], let done = [i | i <- xs, answer i /= "open"], let open' = [i | i <- xs, answer i == "open"] ]
+         ++ [ p ("<button type=\"submit\">" <> t ("Submit declarations" // "Envoyer les déclarations") <> "</button>") | asking ]
+
+    -- What a person has read otherwise than the rule.
+    decided fs = [f | f <- fs, fVerdict f /= fMachine f]
+    -- Only what the rule itself left to a person is put as a question: a failure the rule can show is not argued away.
+    answerable f = fVerdict f == Review && fMachine f == Review
+
+    question c f = maybe (("Holds here: “" // "Tenu ici : « ") <> cTitle c <> ("”?" // " » ?")) id (fAsk f)
+
+    -- An image is judged with what stands around it: the file, and the words the page says just before and after it.
+    beside b f = case fSurface f of
+      Just s | kind s `elem` ["img", "graphic"] ->
+        let file' = maybe "" (\u -> if any (`T.isPrefixOf` u) ["https://", "http://"]
+                                     then "<br>" <> t ("File: " // "Fichier : ") <> "<a href=\"" <> esc u <> "\">" <> esc (fileName u) <> "</a>" else "") (src s)
+            near = [e | e <- concat (events b), eKind e == "text", eShown e, not (T.null (T.strip (eSaid e)))]
+            at' = ev s
+            before' = listToMaybe (reverse [e | Just n <- [at'], e <- near, eN e < n])
+            after' = listToMaybe [e | Just n <- [at'], e <- near, eN e > n]
+            said lbl e = "<br>" <> t lbl <> t ("“" // "« ") <> esc (eSaid e) <> t ("”" // " »")
+        in file' <> maybe "" (said ("Text before: " // "Texte avant : ")) before' <> maybe "" (said ("Text after: " // "Texte après : ")) after'
+      _ -> ""
+    fileName u = let path' = T.takeWhile (`notElem` ("?#" :: String)) u
+                     last' = last ("" : filter (not . T.null) (T.splitOn "/" path'))
+                 in if T.null last' then u else last'
+
+    -- The controls of one question: yes, no, and a note. Unanswered, it stays a point to decide.
+    controls o c f = controls' o (question c f) f
+    controls' o legend f =
+      let k = o <> "-" <> fId f
+          choice v w = "<input type=\"radio\" id=\"a-" <> k <> "-" <> v <> "\" name=\"a-" <> k <> "\" value=\"" <> v <> "\"> <label for=\"a-" <> k <> "-" <> v <> "\">" <> t w <> "</label>"
+      in "<fieldset><legend>" <> t legend <> "</legend>"
+           <> choice "pass" ("Yes" // "Oui") <> " " <> choice "fail" ("No" // "Non")
+           <> "<label for=\"n-" <> k <> "\">" <> t ("Note" // "Note") <> "</label>"
+           <> "<input type=\"text\" id=\"n-" <> k <> "\" name=\"n-" <> k <> "\" maxlength=\"200\" autocomplete=\"off\"></fieldset>"
+
+    criterion b n c xs =
       [ hd n (t (cTitle c))
       , "<p>" <> t (cWhy c) <> " <span class=\"meta\">" <> t (cRef c) <> " · " <> t (effort (cEffort c)) <> "</span></p>"
       , "<ul>" ]
-      ++ [ "<li>" <> t (fSeen f) <> maybe "" (\ch -> "<br><strong>" <> t ("Change: " // "À changer : ") <> "</strong>" <> t ch) (fChange f)
+      ++ [ "<li>" <> t (fSeen f) <> (if fVerdict f == Review && not (null (fAsk f)) then "" else maybe "" (\ch -> "<br><strong>" <> t ("Fix: " // "Correction : ") <> "</strong>" <> t ch) (fChange f))
              <> maybe "" (\s -> "<br><code>" <> esc (sel s) <> "</code>") (fSurface f)
+             <> (if fVerdict f == Review then beside b f else "")
+             <> (if fVerdict f /= fMachine f then " · " <> t ("reviewer's answer; rule: " // "réponse du relecteur ; règle : ") <> t (verdictWord (fMachine f)) else "")
              <> (if fNew f then " · " <> t ("new" // "nouveau") else "")
-             <> (if fAge f > 0 then " · " <> t ("standing through " <> num (fAge f) <> (if fAge f == 1 then " observation" else " observations") // "persiste depuis " <> num (fAge f) <> (if fAge f == 1 then " observation" else " observations")) else "")
+             <> (if fAge f > 0 then " · " <> t ("open for " <> num (fAge f) <> (if fAge f == 1 then " observation" else " observations") // "ouvert depuis " <> num (fAge f) <> (if fAge f == 1 then " observation" else " observations")) else "")
              <> maybe "" (\x -> "<br><em>" <> esc x <> "</em>") (fNote f)
+             <> (if fVerdict f /= Review then ""
+                 else if asking && answerable f then controls (oOf b) c f
+                 else "<br><strong>" <> t ("Question: " // "Question : ") <> "</strong>" <> t (question c f))
              <> "</li>"
          | f <- sortOn (maybe 0 order . fSurface) xs ]
       ++ ["</ul>"]
 
-    effort Light = "light work" // "travail léger"
-    effort Medium = "some work" // "travail moyen"
-    effort Heavy = "heavy work" // "travail lourd"
+    verdictWord v = case v of
+      Fail -> "fix" // "correction"
+      Review -> "open" // "ouverte"
+      Hint -> "lighter option" // "allègement"
+      Pass -> "pass" // "passe"
+      NA -> "not applicable" // "sans objet"
+    -- The observation a body belongs to, among the latest: the controls name it.
+    oOf b = case [o | o <- pages, url (oBody o) == url b, at (oBody o) == at b] of
+      o : _ -> oId o
+      [] -> ""
+
+    effort Light = "light fix" // "correction légère"
+    effort Medium = "moderate fix" // "correction moyenne"
+    effort Heavy = "heavy fix" // "correction lourde"
 
     summary xs
-      | all ((== NA) . fVerdict) xs = t ("nothing to judge: " // "rien à juger : ") <> maybe "" (t . fSeen) (listToMaybe xs)
+      | all ((== NA) . fVerdict) xs = t ("not applicable: " // "sans objet : ") <> maybe "" (t . fSeen) (listToMaybe xs)
       | otherwise = esc (num (length [f | f <- xs, fVerdict f == Pass])) <> t (" of " // " sur ") <> esc (num (length [f | f <- xs, fVerdict f /= NA])) <> t (" pass" // " passent")
 
     -- The reading: a measure set apart from the verdicts.
     lecture b r =
       [ hd 2 (t ("The reading" // "La lecture"))
-      , p (t ("A measure, not a verdict. The page gives its reader " <> things (rEvents r) <> " to take in. Its markup says which of them can be taken independently: a heading opens a section, a list holds items, a table's headers free its cells. What it does not declare independent has to be taken in order."
-              // "Une mesure, pas un verdict. La page donne à son lecteur " <> choses (rEvents r) <> " à saisir. Son balisage dit lesquelles se saisissent indépendamment : un titre ouvre une section, une liste porte des éléments, les en-têtes d'un tableau libèrent ses cellules. Ce qu'il ne déclare pas indépendant se prend dans l'ordre."))
+      , p (t ("A measure, not a verdict. The page holds " <> things (rEvents r) <> " to read. Headings, lists and table headers let a reader take them independently. Everything else is read in order."
+              // "Une mesure, pas un verdict. La page contient " <> choses (rEvents r) <> " à lire. Titres, listes et en-têtes de tableau permettent de les prendre indépendamment. Le reste se lit dans l'ordre."))
       , "<dl>"
-      , dt ("Shown and not said" // "Montré et non dit") <> dd (num (rUnsaid r) <> ": what the eye is given and assistive technology is not." // num (rUnsaid r) <> " : ce qui est donné à l'œil et non aux technologies d'assistance.")
-      , dt ("Said and not shown" // "Dit et non montré") <> dd (num (rUnshown r) <> ": what is given to assistive technology alone, such as a link past the menu." // num (rUnshown r) <> " : ce qui n'est donné qu'aux technologies d'assistance, tel un lien d'évitement.")
-      , dt ("Depth" // "Profondeur") <> dd (num (rDepth r) <> ": the longest run the markup obliges. Without structure it would be " <> num (rEvents r) <> "."
-                                           // num (rDepth r) <> " : la plus longue suite que le balisage impose. Sans structure, elle vaudrait " <> num (rEvents r) <> ".")
-      , dt ("One at a time, by ear" // "Un à la fois, à l'oreille") <> dd (steps' (rSerial r) <> ": each thing that is said, one after the other." // etapes (rSerial r) <> " : chaque chose dite, l'une après l'autre.")
+      , dt ("Shown and not said" // "Montré et non dit") <> dd (num (rUnsaid r) <> ": visible, but not given to assistive technology." // num (rUnsaid r) <> " : visible, mais non transmis aux technologies d'assistance.")
+      , dt ("Said and not shown" // "Dit et non montré") <> dd (num (rUnshown r) <> ": given to assistive technology only, such as a skip link." // num (rUnshown r) <> " : transmis aux seules technologies d'assistance, tel un lien d'évitement.")
+      , dt ("Depth" // "Profondeur") <> dd (num (rDepth r) <> ": longest sequence the markup imposes. Without structure: " <> num (rEvents r) <> "."
+                                           // num (rDepth r) <> " : plus longue suite imposée par le balisage. Sans structure : " <> num (rEvents r) <> ".")
+      , dt ("Serial, by ear" // "En série, à l'oreille") <> dd (steps' (rSerial r) <> ": everything read in sequence." // etapes (rSerial r) <> " : tout lu à la suite.")
       , dt ("Up to " <> num ceiling' <> " at a time" // "Jusqu'à " <> num ceiling' <> " à la fois")
-          <> dd (steps' (rSteps r) <> " as the page stands; " <> num (rClear r) <> " with nothing failing. A page of this size and depth takes between " <> num (rLower r) <> " and " <> num (rUpper r) <> "."
-                 // etapes (rSteps r) <> " en l'état ; " <> num (rClear r) <> " si rien n'échouait. Une page de cette taille et de cette profondeur en demande entre " <> num (rLower r) <> " et " <> num (rUpper r) <> ".")
+          <> dd (steps' (rSteps r) <> " as is; " <> num (rClear r) <> " with nothing failing. Range for this size and depth: " <> num (rLower r) <> " to " <> num (rUpper r) <> "."
+                 // etapes (rSteps r) <> " en l'état ; " <> num (rClear r) <> " sans échec. Plage pour cette taille et cette profondeur : " <> num (rLower r) <> " à " <> num (rUpper r) <> ".")
       , dt ("What the page says" // "Ce que dit la page")
           <> dd (let said = max 1 (round (rBits r / 8)) :: Int; each = transfer (network b) `div` said
-                 in num said <> " bytes of text, by an estimate; " <> num each <> " bytes travel for each." // num said <> " octets de texte, par estimation ; " <> num each <> " octets voyagent pour chacun.")
+                 in num said <> " bytes of text, estimated; " <> num each <> " bytes transferred per byte of text." // num said <> " octets de texte, estimés ; " <> num each <> " octets transférés par octet de texte.")
       , "</dl>" ]
       ++ (if null (rMending r) then [] else
-           [ p (t ("The order of mending. Each line mends one criterion, after those above it, and says how many steps then remain. The gains add up, down to the page with nothing failing."
-                   // "L'ordre des corrections. Chaque ligne corrige un critère, après ceux du dessus, et dit combien d'étapes restent alors. Les gains s'additionnent, jusqu'à la page où rien n'échoue."))
+           [ p (t ("Order of fixes. Each line fixes one criterion, after those above, and gives the steps that remain. Gains add up to the page with nothing failing."
+                   // "Ordre des corrections. Chaque ligne corrige un critère, après ceux du dessus, et donne les étapes restantes. Les gains s'additionnent jusqu'à la page sans échec."))
            , "<ol>" ]
            ++ [ "<li>" <> t ("“" // "« ") <> t (title' c) <> t ("”: " // " » : ") <> t (steps' k // etapes k) <> "</li>" | (c, k) <- rMending r ]
            ++ [ "</ol>" ])
-      ++ [ "<p class=\"meta\">" <> t ("The reader who holds up to " <> num ceiling' <> " is a convention, as a reference device is in a test of speed: it takes what comes first on the page, and fewer things at once where the page fails them."
-              // "Le lecteur qui en saisit jusqu'à " <> num ceiling' <> " est une convention, comme l'appareil de référence d'un essai de vitesse : il prend ce qui vient en premier dans la page, et moins de choses à la fois là où la page lui fait défaut.") <> "</p>" ]
+      ++ [ "<p class=\"meta\">" <> t ("A reader holding up to " <> num ceiling' <> " at a time is a convention, like a reference device in a speed test. Failures reduce what it holds."
+              // "Un lecteur qui en tient jusqu'à " <> num ceiling' <> " à la fois est une convention, comme l'appareil de référence d'un test de vitesse. Les échecs réduisent ce qu'il tient.") <> "</p>" ]
       where
         things n = num n <> (if n == 1 then " thing" else " things")
         choses n = num n <> (if n == 1 then " chose" else " choses")
@@ -169,10 +332,13 @@ report l release st = T.unlines $
         etapes n = num n <> (if n == 1 then " étape" else " étapes")
         title' c = maybe (both c) cTitle (listToMaybe [k | k <- criteria, cId k == c])
 
-    weight b = let Footprint e r kb hs = footprint b in
+    weight b = let Footprint e r kb hs ch = footprint b in
       [ "<p>" <> esc (num e) <> " " <> t ("elements in the document" // "éléments dans le document") <> " · " <> esc (num r) <> " " <> t ("requests" // "requêtes") <> " · "
           <> esc (num (round kb :: Int)) <> " " <> t ("kB transferred" // "ko transférés") <> " · " <> esc (num (length hs)) <> " " <> t ("third-party hosts" // "hôtes tiers")
           <> (if null hs then "" else " (" <> esc (T.intercalate ", " hs) <> ")") <> "</p>" ]
+      ++ [ "<p>" <> t ("Longest chain: " <> num (length ch) <> " requests, each waiting on the one before. Loading takes at least " <> num (length ch) <> " round trips in a row, whatever the connection."
+                      // "Chaîne la plus longue : " <> num (length ch) <> " requêtes, chacune attendant la précédente. Le chargement demande au moins " <> num (length ch) <> " allers-retours successifs, quelle que soit la connexion.")
+           <> "<br><code>" <> esc (T.intercalate " → " (map named ch)) <> "</code></p>" | length ch > 2 ]
 
 -- | The criteria, each with what it is for: the same words the report uses,
 --   on one page, for whoever wants to know what is read before asking.
@@ -271,4 +437,8 @@ style = T.unlines
   , "code { font: .875rem/1.4 ui-monospace, monospace; color: #5c6066; }"
   , ".meta { color: #5c6066; font-size: .9375rem; }"
   , "dt { font-weight: 600; } dd { margin: 0 0 .5rem; }"
+  , "fieldset { min-width: 0; margin: .5rem 0 0; padding: .5rem .75rem; border: 1px solid #c8cacd; } legend { padding: 0 .25rem; font-weight: 600; }"
+  , "fieldset label { margin-right: 1rem; } fieldset input[type=text] { display: block; width: 100%; margin-top: .25rem; padding: .3rem; font: inherit; color: inherit; background: #fff; border: 1px solid #5c6066; }"
+  , "button { font: inherit; padding: .5rem 1rem; color: #fff; background: #1a1a1a; border: 1px solid #1a1a1a; }"
+  , "input:focus-visible, button:focus-visible { outline: 2px solid #1f3a8a; outline-offset: 2px; }"
   , "table { border-collapse: collapse; width: 100%; } th, td { text-align: left; padding: .4rem .5rem .4rem 0; border-bottom: 1px solid #c8cacd; overflow-wrap: anywhere; } tbody th { font-weight: normal; }" ]

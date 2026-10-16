@@ -15,6 +15,10 @@ li { margin-bottom: .6rem; overflow-wrap: anywhere; }
 code { font: .875rem/1.4 ui-monospace, monospace; color: #5c6066; }
 .meta { color: #5c6066; font-size: .9375rem; }
 dt { font-weight: 600; } dd { margin: 0 0 .5rem; }
+fieldset { min-width: 0; margin: .5rem 0 0; padding: .5rem .75rem; border: 1px solid #c8cacd; } legend { padding: 0 .25rem; font-weight: 600; }
+fieldset label { margin-right: 1rem; } fieldset input[type=text] { display: block; width: 100%; margin-top: .25rem; padding: .3rem; font: inherit; color: inherit; background: #fff; border: 1px solid #5c6066; }
+button { font: inherit; padding: .5rem 1rem; color: #fff; background: #1a1a1a; border: 1px solid #1a1a1a; }
+input:focus-visible, button:focus-visible { outline: 2px solid #1f3a8a; outline-offset: 2px; }
 table { border-collapse: collapse; width: 100%; } th, td { text-align: left; padding: .4rem .5rem .4rem 0; border-bottom: 1px solid #c8cacd; overflow-wrap: anywhere; } tbody th { font-weight: normal; }
 
 </style>
@@ -22,140 +26,215 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <body>
 <main>
 <h1>Les critères</h1>
-<p>44 règles, chacune en code clair. Pour chacune : ce qu'elle vérifie, à quoi cela sert, et le texte dont elle vient. Elles touchent 36 des 106 critères du RGAA 4.1.2, 14 des 78 du RGESN 2024, et 4 paragraphes de l'article 50 du règlement sur l'IA.</p>
+<p>69 règles, chacune en code clair. Pour chacune : ce qu'elle vérifie, à quoi cela sert, et le texte dont elle vient. Elles touchent 101 des 106 critères du RGAA 4.1.2, 14 des 78 du RGESN 2024, et 4 paragraphes de l'article 50 du règlement sur l'IA.</p>
 <h2 id="page-title">La page a un titre</h2>
-<p>Le titre est ce que montrent de la page un onglet, un favori, un résultat de recherche et les premiers mots d'un lecteur d'écran.</p>
+<p>Affiché dans les onglets, les favoris, les résultats de recherche, et lu en premier par les lecteurs d'écran.</p>
 <p class="meta">RGAA 8.5 · WCAG 2.4.2</p>
 <h2 id="page-lang">La page déclare sa langue</h2>
-<p>La langue déclarée règle la voix d'un lecteur d'écran, la césure, et la traduction que propose le navigateur.</p>
+<p>Règle la voix du lecteur d'écran, la césure et la traduction.</p>
 <p class="meta">RGAA 8.3 · WCAG 3.1.1</p>
 <h2 id="doctype">La page déclare son type de document</h2>
-<p>Le doctype demande au navigateur de composer la page selon le standard ; sans lui, le rendu retombe dans les particularités des années 1990.</p>
+<p>Maintient le navigateur en mode standard.</p>
 <p class="meta">RGAA 8.1</p>
 <h2 id="zoom">L'agrandissement n'est pas bloqué</h2>
-<p>Qui a besoin d'un texte plus grand agrandit la page ; un viewport qui l'interdit retire le seul réglage disponible.</p>
+<p>Agrandir la page est le seul réglage dont disposent certains lecteurs.</p>
 <p class="meta">RGAA 10.4 · WCAG 1.4.4</p>
 <h2 id="reflow">Pas de défilement horizontal à 320 px</h2>
-<p>À 320 px de large, largeur d'un petit téléphone ou d'une page agrandie quatre fois, le contenu se lit en ne défilant que dans un sens.</p>
+<p>320 px : un petit téléphone, ou une page zoomée à 400 %. Le contenu défile dans un seul sens.</p>
 <p class="meta">RGAA 10.11 · WCAG 1.4.10 · RGESN 2.5</p>
 <h2 id="main-region">Le contenu principal est balisé</h2>
-<p>Une zone principale balisée permet d'aller droit au contenu, au-delà de ce que chaque page répète.</p>
+<p>Permet de passer ce que chaque page répète.</p>
 <p class="meta">RGAA 9.2 · 12.6 · WCAG 2.4.1</p>
 <h2 id="skip-link">Un lien mène au contenu principal</h2>
-<p>Un premier lien vers le contenu principal épargne à qui navigue au clavier tous les liens répétés, à chaque page.</p>
+<p>Évite au clavier les liens répétés à chaque page.</p>
 <p class="meta">RGAA 12.7 · WCAG 2.4.1</p>
 <h2 id="heading-order">Les niveaux de titre se suivent</h2>
-<p>Les titres sont la table des matières de la page : les technologies d'assistance les listent et sautent de l'un à l'autre, niveau par niveau.</p>
+<p>Les titres sont la table des matières de la page pour les technologies d'assistance.</p>
 <p class="meta">RGAA 9.1 · WCAG 1.3.1</p>
 <h2 id="heading-look">Ce qui a l'air d'un titre en est un</h2>
-<p>Un texte qui a l'air d'un titre sans être balisé comme tel ne titre la page que pour l'œil.</p>
+<p>Un titre stylé mais non balisé est invisible aux technologies d'assistance.</p>
 <p class="meta">RGAA 9.1 · WCAG 1.3.1 · seuils (outil)</p>
 <h2 id="list-look">Ce qui a l'air d'une liste en est une</h2>
-<p>Une liste balisée annonce combien d'éléments elle contient et permet de passer de l'un au suivant.</p>
+<p>Une liste balisée annonce sa longueur et se parcourt élément par élément.</p>
 <p class="meta">RGAA 9.3 · WCAG 1.3.1</p>
 <h2 id="empty-blocks">Aucun élément ne sert d'espace</h2>
-<p>Un élément vide reste annoncé, ou compté, par les technologies d'assistance : l'espacement relève de la feuille de styles.</p>
+<p>Les éléments vides restent annoncés. L'espacement relève du CSS.</p>
 <p class="meta">RGAA 8.9 · WCAG 1.3.1</p>
 <h2 id="presentation">L'apparence est confiée à la feuille de styles</h2>
-<p>Une apparence écrite dans le balisage échappe aux styles du lecteur ; confiée à la feuille de styles, elle s'y adapte.</p>
+<p>Le style écrit dans le balisage écrase les réglages du lecteur.</p>
 <p class="meta">RGAA 10.1 · WCAG 1.3.1</p>
 <h2 id="image-alt">Les images portent une alternative textuelle</h2>
-<p>L'alternative textuelle est ce que dit une image là où elle ne peut être vue : à un lecteur d'écran, à un moteur de recherche, sur une connexion lente.</p>
+<p>Ce que dit une image aux lecteurs d'écran, aux moteurs de recherche et aux connexions lentes.</p>
 <p class="meta">RGAA 1.1–1.3 · WCAG 1.1.1</p>
 <h2 id="text-contrast">Le texte contraste avec son fond</h2>
-<p>Le contraste décide si un texte se lit au soleil, sur un écran fatigué, par des yeux qui ont vieilli ou qui voient autrement les couleurs.</p>
+<p>Lisibilité au soleil, sur écran usé, et pour les vues faibles ou daltoniennes.</p>
 <p class="meta">RGAA 3.2 · WCAG 1.4.3</p>
 <h2 id="link-name">Les liens ont un intitulé</h2>
-<p>L'intitulé d'un lien est tout ce dont dispose un lecteur quand les liens sont listés hors de leur contexte, comme le proposent les technologies d'assistance.</p>
+<p>Les lecteurs d'écran listent les liens hors contexte. Seul l'intitulé reste.</p>
 <p class="meta">RGAA 6.1–6.2 · WCAG 2.4.4</p>
 <h2 id="link-distinct">Des liens vers des lieux différents diffèrent d'intitulé</h2>
-<p>Deux liens de même intitulé menant à deux destinations ne se distinguent pas dans une liste de liens.</p>
+<p>Des intitulés identiques vers des destinations différentes ne se distinguent pas.</p>
 <p class="meta">RGAA 6.1 · WCAG 2.4.4</p>
 <h2 id="button-name">Les boutons ont un intitulé</h2>
-<p>Un bouton sans intitulé est annoncé « bouton », et rien ne dit ce qu'il fait.</p>
+<p>Un bouton sans intitulé est annoncé « bouton », rien de plus.</p>
 <p class="meta">RGAA 11.9 · WCAG 4.1.2</p>
 <h2 id="label-in-name">Les mots montrés figurent dans le nom</h2>
-<p>Qui commande son appareil à la voix dit ce qu'il voit ; la commande n'aboutit que si les mots visibles figurent dans le nom donné par le code.</p>
+<p>Les commandes vocales reprennent les mots visibles. Ils doivent figurer dans le nom codé.</p>
 <p class="meta">RGAA 6.1 · 11.2 · 11.9 · WCAG 2.5.3</p>
 <h2 id="control-label">Les champs de formulaire ont un intitulé</h2>
-<p>Les mots placés près d'un champ disent ce qu'il attend, demeurent quand la saisie commence, et agrandissent la zone que vise un doigt ou un pointeur.</p>
+<p>Le nom visible dit ce que le champ attend et agrandit sa zone cliquable.</p>
 <p class="meta">RGAA 11.1 · WCAG 1.3.1</p>
 <h2 id="group-legend">Les groupes de champs ont une légende</h2>
-<p>La légende nomme la question à laquelle répond un ensemble de choix ; sans elle chaque choix est annoncé seul.</p>
+<p>La légende nomme la question à laquelle répondent les choix.</p>
 <p class="meta">RGAA 11.6 · WCAG 1.3.1</p>
 <h2 id="field-group">Les choix d'une même question sont regroupés</h2>
-<p>Les choix d'une même question se regroupent pour être annoncés, et compris, ensemble.</p>
+<p>Les choix d'une même question sont annoncés ensemble.</p>
 <p class="meta">RGAA 11.5 · WCAG 1.3.1</p>
 <h2 id="autocomplete">Les champs de données personnelles déclarent leur finalité</h2>
-<p>Une finalité déclarée permet au navigateur de remplir le champ pour le lecteur : moins de saisie, moins d'erreurs, et une aide pour qui peine à l'une ou l'autre.</p>
+<p>Les finalités déclarées permettent le remplissage automatique : moins de saisie, moins d'erreurs.</p>
 <p class="meta">RGAA 11.13 · WCAG 1.3.5</p>
 <h2 id="table-headers">Les tableaux de données déclarent leurs en-têtes</h2>
-<p>Les cellules d'en-tête permettent d'annoncer une cellule avec sa colonne et sa ligne ; sans elles un tableau est une suite de valeurs.</p>
+<p>Les en-têtes annoncent chaque cellule avec sa ligne et sa colonne.</p>
 <p class="meta">RGAA 5.3 · 5.6–5.8 · WCAG 1.3.1</p>
 <h2 id="frame-title">Les cadres ont un titre</h2>
-<p>Un cadre contient un autre document ; son titre dit lequel, avant que le lecteur y entre.</p>
+<p>Le titre dit ce que contient un cadre avant d'y entrer.</p>
 <p class="meta">RGAA 2.1 · WCAG 4.1.2</p>
 <h2 id="autoplay">Aucun son ne démarre seul</h2>
-<p>Un son qui démarre seul couvre la voix du lecteur d'écran, par laquelle son utilisateur entend la page.</p>
+<p>Un son qui démarre seul couvre le lecteur d'écran.</p>
 <p class="meta">RGAA 4.10 · WCAG 1.4.2</p>
 <h2 id="media-captions">Les vidéos portent des sous-titres</h2>
-<p>Les sous-titres portent la parole et les sons à qui ne les entend pas, et à quiconque lit sans le son.</p>
+<p>La parole et les sons pour qui n'entend pas, ou coupe le son.</p>
 <p class="meta">RGAA 4.3 · WCAG 1.2.2</p>
 <h2 id="unique-ids">Les id des éléments sont uniques</h2>
-<p>L'intitulé d'un champ, une description, un lien interne : chacun désigne un élément par son id ; un id répété lui fait désigner le mauvais.</p>
+<p>Noms de champs, descriptions et ancres pointent par id. Les doublons pointent mal.</p>
 <p class="meta">RGAA 8.2</p>
 <h2 id="tab-order">Le clavier suit l'ordre de la page</h2>
-<p>Le clavier suit l'ordre du code ; un tabindex positif sort un élément de cet ordre et le place en tête.</p>
+<p>Un tabindex positif sort l'élément de l'ordre de lecture.</p>
 <p class="meta">RGAA 12.8 · WCAG 2.4.3</p>
 <h2 id="hidden-focus">Rien de caché ne prend le focus</h2>
-<p>Un contenu caché aux technologies d'assistance mais atteint au clavier laisse le lecteur sur un élément qui n'est pas annoncé.</p>
+<p>Le focus sur un contenu caché tombe sur un élément jamais annoncé.</p>
 <p class="meta">RGAA 10.8 · WCAG 4.1.2</p>
+<h2 id="focus-visible">Le focus se voit</h2>
+<p>La marque du focus est le seul repère de position au clavier.</p>
+<p class="meta">RGAA 10.7 · WCAG 2.4.7</p>
+<h2 id="keyboard-trap">Le clavier peut quitter ce où il entre</h2>
+<p>Sans souris, un piège rend le reste de la page inaccessible.</p>
+<p class="meta">RGAA 12.9 · WCAG 2.1.2</p>
+<h2 id="lang-code">Les codes de langue sont valides et justes</h2>
+<p>Un code erroné lit le texte avec la mauvaise voix.</p>
+<p class="meta">RGAA 8.4 · 8.7 · 8.8 · WCAG 3.1.1 · 3.1.2</p>
+<h2 id="direction">Le texte de droite à gauche déclare son sens</h2>
+<p>Sans sens déclaré, ponctuation et chiffres tombent du mauvais côté.</p>
+<p class="meta">RGAA 8.10 · WCAG 1.3.2</p>
+<h2 id="text-spacing">Le texte résiste à un espacement élargi</h2>
+<p>Les lecteurs dyslexiques ou malvoyants élargissent l'espacement. Les boîtes fixes coupent alors le texte.</p>
+<p class="meta">RGAA 10.12 · WCAG 1.4.12</p>
+<h2 id="motion">Ce qui bouge peut être arrêté</h2>
+<p>Un mouvement sans fin détourne l'attention et gêne la lecture.</p>
+<p class="meta">RGAA 13.8 · WCAG 2.2.2</p>
+<h2 id="clickable">Ce que le pointeur clique, le clavier l'atteint</h2>
+<p>Une action accessible au seul pointeur est fermée au clavier et aux contacteurs.</p>
+<p class="meta">RGAA 7.3 · WCAG 2.1.1</p>
+<h2 id="generated-text">Les mots restent sans feuille de styles</h2>
+<p>Les mots posés en CSS disparaissent sans styles et ne sont pas toujours lus.</p>
+<p class="meta">RGAA 10.2 · WCAG 1.3.1</p>
+<h2 id="paired-colours">Une couleur de texte vient avec un fond</h2>
+<p>Le fond choisi par le lecteur sous une couleur imposée peut rendre le texte illisible.</p>
+<p class="meta">RGAA 10.5</p>
+<h2 id="link-visible">Les liens se distinguent du texte qui les entoure</h2>
+<p>Un lien qui ressemble à sa phrase se trouve par hasard.</p>
+<p class="meta">RGAA 10.6 · WCAG 1.4.1</p>
+<h2 id="cryptic">Les émojis ont une alternative textuelle</h2>
+<p>Les lecteurs d'écran annoncent un émoji par son nom officiel, qui n'est pas toujours son sens.</p>
+<p class="meta">RGAA 13.5 · 13.6</p>
+<h2 id="captcha">Un CAPTCHA a une autre voie</h2>
+<p>Un test visuel sans alternative exclut quiconque ne le voit pas.</p>
+<p class="meta">RGAA 1.4 · 1.5 · WCAG 1.1.1</p>
+<h2 id="documents">Les documents bureautiques sont accessibles</h2>
+<p>Un PDF sans structure est une image de texte.</p>
+<p class="meta">RGAA 13.3 · 13.4</p>
 <h2 id="no-popup">Aucune fenêtre ne s'ouvre seule</h2>
-<p>Une fenêtre qui s'ouvre seule déplace le lecteur là où il n'a pas choisi d'aller, parfois sans qu'il s'en aperçoive.</p>
+<p>Une fenêtre non demandée déplace le lecteur à son insu.</p>
 <p class="meta">RGAA 13.2 · WCAG 3.2.1</p>
 <h2 id="refresh">La page ne se recharge ni ne s'en va après un délai</h2>
-<p>Une page qui se recharge ou s'en va après un délai retire au lecteur sa place, et son temps.</p>
+<p>Rechargements et redirections minutés retirent le contrôle au lecteur.</p>
 <p class="meta">RGAA 13.1 · WCAG 2.2.1</p>
 <h2 id="ai-disclosure">L'IA conversationnelle est signalée</h2>
-<p>Une personne doit savoir quand son interlocuteur est une machine : le règlement sur l'IA impose de le lui dire.</p>
+<p>Le règlement sur l'IA impose de dire à une personne qu'elle échange avec une machine.</p>
 <p class="meta">AI Act art. 50(1)</p>
 <h2 id="ai-image">Les images produites par IA le disent</h2>
-<p>Une image produite ou modifiée par un système d'IA doit être signalée comme telle à qui la voit ; le fichier lui-même dit souvent d'où il vient.</p>
+<p>Les images produites ou modifiées par IA doivent être signalées. Le fichier indique souvent son origine.</p>
 <p class="meta">AI Act art. 50(2) · 50(4)</p>
 <h2 id="asks-on-arrival">Rien n'est demandé à l'appareil à l'arrivée</h2>
-<p>Une demande de position, de caméra ou de notifications avant que le lecteur ait rien fait reçoit une réponse sans qu'il sache pourquoi on la lui pose.</p>
+<p>Une demande d'autorisation avant toute action reçoit une réponse à l'aveugle.</p>
 <p class="meta">RGESN 4.13 · 6.6 · AI Act art. 50(3)</p>
 <h2 id="third-parties">Les tiers attendent le consentement</h2>
-<p>Chaque tiers est une connexion aux serveurs d'une autre entreprise, ouverte pour chaque lecteur avant qu'il ait rien dit.</p>
+<p>Chaque tiers ouvre une connexion vers une autre entreprise avant le consentement.</p>
 <p class="meta">RGESN 4.4</p>
 <h2 id="media-autoplay">Rien ne se lance seul</h2>
-<p>Un média qui se lance seul est téléchargé et décodé pour des lecteurs qui ne l'ont pas demandé.</p>
+<p>La lecture automatique télécharge et décode un média que personne n'a demandé.</p>
 <p class="meta">RGESN 4.1</p>
 <h2 id="endless">La page a une fin</h2>
-<p>Une page qui s'allonge chaque fois qu'on atteint sa fin n'en a pas : son poids est ce que permet la patience du lecteur, et son pied de page n'est jamais atteint.</p>
+<p>Le défilement infini n'a ni poids fixe ni pied de page accessible.</p>
 <p class="meta">RGESN 4.2 · seuil un écran, deux fois (outil)</p>
 <h2 id="fonts">Les polices sont peu nombreuses et légères</h2>
-<p>Chaque fichier de police est chargé avant que le texte qu'il compose s'affiche tel que dessiné ; deux polices en quatre variantes, ou 400 ko, est la limite du référentiel.</p>
+<p>Chaque fichier de police retarde le texte. Limite du référentiel : deux familles, quatre variantes, 400 ko.</p>
 <p class="meta">RGESN 4.8</p>
 <h2 id="compression">Le texte voyage compressé</h2>
-<p>Le texte se compresse au tiers de sa taille ou moins ; envoyé tel quel, le reste voyage pour rien.</p>
+<p>Le texte se compresse au tiers ou moins. Non compressé, le reste est perdu.</p>
 <p class="meta">RGESN 6.3 · seuil 1 ko (outil)</p>
 <h2 id="caching">Ce qui ne change pas est gardé par le navigateur</h2>
-<p>Un fichier que le navigateur peut garder n'est pas rechargé à la page suivante, ni à la visite suivante.</p>
+<p>Un fichier en cache n'est pas rechargé à la page ou à la visite suivante.</p>
 <p class="meta">RGESN 6.2</p>
 <h2 id="protocol">La page voyage par des protocoles actuels</h2>
-<p>HTTP/2 et 3 portent les fichiers d'une page sur une seule connexion ; TLS 1.3 l'ouvre en moins d'échanges ; IPv6 joint les lecteurs sans traduction d'adresse.</p>
+<p>HTTP/2 et 3 partagent une connexion. TLS 1.3 se connecte plus vite. IPv6 évite la traduction d'adresse.</p>
 <p class="meta">RGESN 3.3 · 6.7</p>
 <h2 id="lazy-images">Les images loin dans la page attendent d'être atteintes</h2>
-<p>Une image loin sous l'écran est payée par chaque lecteur et vue par ceux qui défilent jusqu'à elle.</p>
+<p>Les images loin sous la ligne de flottaison coûtent à tous, sont vues par peu.</p>
 <p class="meta">RGESN 6.5 · seuil deux écrans (outil)</p>
 <h2 id="image-weight">Les images ne dépassent pas leur taille d'affichage</h2>
-<p>Les pixels jamais affichés voyagent, sont décodés et gardés en mémoire quand même, sur la connexion et la batterie du lecteur.</p>
+<p>Les pixels non affichés voyagent, se décodent et consomment mémoire et batterie.</p>
 <p class="meta">RGESN 6.4 · seuil 2× (outil)</p>
 <h2 id="image-format">Les images lourdes utilisent un format récent</h2>
-<p>Les formats récents portent la même image en une fraction des octets.</p>
+<p>AVIF et WebP portent la même image en moins d'octets.</p>
 <p class="meta">RGESN 5.1 · seuil 30 ko (outil)</p>
-<p class="meta">relevé 0.4.0 · critères v5</p>
+<h2 id="review-images">Images, à relire</h2>
+<p>Critères que seul un relecteur peut trancher, une question chacun.</p>
+<p class="meta">RGAA 1.6 · 1.7 · 1.8 · 1.9</p>
+<h2 id="review-frames">Cadres, à relire</h2>
+<p>Critères que seul un relecteur peut trancher, une question chacun.</p>
+<p class="meta">RGAA 2.2</p>
+<h2 id="review-colours">Couleurs, à relire</h2>
+<p>Critères que seul un relecteur peut trancher, une question chacun.</p>
+<p class="meta">RGAA 3.1 · 3.3</p>
+<h2 id="review-media">Médias, à relire</h2>
+<p>Critères que seul un relecteur peut trancher, une question chacun.</p>
+<p class="meta">RGAA 4.1 · 4.2 · 4.4 · 4.5 · 4.6 · 4.7 · 4.8 · 4.9 · 4.11 · 4.12 · 4.13</p>
+<h2 id="review-tables">Tableaux, à relire</h2>
+<p>Critères que seul un relecteur peut trancher, une question chacun.</p>
+<p class="meta">RGAA 5.1 · 5.2 · 5.4 · 5.5</p>
+<h2 id="review-scripts">Scripts, à relire</h2>
+<p>Critères que seul un relecteur peut trancher, une question chacun.</p>
+<p class="meta">RGAA 7.1 · 7.2 · 7.4 · 7.5</p>
+<h2 id="review-title">Titre de page, à relire</h2>
+<p>Critères que seul un relecteur peut trancher, une question chacun.</p>
+<p class="meta">RGAA 8.6</p>
+<h2 id="review-structure">Citations, à relire</h2>
+<p>Critères que seul un relecteur peut trancher, une question chacun.</p>
+<p class="meta">RGAA 9.4</p>
+<h2 id="review-presentation">Présentation, à relire</h2>
+<p>Critères que seul un relecteur peut trancher, une question chacun.</p>
+<p class="meta">RGAA 10.3 · 10.9 · 10.10 · 10.13 · 10.14</p>
+<h2 id="review-forms">Formulaires, à relire</h2>
+<p>Critères que seul un relecteur peut trancher, une question chacun.</p>
+<p class="meta">RGAA 11.3 · 11.4 · 11.7 · 11.8 · 11.10 · 11.11 · 11.12</p>
+<h2 id="review-navigation">Navigation, à relire</h2>
+<p>Critères que seul un relecteur peut trancher, une question chacun.</p>
+<p class="meta">RGAA 12.10 · 12.11</p>
+<h2 id="review-consultation">Consultation, à relire</h2>
+<p>Critères que seul un relecteur peut trancher, une question chacun.</p>
+<p class="meta">RGAA 13.7 · 13.9 · 13.10 · 13.11 · 13.12</p>
+<p class="meta">relevé 0.5.0 · critères v6</p>
 </main>
 </body>
 </html>

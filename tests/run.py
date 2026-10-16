@@ -246,6 +246,132 @@ def main():
           all(x["clear"] <= x["steps"] <= len(es) and (bad or x["steps"] == x["clear"]) and (len(bad) < len(es) or x["steps"] == len(es))
               for (es, bad), x in zip(pages, r)))
 
+    # The points to decide, put to a person. Asking, each point the rule left to a person comes with
+    # yes, no and a note; a failure the rule can show is not put as a question.
+    k = tmp / "keyboard"
+    said = releve("facts", k)[1].decode("utf-8")
+    oid = re.search(r"^Observation `(\w+)`", said, re.M).group(1)
+    left, shown = re.findall(r"^- \*\*REVIEW\*\* .* \{(\w+)\}$", said, re.M), re.findall(r"^- \*\*FAIL\*\* .* \{(\w+)\}$", said, re.M)
+    asked = releve("report", "en", k, "--ask")[1].decode("utf-8")
+    plain = releve("report", "en", k)[1].decode("utf-8")
+    check("asking, each point to decide comes with yes, no and a note, and no failure does",
+          left and shown and all(f'name="a-{oid}-{i}"' in asked and f'id="n-{oid}-{i}"' in asked for i in left)
+          and not any(f"-{i}" in asked for i in shown) and asked.count('type="radio" id="a-') == 2 * len(left)
+          and asked.count("Submit answers") == 1)
+    check("not asking, the report puts the same questions in words, with nothing to fill in",
+          "<input" not in plain and "<button" not in plain and plain.count("Question:") == len(left)
+          and "Is the image decorative?" in plain and "Does the alternative describe the image?" in plain)
+    check("an image put to a person is shown with its file and the words around it",
+          '<a href="http://localhost:8765/plain.png">plain.png</a>' in plain and "Text before: “The words before the picture of the harbour.”" in plain
+          and "Text after: “The words after it, about the boats.”" in plain)
+    answered = edited(said, (rf"^- \*\*REVIEW\*\*(.*) \{{{left[0]}\}}$", rf"- **PASS**\1 // the harbour, as the caption says {{{left[0]}}}"))
+    releve("correct", k, feed=answered)
+    after = releve("report", "en", k, "--ask")[1].decode("utf-8")
+    check("an answer stands as a person's, beside what the rule said, and is no longer asked",
+          "Confirmed by the reviewer (1)" in after and "reviewer's answer; rule: open" in after
+          and "1 answer by the reviewer" in after and f'name="a-{oid}-{left[0]}"' not in after and "the harbour, as the caption says" in after)
+
+    # The longest chain of requests, each asked for by the one before, read from the links the browser reports.
+    said = releve("facts", tmp / "chain")[1].decode("utf-8")
+    check("the longest chain of requests is named, first request first",
+          "- longest chain: 4 requests, each asked for by the one before · chain.html → chain-1.js → chain-2.js → generator.png" in said
+          and json.loads(releve("atlas", tmp / "chain")[1])["footprint"]["chain"][-1].endswith("/generator.png"))
+
+    # Every RGESN criterion is covered once: by a rule that touches it, or by the owner's declaration.
+    rgesn = {f"{f}.{n}" for f, k in enumerate([10, 10, 7, 15, 8, 7, 4, 10, 7], 1) for n in range(1, k + 1)}
+    ruled = set(re.findall(r"\b\d+\.\d+\b", " ".join(l.split("RGESN", 1)[1].split("AI Act")[0] for l in releve("criteria")[1].decode("utf-8").splitlines() if "RGESN" in l)))
+    d = tmp / "declared"
+    releve("ingest", d, feed=(HERE / "observations" / "forms.jsonl").read_bytes())
+    doc = releve("declarations", d)[1].decode("utf-8")
+    listed = re.findall(r"^- RGESN (\S+) · open · ", doc, re.M)
+    check("every RGESN criterion is covered once, by a rule or by a declaration",
+          len(rgesn) == 78 and ruled | set(listed) == rgesn and not ruled & set(listed) and len(listed) == len(set(listed)))
+    # Every RGAA criterion is covered once: by a rule, by a question to the reviewer, or by the owner's declaration.
+    rgaa = {f"{t}.{n}" for t, k in enumerate([9, 2, 3, 13, 8, 2, 5, 10, 4, 14, 13, 11, 12], 1) for n in range(1, k + 1)}
+
+    def numbers(seg):
+        out = set()
+        for tok in re.findall(r"\d+\.\d+(?:–\d+\.\d+)?", seg):
+            if "–" in tok:
+                a, b = tok.split("–")
+                out |= {f"{a.split('.')[0]}.{k}" for k in range(int(a.split(".")[1]), int(b.split(".")[1]) + 1)}
+            else:
+                out.add(tok)
+        return out
+    lines = [l for l in releve("criteria")[1].decode("utf-8").splitlines() if "RGAA" in l]
+    asked_of = [numbers(l.split("RGAA", 1)[1]) for l in lines if l.startswith("review-")]
+    ruled_by = [numbers(l.split("RGAA", 1)[1].split("WCAG")[0]) for l in lines if not l.startswith("review-")]
+    declared_rgaa = set(re.findall(r"^- RGAA (\S+) · open · ", doc, re.M))
+    every = [x for group in asked_of + ruled_by for x in group] + sorted(declared_rgaa)
+    check("every RGAA criterion is covered once, by a rule, by a question or by a declaration",
+          len(rgaa) == 106 and set(every) == rgaa and len(set(x for g in asked_of for x in g) | declared_rgaa) == sum(map(len, asked_of)) + len(declared_rgaa)
+          and not (set(x for g in ruled_by for x in g) & (set(x for g in asked_of for x in g) | declared_rgaa)))
+    check("a declaration shows what the observation saw", "- RGESN 1.6 · open · Is data collected only as needed? · seen: " in doc)
+    answered = edited(doc, (r"^- RGESN 1\.3 · open · (.*)$", r"- RGESN 1.3 · yes · \1 // Anna Teterkina"),
+                      (r"^- RGESN 9\.1 · open · (.*)$", r"- RGESN 9.1 · n/a · \1"))
+    check("an owner's declarations are recorded, and an untouched document records nothing",
+          releve("declare", d, feed=answered)[2] == "2 declarations recorded"
+          and releve("declare", d, feed=releve("declarations", d)[1])[2] == "0 declarations recorded")
+    before = d.read_bytes()
+    code, _, said = releve("declare", d, feed=edited(answered.decode("utf-8"), (r"^- RGESN 1\.4 · open", "- RGESN 1.4 · maybe")))
+    check("an answer that cannot be read is refused, with everything else", code == 1 and "yes, no, n/a or open" in said and d.read_bytes() == before)
+    plain, asked = releve("report", "en", d)[1].decode("utf-8"), releve("report", "en", d, "--ask")[1].decode("utf-8")
+    check("the report says what is declared, and asking, the answer in force is already chosen",
+          "1 yes · 0 no · 1 not applicable · 67 open" in plain and "Anna Teterkina" in plain and "2 are declared so far" in plain
+          and 'id="d-rgesn-1-3-yes" name="d-rgesn-1-3" value="yes" checked' in asked and asked.count("<fieldset>") >= 69)
+    releve("declare", d, feed=edited(releve("declarations", d)[1].decode("utf-8"), (r"^- RGESN 1\.3 · yes", "- RGESN 1.3 · open")))
+    check("a declaration withdrawn is open again", "0 yes · 0 no · 1 not applicable · 68 open" in releve("report", "en", d)[1].decode("utf-8")
+          and releve("verify", d)[0] == 0)
+
+    # A question is put only where what it asks about can exist: shortcuts, gestures and motion
+    # need a script; a legend needs a group; option groups need a list.
+    plain_page, scripted_page, forms_page = ((HERE / "expected" / f"{n}.md").read_text(encoding="utf-8") for n in ("tables", "page", "forms"))
+    check("a page without script is not asked about scripts, shortcuts, gestures or motion",
+          "review-scripts: n/a · no script on the page" in plain_page
+          and not re.search(r"RGAA (7\.\d|12\.10|13\.1[0-2]) ·", plain_page)
+          and all(f"RGAA {i} · this page" in scripted_page for i in ("7.1", "12.10", "13.10", "13.12")))
+    check("a form is asked about legends and option groups only when it has them",
+          "RGAA 11.7 ·" in forms_page and "RGAA 11.8 ·" not in forms_page)
+    check("a link that names its language in that language needs no question",
+          "lang-code: 1 of 5 pass" in scripted_page)
+
+    # Pages built on the same template are asked what it decides once, and one answer covers them all,
+    # while each keeps that template; a page that changes it, or a page first seen later, is asked again.
+    base = json.loads((HERE / "observations" / "chain.jsonl").read_text(encoding="utf-8"))
+
+    def clone(path, bump=0):
+        o = json.loads(json.dumps(base))
+        o["url"] = "http://localhost:8765/" + path
+        for r in o["network"]["resources"]:
+            r["bytes"] += bump if r["kind"] == "Script" else 0
+        return json.dumps(o, ensure_ascii=False).encode("utf-8")
+    t = tmp / "template"
+    for name in ("one", "two", "three"):
+        releve("ingest", t, feed=clone(name))
+    whole = releve("facts", t, "--all")[1].decode("utf-8")
+    shared = re.findall(r"^- \*\*REVIEW\*\* review-[\w-]+ · 3 pages · RGAA [\d.]+ → .* \{\w+\}$", whole, re.M)
+    check("a question about the page as a whole is asked once for the pages that share a template",
+          "Template `" in whole and len(shared) >= 8 and whole.count("## Shared (") == 4
+          and len(re.findall(r"RGAA 3\.1\b", whole)) == 1)
+    code, _, said = releve("correct", t, feed=edited(whole, (r"^- \*\*REVIEW\*\* (review-colours · 3 pages · RGAA 3\.1 → .*?) \{", r"- **PASS** \1 // the template, read once {")))
+    of = lambda page: releve("facts", t, "http://localhost:8765/" + page)[1].decode("utf-8")
+    passed = r"^- \*\*PASS\*\* review-colours · page · RGAA 3\.1 · this page .* machine said REVIEW // the template, read once \{"
+    check("one answer stands for every page counted with it",
+          code == 0 and said == "1 correction recorded" and all(re.search(passed, of(p), re.M) for p in ("one", "two", "three")))
+    releve("ingest", t, feed=clone("two", bump=1))
+    releve("ingest", t, feed=clone("four"))
+    whole = releve("facts", t, "--all")[1].decode("utf-8")
+    check("a page that changes its template is asked again, and so is a page first seen later; the others keep the answer",
+          re.search(r"^- \*\*REVIEW\*\* review-colours · page · RGAA 3\.1 · .* read otherwise before this changed", of("two"), re.M) is not None
+          and re.search(passed, of("one"), re.M) is not None and re.search(passed, of("four"), re.M) is None
+          and re.search(r"^- \*\*REVIEW\*\* review-colours · 3 pages · RGAA 3\.1 → .* answered otherwise on some pages \{", whole, re.M) is not None)
+
+    # The keyboard walk names an element as the record does: the same lines, in both files.
+    def naming(f):
+        return re.search(r"  const ids = new Map\(\);.*?\n  }\n", (HERE.parent / "observe" / f).read_text(encoding="utf-8"), re.S).group(0)
+    check("the keyboard walk and the spacing pass name an element as the record does",
+          naming("keys.js") == naming("extract.js") == naming("spacing.js"))
+
     (tmp / "damaged").write_bytes(b"\n\nnot a record\n")
     code, _, said = releve("facts", tmp / "damaged")
     check("a damaged corpus is refused, with its line", code == 1 and "line 3" in said)
@@ -253,7 +379,7 @@ def main():
     # Reports name the criteria version that judged them, so the criteria cannot change under an
     # unchanged version: raise `version` in Criteria.hs, then --accept records the new digest.
     said = releve("--version")[1].decode("utf-8")
-    source = b"".join((HERE.parent / "kernel" / "src" / "Releve" / f).read_bytes().replace(b"\r\n", b"\n") for f in ("Criteria.hs", "Colour.hs"))
+    source = b"".join((HERE.parent / "kernel" / "src" / "Releve" / f).read_bytes().replace(b"\r\n", b"\n") for f in ("Criteria.hs", "Checklist.hs", "Colour.hs"))
     now = said.split("criteria v")[1].strip() + " " + hashlib.sha256(source).hexdigest()
     record = HERE / "expected" / "criteria.txt"
     if accept and (not record.exists() or record.read_text(encoding="utf-8").split()[0] != now.split()[0]):

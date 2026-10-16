@@ -1,0 +1,22 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr> -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<!-- Chain: each request waits on the one before.
+
+     footprint      the longest chain is 4 requests: this page, chain-1.js, chain-2.js, generator.png (fetched)
+                    the image named in the page itself hangs from the page alone -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chain</title>
+  <script src="chain-1.js"></script>
+</head>
+<body>
+  <main>
+    <h1>Chain</h1>
+    <p>The words of the page.</p>
+    <img src="logo.png" alt="" width="40" height="40">
+  </main>
+</body>
+</html>

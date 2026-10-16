@@ -1,12 +1,12 @@
 # Relevé · http://localhost:8765/fixture.html
 
-Observation `c5885ab7` · 2026-10-11T17:41:57+00:00 · criteria v5 · screenshot `c331abf4b86e8edc` · Chromium 141.0.7390.37  
-29 surfaces · 13 fail · 8 review · 3 hint · 31 pass · first observation of this page
+Observation `7422c8c2` · 2026-10-16T08:54:22+00:00 · criteria v6 · screenshot `c331abf4b86e8edc` · Chromium 141.0.7390.37  
+29 surfaces · 15 fail · 51 review · 3 hint · 37 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
 To correct a line, change its verdict word or add a note after `//`, then run `releve correct`.
 
-## Fail (13)
+## Fail (15)
 
 - **FAIL** page-title · page · the page has no title → add a \<title> that names the page {e7e6f619}
 - **FAIL** page-lang · page · no lang on \<html> → set lang on \<html>, e.g. lang="fr" {d1097b6b}
@@ -21,17 +21,62 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - **FAIL** frame-title · `body > iframe` · frame without a title → add a title that says what the frame holds {3229c18c}
 - **FAIL** autoplay · `body > video` · plays sound on load → add muted, or remove autoplay {834334b1}
 - **FAIL** unique-ids · page · id “dup” used 2 times → give each element its own id {4b8179e0}
+- **FAIL** paired-colours · `body > p.pale:nth-of-type(1)` · text colour set, no background set → set a background colour on it or on a parent {53dc264c}
+- **FAIL** paired-colours · `body > p.ok:nth-of-type(2)` · text colour set, no background set → set a background colour on it or on a parent {4713f7a8}
 
-## Review (8)
+## Review (51)
 
 - **REVIEW** main-region · page · no main landmark → wrap the main content in \<main> {f5adde0e}
 - **REVIEW** heading-order · `body > h3` · h1 then h3 “Skipped a level” → h2 {d3953980}
-- **REVIEW** image-alt · `body > img:nth-of-type(2)` · alt “IMG\_2031.jpg” looks like a file name → describe what the image shows {ce395394}
+- **REVIEW** image-alt · `body > header > nav > a:nth-of-type(2) > img` · alt="", marked decorative → add an alternative describing the image {b2a324a2}
+- **REVIEW** image-alt · `body > img:nth-of-type(2)` · alt “IMG\_2031.jpg”, a file name → rewrite the alternative to describe the image {ce395394}
 - **REVIEW** text-contrast · `body > div.banner:nth-of-type(1)` · text over a background image · “Text over a background image.” {804e767f}
 - **REVIEW** link-name · `body > a` · link “en savoir plus” depends on its context → name the destination {85ed634e}
 - **REVIEW** autocomplete · `body > form > input:nth-of-type(1)` · the field “email” declares no purpose → if it asks for the visitor's own data, add autocomplete="email" {2b08a85f}
 - **REVIEW** autocomplete · `#n` · the field “Nom” declares no purpose → if it asks for the visitor's own data, add autocomplete="family-name" {c010fbf7}
 - **REVIEW** media-captions · `body > video` · video without a caption track → if it carries speech, add \<track kind="captions"> {4600a9c9}
+- **REVIEW** review-images · page · RGAA 1.6 · 3 images → add a description nearby or linked by aria-describedby {0526aa1f}
+- **REVIEW** review-images · page · RGAA 1.7 · 3 images → rewrite the description {282f8865}
+- **REVIEW** review-images · page · RGAA 1.8 · 3 images → set the text as text {224a0e03}
+- **REVIEW** review-images · page · RGAA 1.9 · 3 images → wrap image and caption in \<figure> with \<figcaption> {ce091c94}
+- **REVIEW** review-frames · page · RGAA 2.2 · 1 frames → rewrite the frame's title {164fa3f6}
+- **REVIEW** review-colours · page · RGAA 3.1 · this page → add text, a shape or a pattern beside the color {0d0fcd2b}
+- **REVIEW** review-colours · page · RGAA 3.3 · this page → raise their contrast to 3:1 {ba9f12a0}
+- **REVIEW** review-media · page · RGAA 4.1 · 1 audio or video elements → add a transcript {eb4ec88e}
+- **REVIEW** review-media · page · RGAA 4.2 · 1 audio or video elements → rewrite it to match {e25aadf0}
+- **REVIEW** review-media · page · RGAA 4.4 · 1 audio or video elements → correct the captions {ec681b39}
+- **REVIEW** review-media · page · RGAA 4.5 · 1 audio or video elements → add an audio description {002c12c3}
+- **REVIEW** review-media · page · RGAA 4.6 · 1 audio or video elements → rewrite the audio description {24a8cb3f}
+- **REVIEW** review-media · page · RGAA 4.7 · 1 audio or video elements → name the media beside it {2dc5035a}
+- **REVIEW** review-media · page · RGAA 4.8 · 1 audio or video elements → add an alternative {8e371b70}
+- **REVIEW** review-media · page · RGAA 4.9 · 1 audio or video elements → rewrite the alternative {abbbc1c6}
+- **REVIEW** review-media · page · RGAA 4.11 · 1 audio or video elements → use a player whose controls take the focus {af663d0a}
+- **REVIEW** review-media · page · RGAA 4.12 · 1 audio or video elements → make its controls reachable by keyboard {38715fd5}
+- **REVIEW** review-media · page · RGAA 4.13 · 1 audio or video elements → give its controls names and roles {0aecf9f7}
+- **REVIEW** review-scripts · page · RGAA 7.1 · this page → use native elements, or the matching ARIA pattern {04d649b5}
+- **REVIEW** review-scripts · page · RGAA 7.2 · this page → make the alternative complete {c7bc7cd2}
+- **REVIEW** review-scripts · page · RGAA 7.4 · this page → start changes of context on a button only {ad1847d8}
+- **REVIEW** review-scripts · page · RGAA 7.5 · this page → put them in role="status" or role="alert" {213dbec2}
+- **REVIEW** review-structure · page · RGAA 9.4 · this page → mark quotations with \<q> or \<blockquote> {78b9d89c}
+- **REVIEW** review-presentation · page · RGAA 10.3 · this page → order the code as the page reads {28d2af9d}
+- **REVIEW** review-presentation · page · RGAA 10.9 · this page → add text to the shape, size or position {ea5933eb}
+- **REVIEW** review-presentation · page · RGAA 10.10 · this page → put the text equivalent in the code {2d827e46}
+- **REVIEW** review-presentation · page · RGAA 10.13 · this page → close it with Escape; keep it while hovered {b8a9d60f}
+- **REVIEW** review-presentation · page · RGAA 10.14 · this page → show it on :focus-within as on :hover {49d9faa2}
+- **REVIEW** review-forms · page · RGAA 11.3 · 2 form fields → name them alike {edd043dc}
+- **REVIEW** review-forms · page · RGAA 11.4 · 2 form fields → place the name beside the field {89e9da4a}
+- **REVIEW** review-forms · page · RGAA 11.7 · 2 form fields → rewrite the legend {45802385}
+- **REVIEW** review-forms · page · RGAA 11.8 · 2 form fields → group them with \<optgroup> {cfd8938d}
+- **REVIEW** review-forms · page · RGAA 11.10 · 2 form fields → state required fields and formats; name each error {65b0422d}
+- **REVIEW** review-forms · page · RGAA 11.11 · 2 form fields → suggest the correction {b4ef0857}
+- **REVIEW** review-forms · page · RGAA 11.12 · 2 form fields → add a review step before sending {daf591d6}
+- **REVIEW** review-navigation · page · RGAA 12.10 · this page → add a modifier key, or a setting to turn them off {1114b1f0}
+- **REVIEW** review-navigation · page · RGAA 12.11 · this page → make it reachable with Tab {879ef122}
+- **REVIEW** review-consultation · page · RGAA 13.7 · this page → remove the flashing {8ea4a450}
+- **REVIEW** review-consultation · page · RGAA 13.9 · this page → remove the orientation lock {04984447}
+- **REVIEW** review-consultation · page · RGAA 13.10 · this page → add buttons for each gesture {37fe54af}
+- **REVIEW** review-consultation · page · RGAA 13.11 · this page → act on release, not on press {e41e32b7}
+- **REVIEW** review-consultation · page · RGAA 13.12 · this page → add a control, and a setting to turn motion off {ba389baa}
 
 ## Hint (3)
 
@@ -53,7 +98,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - list-look: 1 of 1 pass
 - empty-blocks: 1 of 1 pass
 - presentation: 1 of 1 pass
-- image-alt: 1 of 4 pass
+- image-alt: 0 of 4 pass
 - text-contrast: 10 of 12 pass
 - link-name: 1 of 3 pass
 - link-distinct: 1 of 1 pass
@@ -70,6 +115,19 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - unique-ids: 0 of 1 pass
 - tab-order: 1 of 1 pass
 - hidden-focus: 1 of 1 pass
+- focus-visible: 1 of 1 pass
+- keyboard-trap: 1 of 1 pass
+- lang-code: n/a · the page states no language
+- direction: n/a · no right-to-left script on the page
+- text-spacing: 1 of 1 pass
+- motion: 1 of 1 pass
+- clickable: 1 of 1 pass
+- generated-text: 1 of 1 pass
+- paired-colours: 0 of 2 pass
+- link-visible: 1 of 1 pass
+- cryptic: n/a · no emoji on the page
+- captcha: n/a · no CAPTCHA loaded
+- documents: n/a · no office document linked
 - no-popup: 1 of 1 pass
 - refresh: n/a · no timed refresh declared
 - ai-disclosure: n/a · no conversational widget detected
@@ -85,16 +143,28 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - lazy-images: n/a · no image below the second screen
 - image-weight: 2 of 3 pass
 - image-format: 2 of 3 pass
+- review-images: 0 of 4 pass
+- review-frames: 0 of 1 pass
+- review-colours: 0 of 2 pass
+- review-media: 0 of 11 pass
+- review-tables: n/a · no tables on the page
+- review-scripts: 0 of 4 pass
+- review-title: n/a · the page has no title
+- review-structure: 0 of 1 pass
+- review-presentation: 0 of 5 pass
+- review-forms: 0 of 7 pass
+- review-navigation: 0 of 2 pass
+- review-consultation: 0 of 5 pass
 
 ## Footprint
 
-- 33 elements · 5 requests · 531 kB transferred · 0 third-party hosts
+- 33 elements · 5 requests · 532 kB transferred · 0 third-party hosts
 
 ## Reading
 
 - 17 events · 5 shown and not said · 0 said and not shown
 - depth 16: the longest run the markup obliges
-- the page says 126 bytes; 4319 bytes travel for each
+- the page says 126 bytes; 4323 bytes travel for each
 - one at a time, by ear: 12 steps
 - up to 4 at a time: 17 steps as the page stands · 16 with nothing failing (between 16 and 16 at this depth and size)
 - mending, in order: page-lang leaves 17 steps, zoom leaves 17 steps, reflow leaves 16 steps

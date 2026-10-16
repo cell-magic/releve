@@ -380,6 +380,95 @@
     }
   }
 
+  // Languages within the page: every element that declares one other than the page's.
+  const own = (document.documentElement.getAttribute("lang") || "").trim().toLowerCase();
+  const langs = [...document.querySelectorAll("body [lang], body [xml\\:lang]")]
+    .map(n => [path(n), (n.getAttribute("lang") || n.getAttribute("xml:lang") || "").trim()])
+    .filter(([, l]) => l.toLowerCase() !== own).slice(0, 30);
+
+  // Text in a right-to-left script, and whether anything declares the direction.
+  const said = (document.body ? document.body.innerText : "").slice(0, 200000);
+  const rtl = { chars: (said.match(/[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/g) || []).length,
+                marked: !!document.querySelector('[dir="rtl" i], bdo') };
+  const emoji = (said.match(/\p{Extended_Pictographic}/gu) || []).length;
+
+  // Words set by the style sheet alone, before or after an element: lost when styles are off.
+  const generated = [];
+  for (const n of all) {
+    if (generated.length >= 20) break;
+    if (!rendered(n)) continue;
+    for (const at of ["::before", "::after"]) {
+      const c = getComputedStyle(n, at).content;
+      if (c && c !== "none" && c !== "normal" && /^["'].*[\p{L}\p{N}].*["']$/u.test(c)) { generated.push([path(n), clip(c.slice(1, -1))]); break; }
+    }
+  }
+
+  // Text whose colour is set while no background is, on it or around it.
+  // A colour the author set: not the browser's own black, nor its blue and purple for links.
+  const inked = (c, el) => { const [r, g, b] = rgba(c); const k = r + "," + g + "," + b;
+    return k !== "0,0,0" && !(el.closest("a[href]") && (k === "0,0,238" || k === "85,26,139")); };
+  const grounded = el => { for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
+      const cs = getComputedStyle(n); if (rgba(cs.backgroundColor)[3] > 0 || (cs.backgroundImage && cs.backgroundImage !== "none")) return true; }
+    return false; };
+  const unpaired = [];
+  for (const n of all) {
+    if (unpaired.length >= 20) break;
+    if (![...n.childNodes].some(c => c.nodeType === 3 && c.textContent.trim()) || !rendered(n)) continue;
+    if (inked(getComputedStyle(n).color, n) && !grounded(n)) unpaired.push(path(n));
+  }
+
+  // Links set within running text that differ from it neither by underline, nor border, nor a contrast of 3:1.
+  const lum = ([r, g, b]) => { const f = v => (v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
+  const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+  const blended = [];
+  for (const a of document.querySelectorAll("p a[href], li a[href], td a[href], dd a[href]")) {
+    if (blended.length >= 20) break;
+    const host = a.parentElement;
+    if (!rendered(a) || ![...host.childNodes].some(c => c !== a && c.nodeType === 3 && c.textContent.trim())) continue;
+    const ca = getComputedStyle(a), ch = getComputedStyle(host);
+    const marked = /underline/.test(ca.textDecorationLine) || parseFloat(ca.borderBottomWidth) > 0 || /underline/.test(ch.textDecorationLine)
+      || parseInt(ca.fontWeight) - parseInt(ch.fontWeight) >= 300 || ca.fontStyle !== ch.fontStyle;
+    if (!marked && ratio(rgba(ca.color), rgba(ch.color)) < 3) blended.push(path(a));
+  }
+
+  // What the pointer can click and the keyboard cannot reach: a pointer cursor on an element no key can focus.
+  const reachable = n => n.matches(FOCUS) || !!n.closest("a[href], button, label, summary, select, input, textarea, [tabindex]");
+  const clickable = [];
+  for (const n of all) {
+    if (clickable.length >= 20) break;
+    if (!rendered(n) || reachable(n) || n.querySelector(FOCUS)) continue;
+    const pointer = getComputedStyle(n).cursor === "pointer" && (!n.parentElement || getComputedStyle(n.parentElement).cursor !== "pointer");
+    if (n.hasAttribute("onclick")) clickable.push([path(n), "handler"]);
+    else if (pointer) clickable.push([path(n), "pointer"]);
+  }
+
+  // What moves by itself without end: looping animations on what is shown, marquees, looping videos that play alone.
+  const looping = (document.getAnimations ? document.getAnimations() : [])
+    .filter(x => x.effect && x.effect.getComputedTiming().iterations === Infinity && x.playState === "running"
+            && x.effect.target && x.effect.target.nodeType === 1 && rendered(x.effect.target))
+    .map(x => path(x.effect.target));
+  const moving = [...new Set([...looping, ...[...document.querySelectorAll("marquee, blink, video[autoplay][loop]")].filter(rendered).map(path)])].slice(0, 20);
+
+  // How much script the page carries in its markup: script elements that run, handlers written as attributes,
+  // and javascript: links. Scripts fetched from elsewhere are also in the network record.
+  const RUNS = /^((text|application)\/(x-)?(java|ecma)script|module)$/i;
+  const scripted = [...document.scripts].filter(x => !x.type.trim() || RUNS.test(x.type.trim())).length
+    + [...document.querySelectorAll("*")].filter(n => [...n.attributes].some(a => a.name.startsWith("on"))).length
+    + document.querySelectorAll('a[href^="javascript:" i]').length;
+
+  // The style sheets written into the page, as one digest (cyrb53): with the files it loads, what makes its template.
+  const digest = text => {
+    let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+    for (let i = 0; i < text.length; i++) {
+      const c = text.charCodeAt(i);
+      h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return (h2 >>> 0).toString(16).padStart(8, "0") + (h1 >>> 0).toString(16).padStart(8, "0");
+  };
+  const inline = digest([...document.querySelectorAll("style")].map(x => x.textContent).join("\n"));
+
   const vp = document.querySelector('meta[name="viewport"]');
   const refresh = document.querySelector('meta[http-equiv="refresh" i]');
   return {
@@ -394,6 +483,7 @@
       styling: [...styling], empties, tabbed, hiddenFocus, skip, before, mains: mains.length,
       refresh: refresh ? txt(refresh.getAttribute("content")) : null,
       opened: window.__opened || 0, asked: window.__asked || [],
+      langs, rtl, emoji, generated, unpaired, blended, clickable, moving, scripted, inline,
     },
     surfaces, events, sources,
   };

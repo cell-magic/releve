@@ -51,7 +51,9 @@ page ──observe──▶ observation ──releve ingest──▶ corpus   (a
 5. **Say where judgement ends.** `FAIL` means a stated rule is broken.
    `REVIEW` means a person must decide: a machine cannot know whether an
    image is decorative. `HINT` means nothing is broken, but something could
-   be lighter. The tool does not guess.
+   be lighter. The tool does not guess. Where it cannot decide, it puts the
+   question, in words a person answers with yes or no; a failure it can
+   show is never put as a question.
 6. **Corrections are events, not edits.** A person's reading of a finding is
    appended to the corpus like any observation. It holds for that page from
    then on, for as long as what is seen reads the same. Where the person
@@ -80,6 +82,18 @@ the file back through `releve correct`. Lines left untouched record
 nothing. A line changed in a way that cannot be read is refused, and
 nothing is recorded: a decision is never dropped in silence.
 
+A question asked of the page as a whole, such as whether information is
+given by colour alone, comes back word for word on every page built on the
+same template. Pages share a template when they load the same style sheets
+and scripts, at the same sizes, and carry the same style sheets written into
+them; fonts are left out, since a browser fetches only those a page uses.
+With `--all`, such a question is asked once, under "the whole site", and
+one answer covers every page counted with it, recorded as one event. The
+answer holds on each of those pages, and on their later observations, while
+the page keeps that template; a page that changes it is asked again, and so
+is a page first seen later. A question about what a page holds, its images,
+its fields, its tables, its language, stays with the page.
+
 **report** is one page of HTML, without script, in English or in French,
 for the person whose pages they are. The method comes before the findings.
 Each finding stands with its remedy, under its criterion and what that
@@ -87,6 +101,16 @@ criterion is for; the lightest work comes first; and the page ends on what
 was not looked at. Read from a corpus, it says what changed since the
 last observation. Read from standard input (`releve report en -`), it
 writes the report and keeps nothing.
+
+**declarations** lists the criteria that no rule can see from a page and
+that hold for a whole site: the 64 RGESN 2024 criteria on how the service
+is decided, built, hosted and run, and the 5 RGAA criteria on a set of
+pages (navigation systems, menus, site map, search). Each line
+holds the owner's answer, yes, no, n/a or open, a note after `//`, and
+what the latest observation saw that bears on it. Edited and piped back
+through `releve declare`, the changed lines become events that hold for
+the whole record. The questions are this tool's
+short form; the official text prevails, and every report links to it.
 
 **atlas** is JSON lines, one per observation: the page's shape (its
 landmarks, headings and controls in reading order), its footprint, what
@@ -106,6 +130,8 @@ cabal install                     # builds `releve`; or take a built one from th
 python observe/observe.py https://example.org --contact https://you.example/robot | releve ingest corpus.jsonl
 releve facts corpus.jsonl > facts.md       # proofread, edit
 releve correct corpus.jsonl < facts.md     # your edits become events
+releve declarations corpus.jsonl > d.md    # the RGESN criteria no rule can see, to declare
+releve declare corpus.jsonl < d.md         # the owner's answers become events
 releve report fr corpus.jsonl > report.html # for the pages' owner; en or fr
 releve atlas corpus.jsonl > atlas.jsonl
 releve verify corpus.jsonl
@@ -121,8 +147,10 @@ read what the robot does and reach whoever runs it. `releve facts` takes an obse
 to the latest; `--all` gives the latest report of every page in one
 document, which `releve correct` reads back section by section.
 
-Everything is UTF-8 with line feeds, on every system. Windows PowerShell 5
-re-encodes what passes through `|` and `>`: use `cmd`, or PowerShell 7.
+Everything is UTF-8 with line feeds, on every system. The observer writes
+its records in ASCII alone, so they pass through any shell unchanged. Windows
+PowerShell 5 still re-encodes the reports `releve` writes, and turns `>` into
+UTF-16: use `cmd`, or PowerShell 7.
 
 ## As a page anyone can use
 
@@ -145,6 +173,16 @@ without script.
   shows them: `serve/counts.py FILE` prints the weeks that have ended, a
   region counted fewer than five times in a week shown as such.
   `--counts FILE` keeps them across restarts.
+- **What a rule cannot decide is put to the person.** Each point to decide
+  comes as a question with yes, no and a note, inside the report. The
+  answers go back with the record, in the same form; they are written into
+  it as that person's readings, beside what the rule said, and the report
+  comes back as it now stands. No page is visited for that, and nothing is
+  counted.
+- **The owner declares what no page shows.** The report ends with the
+  RGESN criteria that are declared, not observed, each with yes, no, not
+  applicable and a note, the answer in force already chosen. They travel
+  in the same form, and only what changed is written into the record.
 - **The record belongs to whoever asked.** Each report offers its record
   as a small file. Handed back with the next request, it lets the report
   say what was mended, what is new and what stands. The record is the
@@ -196,7 +234,7 @@ commented with the reading it should produce. The recorded observations
 and expected reports sit beside them, so any change in judgement shows up
 as a diff to review.
 
-## Criteria (v5)
+## Criteria (v6)
 
 | id | checks | source |
 |---|---|---|
@@ -212,7 +250,7 @@ as a diff to review.
 | list-look | what looks like a list is one | RGAA 9.3 · WCAG 1.3.1 |
 | empty-blocks | no element is used as a gap | RGAA 8.9 · WCAG 1.3.1 |
 | presentation | appearance is left to the style sheet | RGAA 10.1 · WCAG 1.3.1 |
-| image-alt | images carry a text alternative | RGAA 1.1–1.3 · WCAG 1.1.1 |
+| image-alt | images carry a text alternative; a person says whether it is decorative, and whether the alternative says what the image says | RGAA 1.1–1.3 · WCAG 1.1.1 |
 | text-contrast | text contrasts with its background | RGAA 3.2 · WCAG 1.4.3 |
 | link-name | links have a name | RGAA 6.1–6.2 · WCAG 2.4.4 |
 | link-distinct | links to different places differ in name | RGAA 6.1 · WCAG 2.4.4 |
@@ -229,6 +267,19 @@ as a diff to review.
 | unique-ids | element ids are unique | RGAA 8.2 |
 | tab-order | the keyboard follows the order of the page | RGAA 12.8 · WCAG 2.4.3 |
 | hidden-focus | nothing hidden takes the focus | RGAA 10.8 · WCAG 4.1.2 |
+| focus-visible | the focus can be seen | RGAA 10.7 · WCAG 2.4.7 |
+| keyboard-trap | the keyboard can leave what it enters | RGAA 12.9 · WCAG 2.1.2 |
+| lang-code | language codes are valid; a person says they are right | RGAA 8.4 · 8.7 · 8.8 · WCAG 3.1.1 · 3.1.2 |
+| direction | right-to-left text declares its direction | RGAA 8.10 · WCAG 1.3.2 |
+| text-spacing | text survives wider spacing | RGAA 10.12 · WCAG 1.4.12 |
+| motion | what moves without end can be stopped | RGAA 13.8 · WCAG 2.2.2 |
+| clickable | what the pointer clicks, the keyboard reaches | RGAA 7.3 · WCAG 2.1.1 |
+| generated-text | words stay without the style sheet | RGAA 10.2 · WCAG 1.3.1 |
+| paired-colours | a text colour comes with a background | RGAA 10.5 |
+| link-visible | links stand out from the text around them | RGAA 10.6 · WCAG 1.4.1 |
+| cryptic | emoji have a text alternative | RGAA 13.5 · 13.6 |
+| captcha | a CAPTCHA has another way through | RGAA 1.4 · 1.5 · WCAG 1.1.1 |
+| documents | office documents are accessible | RGAA 13.3 · 13.4 |
 | no-popup | no window opens by itself | RGAA 13.2 · WCAG 3.2.1 |
 | refresh | the page does not reload or leave on a timer | RGAA 13.1 · WCAG 2.2.1 |
 | ai-disclosure | conversational AI is disclosed | AI Act art. 50(1) |
@@ -244,6 +295,12 @@ as a diff to review.
 | lazy-images | images far down the page wait to be reached | RGESN 6.5; the threshold (two screens) is the tool's |
 | image-weight | images are not larger than shown | RGESN 6.4; the threshold (2×) is the tool's |
 | image-format | heavy images use a modern format | RGESN 5.1; the threshold (30 kB) is the tool's |
+| review-images … review-consultation | twelve themes of questions, one per RGAA criterion no rule decides, put to the reviewer for each page, and once for pages that share a template where it asks of the page as a whole; a theme, or a question, is not applicable where the page holds nothing it applies to | RGAA 1.6–1.9 · 2.2 · 3.1 · 3.3 · 4.1–4.13 · 5.1–5.5 · 7.1–7.5 · 8.6 · 9.4 · 10.3 · 10.9 · 10.10 · 10.13 · 10.14 · 11.3–11.12 · 12.10 · 12.11 · 13.7 · 13.9–13.12 |
+
+Rules, questions and declarations together cover each of the 106 RGAA
+criteria and the 78 RGESN criteria once; `tests/run.py` holds them to it.
+To cover a criterion is not to settle it: a question is settled by the
+reviewer's answer, a declaration by the owner's.
 
 Each criterion is one entry in `kernel/src/Releve/Criteria.hs`: what it
 checks, its source, what it is for, and one pure function. Whatever a
@@ -279,6 +336,11 @@ guide to this, in both languages.
   `data:` address is not, and what the measuring itself fetches (the
   screenshot, the 320 px pass) is left out. Document nodes include those
   inside inline SVG, which some other tools leave out.
+- The longest chain is read from what the browser says asked for each
+  request: the document that names a file, or the script that fetched it.
+  An image a script sets in the page is credited by the browser to the page
+  itself, so the chain may be longer than shown, never shorter. A chain
+  is named from three requests: the page and what it names is every page.
 - Rule references are indicative; the rule texts prevail.
 
 ## Conduct
@@ -307,7 +369,15 @@ configuration, and `tests/conduct.py` checks each of them:
   a form by its own script, is not recorded; the form is never sent.
 - It submits no forms, opens no windows, dismisses no dialogs, keeps no
   session, and names
-  itself (`releve-observe/0.4`) with its operator's contact address.
+  itself (`releve-observe/0.5`) with its operator's contact address.
+- Once a page is recorded, the text spacing a reader may set (WCAG 1.4.12)
+  is put on and taken off again, and the text it cuts is noted.
+- Once a page is recorded, it is taken by keyboard: Tab after Tab from the
+  top, up to 120 times, and Shift+Tab and Escape where Tab holds still. At
+  each of the first 30 stops the screen with the element focused is
+  compared with the screen with it left. No other key is pressed: nothing
+  is typed, chosen or activated, and what the keys open or move is not
+  part of what was recorded.
 - What a page asks of the device on arrival (notifications, location,
   camera) is noted and not granted. What an image file says of its own
   making is read from the bytes already fetched; nothing more is requested.

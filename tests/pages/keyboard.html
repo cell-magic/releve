@@ -1,0 +1,44 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr> -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<!-- Keyboard: the page taken by Tab alone.
+
+     focus-visible  FAIL    the button whose focus is styled away shows nothing
+                    none    the link with its own focus style · the field with the browser's ring
+     keyboard-trap  FAIL    the box that takes the focus and swallows Tab, Shift+Tab and Escape
+                    none    everything before it leads on
+     image-alt      REVIEW  every image the rule cannot judge: is it decorative; does its alternative say what it shows -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Keyboard</title>
+  <style>
+    body { font: 16px/1.5 sans-serif; margin: 2rem; }
+    a:focus-visible { outline: 3px solid #1f3a8a; outline-offset: 2px; }
+    .bare:focus { outline: none; box-shadow: none; }
+    .bare { border: 1px solid #333; background: #eee; padding: .3rem .6rem; font: inherit; }
+    .hold { display: inline-block; padding: .5rem; border: 1px solid #999; }
+    .hold:focus { outline: none; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Keyboard</h1>
+    <p>The words before the picture of the harbour.</p>
+    <img src="plain.png" alt="The harbour at dawn" width="120" height="80">
+    <p>The words after it, about the boats.</p>
+    <img src="logo.png" alt="" width="40" height="40">
+    <p><a href="#one">A link with its own focus style</a></p>
+    <p><button class="bare" type="button">A button whose focus is styled away</button></p>
+    <p><label for="q">A field</label> <input id="q" type="text"></p>
+    <p><span class="hold" tabindex="0">A box that keeps the focus</span></p>
+    <p><a href="#two">A link the keyboard never reaches</a></p>
+  </main>
+  <script>
+    document.querySelector(".hold").addEventListener("keydown", e => {
+      if (e.key === "Tab" || e.key === "Escape") e.preventDefault();
+    });
+  </script>
+</body>
+</html>

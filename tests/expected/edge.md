@@ -1,22 +1,41 @@
 # Relevé · http://localhost:8765/edge.html
 
-Observation `2c3dd7a1` · 2026-10-11T17:41:50+00:00 · criteria v5 · screenshot `7a6cb565f56e8a7f` · Chromium 141.0.7390.37  
-13 surfaces · 5 fail · 1 review · 0 hint · 28 pass · first observation of this page
+Observation `c9005eec` · 2026-10-16T10:46:49+00:00 · criteria v6 · screenshot `7a6cb565f56e8a7f` · Chromium 141.0.7390.37  
+13 surfaces · 6 fail · 19 review · 0 hint · 35 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
 To correct a line, change its verdict word or add a note after `//`, then run `releve correct`.
 
-## Fail (5)
+## Fail (6)
 
 - **FAIL** image-alt · `body > main > section:nth-of-type(1) > div > ul > li:nth-of-type(2) > a > img` · no alt attribute → add alt; alt="" if the image is decorative {0982a92f}
 - **FAIL** image-alt · `body > main > section:nth-of-type(2) > div > ul > li:nth-of-type(2) > a > img` · no alt attribute → add alt; alt="" if the image is decorative {389f8682}
 - **FAIL** text-contrast · `body > main > p:nth-of-type(3)` · #aaaaaa on #ffffff · 2.32:1, needs 4.50:1 · “Horaires \/\/ fermé le lundi” → use #767676 {fc1e06ed}
 - **FAIL** link-name · `body > main > section:nth-of-type(1) > div > ul > li:nth-of-type(2) > a` · link without a name → give the link text, an image alt, or aria-label {8dc7f284}
 - **FAIL** link-name · `body > main > section:nth-of-type(2) > div > ul > li:nth-of-type(2) > a` · link without a name → give the link text, an image alt, or aria-label {6c0ea2e8}
+- **FAIL** paired-colours · `body > main > p:nth-of-type(3)` · text colour set, no background set → set a background colour on it or on a parent {d8a98153}
 
-## Review (1)
+## Review (19)
 
 - **REVIEW** text-contrast · `body > main > p:nth-of-type(2)` · #808080 on #ffffff · 3.97:1, needs 4.50:1 · “Half faded” · partly transparent (opacity 0.50), may be mid-animation {731deb3e}
+- **REVIEW** lang-code · page · page language lang="fr" → set lang to the language the page is written in {9e972736}
+- **REVIEW** lang-code · page · no passage marked in another language → mark each passage in another language with lang {df860cc4}
+- **REVIEW** review-images · page · RGAA 1.6 · 2 images → add a description nearby or linked by aria-describedby {583d35e0}
+- **REVIEW** review-images · page · RGAA 1.7 · 2 images → rewrite the description {3a382422}
+- **REVIEW** review-images · page · RGAA 1.8 · 2 images → set the text as text {ef514220}
+- **REVIEW** review-images · page · RGAA 1.9 · 2 images → wrap image and caption in \<figure> with \<figcaption> {9927ac7b}
+- **REVIEW** review-colours · page · RGAA 3.1 · this page → add text, a shape or a pattern beside the color {0d0fcd2b}
+- **REVIEW** review-colours · page · RGAA 3.3 · this page → raise their contrast to 3:1 {ba9f12a0}
+- **REVIEW** review-title · page · RGAA 8.6 · “Edge cases” → rewrite the title: the page, then the site {ffdb03e3}
+- **REVIEW** review-structure · page · RGAA 9.4 · this page → mark quotations with \<q> or \<blockquote> {78b9d89c}
+- **REVIEW** review-presentation · page · RGAA 10.3 · this page → order the code as the page reads {28d2af9d}
+- **REVIEW** review-presentation · page · RGAA 10.9 · this page → add text to the shape, size or position {ea5933eb}
+- **REVIEW** review-presentation · page · RGAA 10.10 · this page → put the text equivalent in the code {2d827e46}
+- **REVIEW** review-presentation · page · RGAA 10.13 · this page → close it with Escape; keep it while hovered {b8a9d60f}
+- **REVIEW** review-presentation · page · RGAA 10.14 · this page → show it on :focus-within as on :hover {49d9faa2}
+- **REVIEW** review-navigation · page · RGAA 12.11 · this page → make it reachable with Tab {879ef122}
+- **REVIEW** review-consultation · page · RGAA 13.7 · this page → remove the flashing {8ea4a450}
+- **REVIEW** review-consultation · page · RGAA 13.9 · this page → remove the orientation lock {04984447}
 
 ## By criterion
 
@@ -49,6 +68,19 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - unique-ids: 1 of 1 pass
 - tab-order: 1 of 1 pass
 - hidden-focus: 1 of 1 pass
+- focus-visible: 1 of 1 pass
+- keyboard-trap: 1 of 1 pass
+- lang-code: 0 of 2 pass
+- direction: n/a · no right-to-left script on the page
+- text-spacing: 1 of 1 pass
+- motion: 1 of 1 pass
+- clickable: 1 of 1 pass
+- generated-text: 1 of 1 pass
+- paired-colours: 0 of 1 pass
+- link-visible: 1 of 1 pass
+- cryptic: n/a · no emoji on the page
+- captcha: n/a · no CAPTCHA loaded
+- documents: n/a · no office document linked
 - no-popup: 1 of 1 pass
 - refresh: n/a · no timed refresh declared
 - ai-disclosure: n/a · no conversational widget detected
@@ -64,6 +96,18 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - lazy-images: n/a · no image below the second screen
 - image-weight: 2 of 2 pass
 - image-format: 2 of 2 pass
+- review-images: 0 of 4 pass
+- review-frames: n/a · no frames on the page
+- review-colours: 0 of 2 pass
+- review-media: n/a · no audio or video on the page
+- review-tables: n/a · no tables on the page
+- review-scripts: n/a · no script on the page
+- review-title: 0 of 1 pass
+- review-structure: 0 of 1 pass
+- review-presentation: 0 of 5 pass
+- review-forms: n/a · no form fields on the page
+- review-navigation: 0 of 2 pass
+- review-consultation: 0 of 5 pass
 
 ## Footprint
 

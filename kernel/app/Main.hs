@@ -27,9 +27,12 @@ usage = unlines
   , ""
   , "  observe URL | releve ingest CORPUS    record observations (JSON lines on stdin)"
   , "  releve facts CORPUS [ID|URL|--all]    the checkable report, as Markdown"
-  , "  releve report en|fr CORPUS            the report for the pages' owner, as HTML;"
-  , "                                        CORPUS may be - : observations on stdin, nothing kept"
+  , "  releve report en|fr CORPUS [--ask]    the report for the pages' owner, as HTML;"
+  , "                                        CORPUS may be - : observations on stdin, nothing kept;"
+  , "                                        --ask: each point to decide with the controls to answer it"
   , "  releve correct CORPUS < facts.md      record a person's edits to a report"
+  , "  releve declarations CORPUS            the criteria no rule can see, with the owner's answers"
+  , "  releve declare CORPUS < answers.md    record the owner's edits to the declarations"
   , "  releve atlas CORPUS                   every observation as study data (JSON lines)"
   , "  releve verify CORPUS                  check the corpus seals"
   , "  releve criteria                       list the criteria and their sources"
@@ -38,7 +41,7 @@ usage = unlines
 
 -- | The release, as in releve.cabal; tests/run.py holds the two together.
 release :: String
-release = "0.4.0"
+release = "0.5.0"
 
 -- | The same bytes on every system: UTF-8, and line feeds alone on the way out.
 plain :: IO ()
@@ -51,11 +54,13 @@ main :: IO ()
 main = plain >> getArgs >>= \args -> case args of
   ["ingest", c] -> ingest c
   ["facts", c] -> withState c $ \st -> maybe (die "no observations") (TIO.putStr . facts st) (resolve st Nothing)
-  ["facts", c, "--all"] -> withState c $ \st -> TIO.putStr (T.intercalate "\n---\n\n" (map (facts st) (latest st)))
+  ["facts", c, "--all"] -> withState c (TIO.putStr . factsAll)
   ["facts", c, ref] -> withState c $ \st -> maybe (die "no such observation") (TIO.putStr . facts st) (resolve st (Just (T.pack ref)))
-  ["report", l, c] | Just lang <- lookup l [("en", En), ("fr", Fr)] ->
-    (if c == "-" then passing else records c) >>= either die (TIO.putStr . report lang (T.pack release)) . build
+  ("report" : l : c : rest) | Just lang <- lookup l [("en", En), ("fr", Fr)], rest `elem` [[], ["--ask"]] ->
+    (if c == "-" then passing else records c) >>= either die (TIO.putStr . report lang (rest == ["--ask"]) (T.pack release)) . build
   ["correct", c] -> correct c
+  ["declarations", c] -> withState c (TIO.putStr . declarations)
+  ["declare", c] -> declare c
   ["atlas", c] -> withState c $ \st -> forM_ (observations st) (BL.putStrLn . encode . atlas st)
   ["verify", c] -> records c >>= \rs -> case verify rs of
     Right n -> putStrLn ("sealed · " <> show n <> (if n == 1 then " record" else " records")
@@ -63,7 +68,7 @@ main = plain >> getArgs >>= \args -> case args of
     Left n -> die ("broken at record " <> show n)
   ["criteria"] -> do
     putStrLn ("criteria v" <> T.unpack version)
-    forM_ criteria $ \k -> TIO.putStrLn (T.justifyLeft 17 ' ' (cId k) <> T.justifyLeft 46 ' ' (en (cTitle k)) <> en (cRef k))
+    forM_ criteria $ \k -> TIO.putStrLn (T.justifyLeft 20 ' ' (cId k) <> T.justifyLeft 46 ' ' (en (cTitle k)) <> en (cRef k))
   ["guide", l] | Just lang <- lookup l [("en", En), ("fr", Fr)] -> TIO.putStr (guide lang (T.pack release))
   ["--version"] -> putStrLn ("releve " <> release <> " · criteria v" <> T.unpack version)
   _ -> hPutStrLn stderr usage >> exitWith (ExitFailure 2)
@@ -116,3 +121,16 @@ correct c = do
         pure (acc ++ [r])
   foldM_ add rs cs
   hPutStrLn stderr (show (length cs) <> " correction" <> (if length cs == 1 then "" else "s") <> " recorded")
+
+declare :: FilePath -> IO ()
+declare c = do
+  rs <- sealed c
+  doc <- TIO.getContents
+  st <- either die pure (build rs)
+  ds <- either (die . T.unpack) pure (declaring st doc)
+  let add acc x = do
+        let r = next acc (toJSON (Declared x))
+        append c r
+        pure (acc ++ [r])
+  foldM_ add rs ds
+  hPutStrLn stderr (show (length ds) <> " declaration" <> (if length ds == 1 then "" else "s") <> " recorded")

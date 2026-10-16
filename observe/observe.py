@@ -30,6 +30,9 @@ Conduct, enforced here and nowhere else:
     image file says of its own making is read from the bytes already fetched.
   - Of what a page says, extracts of 80 characters at most are kept. What each
     block says is weighed, in words and in bits, and not kept.
+  - The page is taken by keyboard once, after it has been recorded: Tab and,
+    where Tab holds, Shift+Tab and Escape. No other key is pressed: nothing is
+    typed, chosen or activated.
   - The robot names itself and says where its operator can be reached.
 """
 import argparse, base64, hashlib, json, socket, sys, time, urllib.error, urllib.parse, urllib.request, urllib.robotparser
@@ -37,11 +40,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from playwright.sync_api import Error as BrowserError, sync_playwright
 
-AGENT = "releve-observe/0.4"
+AGENT = "releve-observe/0.5"
 PAUSE = 1.0   # seconds between two pages of one site, at least
 DESKTOP = {"width": 1280, "height": 800}
 NARROW = {"width": 320, "height": 800}
 LIMIT = 2500  # surfaces per page
+TABS = 120    # Tab presses at most, in the keyboard walk
+LOOKS = 30    # stops whose focus is looked at, at most
 
 # Interstitials that stand between a robot and the content. A CAPTCHA inside a
 # form is not one: forms are never submitted.
@@ -80,6 +85,9 @@ window.__asked = []; { const note = n => { if (!window.__asked.includes(n)) wind
   if (navigator.mediaDevices) navigator.mediaDevices.getUserMedia = () => (note("camera or microphone"), Promise.reject(new DOMException("denied", "NotAllowedError"))); }"""
 
 EXTRACT = Path(__file__).with_name("extract.js").read_text(encoding="utf-8")
+KEYS = Path(__file__).with_name("keys.js").read_text(encoding="utf-8")
+SPACED = Path(__file__).with_name("spacing.js").read_text(encoding="utf-8")
+DEEPEST = "() => { let e = document.activeElement; while (e && e.shadowRoot && e.shadowRoot.activeElement) e = e.shadowRoot.activeElement; return e; }"
 
 
 class Refused(Exception):
@@ -124,6 +132,19 @@ def robots(origin, agent, shut=None):
     return rp
 
 
+def started(i):
+    """The address whose loading asked for a request: the document that names it, or the script that fetched it."""
+    if i.get("url"):
+        return i["url"]
+    stack = i.get("stack")
+    while stack:
+        for frame in stack.get("callFrames", []):
+            if frame.get("url", "").startswith(("http://", "https://")):
+                return frame["url"]
+        stack = stack.get("parent")
+    return None
+
+
 def resource(r, kind, size):
     """One response as the record keeps it: what it is, what it weighs, how it travelled, whether it may be kept."""
     h = {k.lower(): v for k, v in r.get("headers", {}).items()}
@@ -138,6 +159,73 @@ def key(s):
     return hashlib.sha1(ident.encode()).hexdigest()[:10]
 
 
+SPACING = ("*{line-height:1.5!important;letter-spacing:.12em!important;word-spacing:.16em!important}"
+           "p{margin-bottom:2em!important}")
+
+
+def walk(page):
+    """The page by keyboard alone, from the top: Tab after Tab, until the focus leaves the page, goes
+    round without reaching the rest, holds still, or TABS presses have been made. At each of the first
+    LOOKS stops, the screen with the element focused is compared with the screen with it left: where
+    not one pixel differs, the focus shows nothing. Facts only: which stops, how it ended."""
+    def shot(clip=None):
+        return page.screenshot(clip=clip, animations="disabled", caret="hide")
+
+    def seen(here):
+        x, y, w, h = here["box"]
+        view = page.viewport_size
+        if w <= 0 or h <= 0 or x + w <= 0 or y + h <= 0 or x >= view["width"] or y >= view["height"]:
+            return None  # not on the screen: nothing to look at
+        el = page.evaluate_handle(DEEPEST)
+        near = {"x": max(0, x - 12), "y": max(0, y - 12)}
+        near.update(width=min(view["width"], x + w + 12) - near["x"], height=min(view["height"], y + h + 12) - near["y"])
+        for clip in (near, None):  # close by first; then the whole screen, where close by nothing changed
+            focused = shot(clip)
+            el.evaluate("e => e.blur()")
+            left = shot(clip)
+            el.evaluate("e => e.focus({ preventScroll: true })")
+            if focused != left:
+                return True
+        return False
+
+    page.evaluate("window.scrollTo(0, 0)")
+    page.evaluate_handle(DEEPEST).evaluate("e => e && e.blur && e.blur()")
+    order, unseen, looked, ended, trap, held = [], [], 0, "cap", None, 0
+    for _ in range(TABS):
+        page.keyboard.press("Tab")
+        here = page.evaluate(KEYS)
+        at = here["at"]
+        if at is None:
+            ended = "left"
+            break
+        if order and at == order[-1]:
+            if here["frame"]:  # within a frame of its own: the focus moves where the robot does not follow
+                held += 1
+                if held >= 40:
+                    ended = "frame"
+                    break
+                continue
+            page.keyboard.press("Shift+Tab")  # Tab held still: does anything else lead out?
+            page.keyboard.press("Escape")
+            page.keyboard.press("Tab")
+            if page.evaluate(KEYS)["at"] == at:
+                ended, trap = "stuck", at
+                break
+            continue
+        held = 0
+        if at in order:  # round again, short of the page's end
+            ended, trap = ("cycled", None) if at == order[0] else ("loop", at)
+            break
+        order.append(at)
+        if looked < LOOKS and not here["frame"]:
+            visible = seen(here)
+            if visible is not None:
+                looked += 1
+                if not visible:
+                    unseen.append(at)
+    return {"stops": len(order), "ended": ended, "trap": trap, "checked": looked, "unseen": unseen[:20]}
+
+
 def observe(browser, url, agent, shots, closed, shut=None):
     """One page, rendered and recorded. `closed` says why the page may not go to an address;
     `shut`, when given, says why nothing at all may be requested from one, and every request
@@ -150,8 +238,13 @@ def observe(browser, url, agent, shots, closed, shut=None):
         page = ctx.new_page()
         cdp = ctx.new_cdp_session(page)
         cdp.send("Network.enable")
-        responses, weights, hops = {}, {}, []
-        cdp.on("Network.requestWillBeSent", lambda e: "redirectResponse" in e and hops.append(e["redirectResponse"]))
+        responses, weights, hops, asked = {}, {}, [], {}
+
+        def sent(e):
+            if "redirectResponse" in e:
+                hops.append(e["redirectResponse"])
+            asked.setdefault(e["requestId"], started(e.get("initiator", {})))
+        cdp.on("Network.requestWillBeSent", sent)
         cdp.on("Network.responseReceived", lambda e: responses.__setitem__(e["requestId"], (e["response"], e.get("type", "Other"))))
         cdp.on("Network.loadingFinished", lambda e: weights.__setitem__(
             e["requestId"], int(e.get("encodedDataLength", 0))))
@@ -207,7 +300,9 @@ def observe(browser, url, agent, shots, closed, shut=None):
         # The footprint is the page as a reader's browser loads it at this width, scrolled once to
         # its end, every redirect hop counted. It closes here: what the measuring itself fetches
         # (the screenshot, the narrow pass) is not the page's, and a data: address is not a request.
-        fetched = [resource(r, kind, weights.get(rid, 0)) for rid, (r, kind) in responses.items()] \
+        # Each response says which address asked for it: the chain of requests is read from these links.
+        fetched = [dict(resource(r, kind, weights.get(rid, 0)), **({"from": asked[rid]} if asked.get(rid) else {}))
+                   for rid, (r, kind) in responses.items()] \
             + [resource(h, "Redirect", int(h.get("encodedDataLength", 0))) for h in hops]
         fetched = [f for f in fetched if f["url"].startswith(("http://", "https://"))]
         secured = next((r.get("securityDetails", {}).get("protocol") for r, kind in responses.values() if kind == "Document"), None)
@@ -228,7 +323,19 @@ def observe(browser, url, agent, shots, closed, shut=None):
         page.set_viewport_size(NARROW)
         page.wait_for_timeout(400)
         data["page"]["reflow"] = page.evaluate("document.documentElement.scrollWidth")
+        page.set_viewport_size(DESKTOP)
+        page.wait_for_timeout(300)
+        data["page"]["spaced"] = page.evaluate(SPACED, SPACING)
         final = page.url
+        # The keyboard walk comes last: what a key may open or move is not part of what was recorded.
+        page.set_viewport_size(DESKTOP)
+        page.wait_for_timeout(300)
+        try:
+            data["page"]["keys"] = walk(page)
+        except BrowserError:
+            data["page"]["keys"] = None  # the page went elsewhere under the keys: the walk says nothing
+        if page.url != final and not barred:
+            data["page"]["keys"] = None
         # What was read must be the page asked for, or one the rules admit: a page that tried to
         # leave for a closed address, at any moment, or renamed itself to one, is not recorded.
         why = barred[0] if barred else closed(final) and f"moves to {final}, where {closed(final)}"
@@ -242,6 +349,8 @@ def observe(browser, url, agent, shots, closed, shut=None):
         other = urllib.parse.urlsplit(f["url"]).hostname or ""
         f["third"] = bool(other) and other != host and not other.endswith("." + host)
         f["url"] = f["url"][:300]
+        if "from" in f:
+            f["from"] = f["from"][:300]
     thirds = {urllib.parse.urlsplit(f["url"]).hostname for f in fetched if f["third"]}
     images = {f["url"]: (f["mime"], f["bytes"]) for f in fetched if f["mime"].startswith("image/")}
     try:
@@ -338,7 +447,7 @@ def main():
                 last[site] = time.monotonic()
             if args.mandate:
                 record["mandate"] = args.mandate
-            print(json.dumps(record, ensure_ascii=False), flush=True)
+            print(json.dumps(record), flush=True)  # ASCII alone: no shell can re-encode it
         browser.close()
     sys.exit(status)
 

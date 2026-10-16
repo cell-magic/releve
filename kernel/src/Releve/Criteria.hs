@@ -15,191 +15,233 @@ import Data.Maybe (fromMaybe, isNothing, listToMaybe, mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Printf (printf)
+import Releve.Checklist
 import Releve.Colour
 import Releve.Types
 
 version :: Text
-version = "5"
+version = "6"
 
 criteria :: [Criterion]
 criteria =
   [ Criterion "page-title" ("The page has a title" // "La page a un titre") "RGAA 8.5 · WCAG 2.4.2" Light
-      ("The title is what a browser tab, a bookmark, a search result and a screen reader's first words show of the page."
-       // "Le titre est ce que montrent de la page un onglet, un favori, un résultat de recherche et les premiers mots d'un lecteur d'écran.")
+      ("Shown in tabs, bookmarks, search results, and first by screen readers."
+       // "Affiché dans les onglets, les favoris, les résultats de recherche, et lu en premier par les lecteurs d'écran.")
       pageTitle
   , Criterion "page-lang" ("The page states its language" // "La page déclare sa langue") "RGAA 8.3 · WCAG 3.1.1" Light
-      ("The declared language sets the voice a screen reader speaks with, the hyphenation, and the translation a browser offers."
-       // "La langue déclarée règle la voix d'un lecteur d'écran, la césure, et la traduction que propose le navigateur.")
+      ("Sets screen reader voice, hyphenation and translation."
+       // "Règle la voix du lecteur d'écran, la césure et la traduction.")
       pageLang
   , Criterion "doctype" ("The page declares its document type" // "La page déclare son type de document") "RGAA 8.1" Light
-      ("The doctype asks the browser to lay the page out by the standard; without it, rendering falls back on the quirks of the 1990s."
-       // "Le doctype demande au navigateur de composer la page selon le standard ; sans lui, le rendu retombe dans les particularités des années 1990.")
+      ("Keeps the browser in standards mode."
+       // "Maintient le navigateur en mode standard.")
       doctypeC
   , Criterion "zoom" ("Zoom is not blocked" // "L'agrandissement n'est pas bloqué") "RGAA 10.4 · WCAG 1.4.4" Light
-      ("A reader who needs larger text enlarges the page; a viewport that forbids it removes the one adjustment they have."
-       // "Qui a besoin d'un texte plus grand agrandit la page ; un viewport qui l'interdit retire le seul réglage disponible.")
+      ("Enlarging the page is the only adjustment some readers have."
+       // "Agrandir la page est le seul réglage dont disposent certains lecteurs.")
       zoom
   , Criterion "reflow" ("No horizontal scrolling at 320 px" // "Pas de défilement horizontal à 320 px") "RGAA 10.11 · WCAG 1.4.10 · RGESN 2.5" Heavy
-      ("At 320 px wide, the width of a small phone or of a desktop page enlarged four times, content is read by scrolling one way only."
-       // "À 320 px de large, largeur d'un petit téléphone ou d'une page agrandie quatre fois, le contenu se lit en ne défilant que dans un sens.")
+      ("320 px is a small phone, or a page zoomed to 400%. Content scrolls one way only."
+       // "320 px : un petit téléphone, ou une page zoomée à 400 %. Le contenu défile dans un seul sens.")
       reflowC
   , Criterion "main-region" ("The main content is marked" // "Le contenu principal est balisé") "RGAA 9.2 · 12.6 · WCAG 2.4.1" Light
-      ("A marked main region lets a reader go straight to the content, past what every page repeats."
-       // "Une zone principale balisée permet d'aller droit au contenu, au-delà de ce que chaque page répète.")
+      ("Lets a reader skip what every page repeats."
+       // "Permet de passer ce que chaque page répète.")
       mainRegion
   , Criterion "skip-link" ("A link leads to the main content" // "Un lien mène au contenu principal") "RGAA 12.7 · WCAG 2.4.1" Light
-      ("A first link to the main content spares a keyboard user every repeated link, on every page."
-       // "Un premier lien vers le contenu principal épargne à qui navigue au clavier tous les liens répétés, à chaque page.")
+      ("Spares keyboard users the repeated links on every page."
+       // "Évite au clavier les liens répétés à chaque page.")
       skipLink
   , Criterion "heading-order" ("Heading levels follow each other" // "Les niveaux de titre se suivent") "RGAA 9.1 · WCAG 1.3.1" Medium
-      ("Headings are the page's table of contents: assistive technology lists them and jumps between them, level by level."
-       // "Les titres sont la table des matières de la page : les technologies d'assistance les listent et sautent de l'un à l'autre, niveau par niveau.")
+      ("Headings are the page's table of contents for assistive technology."
+       // "Les titres sont la table des matières de la page pour les technologies d'assistance.")
       headingOrder
   , Criterion "heading-look" ("What looks like a heading is one" // "Ce qui a l'air d'un titre en est un") ("RGAA 9.1 · WCAG 1.3.1 · thresholds (tool)" // "RGAA 9.1 · WCAG 1.3.1 · seuils (outil)") Light
-      ("Text that looks like a heading and is not marked as one titles the page for the eye only."
-       // "Un texte qui a l'air d'un titre sans être balisé comme tel ne titre la page que pour l'œil.")
+      ("A heading styled but not marked is invisible to assistive technology."
+       // "Un titre stylé mais non balisé est invisible aux technologies d'assistance.")
       headingLook
   , Criterion "list-look" ("What looks like a list is one" // "Ce qui a l'air d'une liste en est une") "RGAA 9.3 · WCAG 1.3.1" Light
-      ("A marked list announces how many items it holds and lets a reader move from one to the next."
-       // "Une liste balisée annonce combien d'éléments elle contient et permet de passer de l'un au suivant.")
+      ("A marked list states its length and allows moving item to item."
+       // "Une liste balisée annonce sa longueur et se parcourt élément par élément.")
       listLook
   , Criterion "empty-blocks" ("No element is used as a gap" // "Aucun élément ne sert d'espace") "RGAA 8.9 · WCAG 1.3.1" Light
-      ("An element that holds nothing is still announced, or counted, by assistive technology: spacing belongs to the style sheet."
-       // "Un élément vide reste annoncé, ou compté, par les technologies d'assistance : l'espacement relève de la feuille de styles.")
+      ("Empty elements are still announced. Spacing belongs in CSS."
+       // "Les éléments vides restent annoncés. L'espacement relève du CSS.")
       emptyBlocks
   , Criterion "presentation" ("Appearance is left to the style sheet" // "L'apparence est confiée à la feuille de styles") "RGAA 10.1 · WCAG 1.3.1" Medium
-      ("Appearance written into the markup cannot be adapted by a reader's own styles; left to the style sheet, it can."
-       // "Une apparence écrite dans le balisage échappe aux styles du lecteur ; confiée à la feuille de styles, elle s'y adapte.")
+      ("Styling in markup overrides the reader's own settings."
+       // "Le style écrit dans le balisage écrase les réglages du lecteur.")
       presentation
   , Criterion "image-alt" ("Images carry a text alternative" // "Les images portent une alternative textuelle") "RGAA 1.1–1.3 · WCAG 1.1.1" Light
-      ("The text alternative is what an image says where it cannot be seen: to a screen reader, to a search engine, on a slow connection."
-       // "L'alternative textuelle est ce que dit une image là où elle ne peut être vue : à un lecteur d'écran, à un moteur de recherche, sur une connexion lente.")
+      ("What an image says to screen readers, search engines and slow connections."
+       // "Ce que dit une image aux lecteurs d'écran, aux moteurs de recherche et aux connexions lentes.")
       imageAlt
   , Criterion "text-contrast" ("Text contrasts with its background" // "Le texte contraste avec son fond") "RGAA 3.2 · WCAG 1.4.3" Light
-      ("Contrast decides whether text is read in sunlight, on a worn screen, by eyes that have aged or that see colours differently."
-       // "Le contraste décide si un texte se lit au soleil, sur un écran fatigué, par des yeux qui ont vieilli ou qui voient autrement les couleurs.")
+      ("Legibility in sunlight, on worn screens, and for low or color-deficient vision."
+       // "Lisibilité au soleil, sur écran usé, et pour les vues faibles ou daltoniennes.")
       contrast
   , Criterion "link-name" ("Links have a name" // "Les liens ont un intitulé") "RGAA 6.1–6.2 · WCAG 2.4.4" Light
-      ("A link's name is all a reader has when links are listed out of their context, which is how assistive technology offers them."
-       // "L'intitulé d'un lien est tout ce dont dispose un lecteur quand les liens sont listés hors de leur contexte, comme le proposent les technologies d'assistance.")
+      ("Screen readers list links out of context. The name is all that remains."
+       // "Les lecteurs d'écran listent les liens hors contexte. Seul l'intitulé reste.")
       linkName
   , Criterion "link-distinct" ("Links to different places differ in name" // "Des liens vers des lieux différents diffèrent d'intitulé") "RGAA 6.1 · WCAG 2.4.4" Medium
-      ("Two links with one name and two destinations cannot be told apart in a list of links."
-       // "Deux liens de même intitulé menant à deux destinations ne se distinguent pas dans une liste de liens.")
+      ("Identical names for different destinations cannot be told apart."
+       // "Des intitulés identiques vers des destinations différentes ne se distinguent pas.")
       linkDistinct
   , Criterion "button-name" ("Buttons have a name" // "Les boutons ont un intitulé") "RGAA 11.9 · WCAG 4.1.2" Light
-      ("A button without a name is announced as “button”, and nothing says what it does."
-       // "Un bouton sans intitulé est annoncé « bouton », et rien ne dit ce qu'il fait.")
+      ("An unnamed button is announced as “button”, nothing more."
+       // "Un bouton sans intitulé est annoncé « bouton », rien de plus.")
       buttonName
   , Criterion "label-in-name" ("The words shown are in the name" // "Les mots montrés figurent dans le nom") "RGAA 6.1 · 11.2 · 11.9 · WCAG 2.5.3" Light
-      ("Someone who speaks to their device says what they see; the command works only if the visible words are in the name the code gives."
-       // "Qui commande son appareil à la voix dit ce qu'il voit ; la commande n'aboutit que si les mots visibles figurent dans le nom donné par le code.")
+      ("Voice commands use the visible words. They must be in the coded name."
+       // "Les commandes vocales reprennent les mots visibles. Ils doivent figurer dans le nom codé.")
       labelInName
   , Criterion "control-label" ("Form fields have a name" // "Les champs de formulaire ont un intitulé") "RGAA 11.1 · WCAG 1.3.1" Light
-      ("The words beside a field say what it expects, stay when typing begins, and enlarge the area a finger or a pointer can aim at."
-       // "Les mots placés près d'un champ disent ce qu'il attend, demeurent quand la saisie commence, et agrandissent la zone que vise un doigt ou un pointeur.")
+      ("The visible name states what the field expects and enlarges its target."
+       // "Le nom visible dit ce que le champ attend et agrandit sa zone cliquable.")
       controlLabel
   , Criterion "group-legend" ("Groups of fields have a legend" // "Les groupes de champs ont une légende") "RGAA 11.6 · WCAG 1.3.1" Light
-      ("A legend names the question that a set of choices answers; without it each choice is announced alone."
-       // "La légende nomme la question à laquelle répond un ensemble de choix ; sans elle chaque choix est annoncé seul.")
+      ("The legend names the question a set of choices answers."
+       // "La légende nomme la question à laquelle répondent les choix.")
       groupLegend
   , Criterion "field-group" ("Choices of one question are grouped" // "Les choix d'une même question sont regroupés") "RGAA 11.5 · WCAG 1.3.1" Medium
-      ("Choices that belong to one question are grouped so that they are announced, and understood, together."
-       // "Les choix d'une même question se regroupent pour être annoncés, et compris, ensemble.")
+      ("Choices to one question are announced together."
+       // "Les choix d'une même question sont annoncés ensemble.")
       fieldGroup
   , Criterion "autocomplete" ("Fields for personal data state their purpose" // "Les champs de données personnelles déclarent leur finalité") "RGAA 11.13 · WCAG 1.3.5" Light
-      ("A declared purpose lets the browser fill a field for the reader: less typing, fewer errors, and help for those who struggle with either."
-       // "Une finalité déclarée permet au navigateur de remplir le champ pour le lecteur : moins de saisie, moins d'erreurs, et une aide pour qui peine à l'une ou l'autre.")
+      ("Declared purposes let browsers fill fields: less typing, fewer errors."
+       // "Les finalités déclarées permettent le remplissage automatique : moins de saisie, moins d'erreurs.")
       autocompleteC
   , Criterion "table-headers" ("Data tables declare their headers" // "Les tableaux de données déclarent leurs en-têtes") "RGAA 5.3 · 5.6–5.8 · WCAG 1.3.1" Medium
-      ("Header cells are what lets a cell be announced with its column and its row; without them a table is a run of values."
-       // "Les cellules d'en-tête permettent d'annoncer une cellule avec sa colonne et sa ligne ; sans elles un tableau est une suite de valeurs.")
+      ("Headers announce each cell with its row and column."
+       // "Les en-têtes annoncent chaque cellule avec sa ligne et sa colonne.")
       tableHeaders
   , Criterion "frame-title" ("Frames have a title" // "Les cadres ont un titre") "RGAA 2.1 · WCAG 4.1.2" Light
-      ("A frame holds another document; its title says which, before the reader enters it."
-       // "Un cadre contient un autre document ; son titre dit lequel, avant que le lecteur y entre.")
+      ("The title says what a frame contains before it is entered."
+       // "Le titre dit ce que contient un cadre avant d'y entrer.")
       frameTitle
   , Criterion "autoplay" ("No sound starts by itself" // "Aucun son ne démarre seul") "RGAA 4.10 · WCAG 1.4.2" Light
-      ("Sound that starts alone covers the voice of a screen reader, which is how its user hears the page."
-       // "Un son qui démarre seul couvre la voix du lecteur d'écran, par laquelle son utilisateur entend la page.")
+      ("Sound that starts alone drowns out the screen reader."
+       // "Un son qui démarre seul couvre le lecteur d'écran.")
       autoplayC
   , Criterion "media-captions" ("Videos carry captions" // "Les vidéos portent des sous-titres") "RGAA 4.3 · WCAG 1.2.2" Heavy
-      ("Captions carry speech and sound to those who do not hear them, and to anyone reading with the sound off."
-       // "Les sous-titres portent la parole et les sons à qui ne les entend pas, et à quiconque lit sans le son.")
+      ("Speech and sound for those who cannot hear, or have sound off."
+       // "La parole et les sons pour qui n'entend pas, ou coupe le son.")
       mediaCaptions
   , Criterion "unique-ids" ("Element ids are unique" // "Les id des éléments sont uniques") "RGAA 8.2" Light
-      ("A field's name, a description, an in-page link: each points at an element by its id; a repeated id makes it point at the wrong one."
-       // "L'intitulé d'un champ, une description, un lien interne : chacun désigne un élément par son id ; un id répété lui fait désigner le mauvais.")
+      ("Field names, descriptions and anchors point by id. Duplicates point wrong."
+       // "Noms de champs, descriptions et ancres pointent par id. Les doublons pointent mal.")
       uniqueIds
   , Criterion "tab-order" ("The keyboard follows the order of the page" // "Le clavier suit l'ordre de la page") "RGAA 12.8 · WCAG 2.4.3" Medium
-      ("The keyboard follows the order of the code; a positive tabindex takes an element out of that order and puts it first."
-       // "Le clavier suit l'ordre du code ; un tabindex positif sort un élément de cet ordre et le place en tête.")
+      ("A positive tabindex pulls an element out of reading order."
+       // "Un tabindex positif sort l'élément de l'ordre de lecture.")
       tabOrder
   , Criterion "hidden-focus" ("Nothing hidden takes the focus" // "Rien de caché ne prend le focus") "RGAA 10.8 · WCAG 4.1.2" Medium
-      ("Content hidden from assistive technology and still reached by the keyboard leaves the reader on something that is not announced."
-       // "Un contenu caché aux technologies d'assistance mais atteint au clavier laisse le lecteur sur un élément qui n'est pas annoncé.")
+      ("Focus on hidden content lands on something never announced."
+       // "Le focus sur un contenu caché tombe sur un élément jamais annoncé.")
       hiddenFocusC
+  , Criterion "focus-visible" ("The focus can be seen" // "Le focus se voit") "RGAA 10.7 · WCAG 2.4.7" Light
+      ("The focus mark is a keyboard user's only position indicator."
+       // "La marque du focus est le seul repère de position au clavier.")
+      focusVisible
+  , Criterion "keyboard-trap" ("The keyboard can leave what it enters" // "Le clavier peut quitter ce où il entre") "RGAA 12.9 · WCAG 2.1.2" Medium
+      ("Without a mouse, a trap makes the rest of the page unreachable."
+       // "Sans souris, un piège rend le reste de la page inaccessible.")
+      keyboardTrap
+  , Criterion "lang-code" ("Language codes are valid and right" // "Les codes de langue sont valides et justes") "RGAA 8.4 · 8.7 · 8.8 · WCAG 3.1.1 · 3.1.2" Light
+      ("A wrong code reads the text in the wrong voice." // "Un code erroné lit le texte avec la mauvaise voix.")
+      langCode
+  , Criterion "direction" ("Right-to-left text declares its direction" // "Le texte de droite à gauche déclare son sens") "RGAA 8.10 · WCAG 1.3.2" Light
+      ("Without a declared direction, punctuation and numbers land on the wrong side." // "Sans sens déclaré, ponctuation et chiffres tombent du mauvais côté.")
+      direction
+  , Criterion "text-spacing" ("Text survives wider spacing" // "Le texte résiste à un espacement élargi") "RGAA 10.12 · WCAG 1.4.12" Medium
+      ("Readers with dyslexia or low vision widen spacing. Fixed boxes then cut the text." // "Les lecteurs dyslexiques ou malvoyants élargissent l'espacement. Les boîtes fixes coupent alors le texte.")
+      textSpacing
+  , Criterion "motion" ("What moves can be stopped" // "Ce qui bouge peut être arrêté") "RGAA 13.8 · WCAG 2.2.2" Medium
+      ("Endless motion pulls attention away and cannot be read past." // "Un mouvement sans fin détourne l'attention et gêne la lecture.")
+      motion
+  , Criterion "clickable" ("What the pointer clicks, the keyboard reaches" // "Ce que le pointeur clique, le clavier l'atteint") "RGAA 7.3 · WCAG 2.1.1" Medium
+      ("An action reachable only by pointer is closed to keyboards and switches." // "Une action accessible au seul pointeur est fermée au clavier et aux contacteurs.")
+      clickableC
+  , Criterion "generated-text" ("Words stay without the style sheet" // "Les mots restent sans feuille de styles") "RGAA 10.2 · WCAG 1.3.1" Light
+      ("Words set in CSS vanish without styles and are not always read aloud." // "Les mots posés en CSS disparaissent sans styles et ne sont pas toujours lus.")
+      generatedText
+  , Criterion "paired-colours" ("A text colour comes with a background" // "Une couleur de texte vient avec un fond") "RGAA 10.5" Light
+      ("A reader's own background under a set text colour can make it unreadable." // "Le fond choisi par le lecteur sous une couleur imposée peut rendre le texte illisible.")
+      pairedColours
+  , Criterion "link-visible" ("Links stand out from the text around them" // "Les liens se distinguent du texte qui les entoure") "RGAA 10.6 · WCAG 1.4.1" Light
+      ("A link that looks like its sentence is found by chance." // "Un lien qui ressemble à sa phrase se trouve par hasard.")
+      linkVisible
+  , Criterion "cryptic" ("Emoji have a text alternative" // "Les émojis ont une alternative textuelle") "RGAA 13.5 · 13.6" Light
+      ("Screen readers announce emoji by their official name, which may not be the meaning." // "Les lecteurs d'écran annoncent un émoji par son nom officiel, qui n'est pas toujours son sens.")
+      cryptic
+  , Criterion "captcha" ("A CAPTCHA has another way through" // "Un CAPTCHA a une autre voie") "RGAA 1.4 · 1.5 · WCAG 1.1.1" Heavy
+      ("A visual test with no alternative locks out anyone who cannot see it." // "Un test visuel sans alternative exclut quiconque ne le voit pas.")
+      captcha
+  , Criterion "documents" ("Office documents are accessible" // "Les documents bureautiques sont accessibles") "RGAA 13.3 · 13.4" Heavy
+      ("A PDF without structure is a picture of text." // "Un PDF sans structure est une image de texte.")
+      documents
   , Criterion "no-popup" ("No window opens by itself" // "Aucune fenêtre ne s'ouvre seule") "RGAA 13.2 · WCAG 3.2.1" Medium
-      ("A window that opens by itself moves the reader somewhere they did not choose, and may not be noticed at all."
-       // "Une fenêtre qui s'ouvre seule déplace le lecteur là où il n'a pas choisi d'aller, parfois sans qu'il s'en aperçoive.")
+      ("Unrequested windows move the reader without notice."
+       // "Une fenêtre non demandée déplace le lecteur à son insu.")
       noPopup
   , Criterion "refresh" ("The page does not reload or leave on a timer" // "La page ne se recharge ni ne s'en va après un délai") "RGAA 13.1 · WCAG 2.2.1" Light
-      ("A page that reloads or leaves on a timer takes the reader's place, and their time, away from them."
-       // "Une page qui se recharge ou s'en va après un délai retire au lecteur sa place, et son temps.")
+      ("Timed reloads and redirects take control from the reader."
+       // "Rechargements et redirections minutés retirent le contrôle au lecteur.")
       refreshC
   , Criterion "ai-disclosure" ("Conversational AI is disclosed" // "L'IA conversationnelle est signalée") "AI Act art. 50(1)" Medium
-      ("A person has to know when the other party to a conversation is a machine: the AI Act requires that they be told."
-       // "Une personne doit savoir quand son interlocuteur est une machine : le règlement sur l'IA impose de le lui dire.")
+      ("The AI Act requires telling people when they talk to a machine."
+       // "Le règlement sur l'IA impose de dire à une personne qu'elle échange avec une machine.")
       aiDisclosure
   , Criterion "ai-image" ("Images made by AI say so" // "Les images produites par IA le disent") "AI Act art. 50(2) · 50(4)" Medium
-      ("An image generated or altered by an AI system has to be disclosed as such to those who see it; the file itself often says where it comes from."
-       // "Une image produite ou modifiée par un système d'IA doit être signalée comme telle à qui la voit ; le fichier lui-même dit souvent d'où il vient.")
+      ("AI-made or altered images must be disclosed. The file often states its origin."
+       // "Les images produites ou modifiées par IA doivent être signalées. Le fichier indique souvent son origine.")
       aiImage
   , Criterion "asks-on-arrival" ("Nothing is asked of the device on arrival" // "Rien n'est demandé à l'appareil à l'arrivée") "RGESN 4.13 · 6.6 · AI Act art. 50(3)" Light
-      ("A request for location, camera or notifications before the reader has done anything is answered without knowing why it is asked."
-       // "Une demande de position, de caméra ou de notifications avant que le lecteur ait rien fait reçoit une réponse sans qu'il sache pourquoi on la lui pose.")
+      ("Permission requests before any action are answered blind."
+       // "Une demande d'autorisation avant toute action reçoit une réponse à l'aveugle.")
       asksOnArrival
   , Criterion "third-parties" ("Third parties wait for consent" // "Les tiers attendent le consentement") "RGESN 4.4" Medium
-      ("Each third party is a connection to another company's servers, opened for every reader before they have said anything."
-       // "Chaque tiers est une connexion aux serveurs d'une autre entreprise, ouverte pour chaque lecteur avant qu'il ait rien dit.")
+      ("Each third party opens a connection to another company before consent."
+       // "Chaque tiers ouvre une connexion vers une autre entreprise avant le consentement.")
       thirdPartiesC
   , Criterion "media-autoplay" ("Nothing plays by itself" // "Rien ne se lance seul") "RGESN 4.1" Light
-      ("Media that starts by itself is downloaded and decoded for readers who did not ask for it."
-       // "Un média qui se lance seul est téléchargé et décodé pour des lecteurs qui ne l'ont pas demandé.")
+      ("Autoplay downloads and decodes media no one asked for."
+       // "La lecture automatique télécharge et décode un média que personne n'a demandé.")
       mediaAutoplay
   , Criterion "endless" ("The page has an end" // "La page a une fin") ("RGESN 4.2 · threshold one screen, twice (tool)" // "RGESN 4.2 · seuil un écran, deux fois (outil)") Medium
-      ("A page that grows each time its end is reached has none: its weight is whatever the reader's patience allows, and its footer is never reached."
-       // "Une page qui s'allonge chaque fois qu'on atteint sa fin n'en a pas : son poids est ce que permet la patience du lecteur, et son pied de page n'est jamais atteint.")
+      ("Infinite scroll has no fixed weight and no reachable footer."
+       // "Le défilement infini n'a ni poids fixe ni pied de page accessible.")
       endless
   , Criterion "fonts" ("Fonts are few and light" // "Les polices sont peu nombreuses et légères") "RGESN 4.8" Light
-      ("Each font file is fetched before the text it sets shows as designed; two fonts in four variants, or 400 kB, is the reference's limit."
-       // "Chaque fichier de police est chargé avant que le texte qu'il compose s'affiche tel que dessiné ; deux polices en quatre variantes, ou 400 ko, est la limite du référentiel.")
+      ("Each font file delays text. Reference limit: two families, four variants, 400 kB."
+       // "Chaque fichier de police retarde le texte. Limite du référentiel : deux familles, quatre variantes, 400 ko.")
       fontsC
   , Criterion "compression" ("Text travels compressed" // "Le texte voyage compressé") ("RGESN 6.3 · threshold 1 kB (tool)" // "RGESN 6.3 · seuil 1 ko (outil)") Light
-      ("Text compresses to a third of its size or less; sent as it is, the rest travels for nothing."
-       // "Le texte se compresse au tiers de sa taille ou moins ; envoyé tel quel, le reste voyage pour rien.")
+      ("Text compresses to a third or less. Uncompressed, the rest is waste."
+       // "Le texte se compresse au tiers ou moins. Non compressé, le reste est perdu.")
       compression
   , Criterion "caching" ("What does not change is kept by the browser" // "Ce qui ne change pas est gardé par le navigateur") "RGESN 6.2" Light
-      ("A file the browser may keep is not fetched again on the next page, nor on the next visit."
-       // "Un fichier que le navigateur peut garder n'est pas rechargé à la page suivante, ni à la visite suivante.")
+      ("Cached files are not fetched again on the next page or visit."
+       // "Un fichier en cache n'est pas rechargé à la page ou à la visite suivante.")
       caching
   , Criterion "protocol" ("The page travels by current protocols" // "La page voyage par des protocoles actuels") "RGESN 3.3 · 6.7" Medium
-      ("HTTP/2 and 3 carry a page's files over one connection; TLS 1.3 opens it in fewer exchanges; IPv6 reaches readers without address translation."
-       // "HTTP/2 et 3 portent les fichiers d'une page sur une seule connexion ; TLS 1.3 l'ouvre en moins d'échanges ; IPv6 joint les lecteurs sans traduction d'adresse.")
+      ("HTTP/2 and 3 share one connection. TLS 1.3 connects faster. IPv6 avoids address translation."
+       // "HTTP/2 et 3 partagent une connexion. TLS 1.3 se connecte plus vite. IPv6 évite la traduction d'adresse.")
       protocolC
   , Criterion "lazy-images" ("Images far down the page wait to be reached" // "Les images loin dans la page attendent d'être atteintes") ("RGESN 6.5 · threshold two screens (tool)" // "RGESN 6.5 · seuil deux écrans (outil)") Light
-      ("An image far below the screen is paid for by every reader and seen by those who scroll to it."
-       // "Une image loin sous l'écran est payée par chaque lecteur et vue par ceux qui défilent jusqu'à elle.")
+      ("Images far below the fold cost every reader, are seen by few."
+       // "Les images loin sous la ligne de flottaison coûtent à tous, sont vues par peu.")
       lazyImages
   , Criterion "image-weight" ("Images are not larger than shown" // "Les images ne dépassent pas leur taille d'affichage") ("RGESN 6.4 · threshold 2× (tool)" // "RGESN 6.4 · seuil 2× (outil)") Light
-      ("Pixels that are never displayed still travel, are decoded and held in memory, on the reader's connection and battery."
-       // "Les pixels jamais affichés voyagent, sont décodés et gardés en mémoire quand même, sur la connexion et la batterie du lecteur.")
+      ("Undisplayed pixels still travel, decode and use memory and battery."
+       // "Les pixels non affichés voyagent, se décodent et consomment mémoire et batterie.")
       imageWeight
   , Criterion "image-format" ("Heavy images use a modern format" // "Les images lourdes utilisent un format récent") ("RGESN 5.1 · threshold 30 kB (tool)" // "RGESN 5.1 · seuil 30 ko (outil)") Light
-      ("Recent formats carry the same picture in a fraction of the bytes."
-       // "Les formats récents portent la même image en une fraction des octets.")
+      ("AVIF and WebP carry the same image in fewer bytes."
+       // "AVIF et WebP portent la même image en moins d'octets.")
       imageFormat
-  ]
+  ] ++ checklist
 
 -- helpers ---------------------------------------------------------------
 
@@ -213,10 +255,14 @@ blank :: Maybe Text -> Bool
 blank = maybe True (T.null . T.strip)
 
 on :: Surface -> Verdict -> Phrase -> Maybe Phrase -> Mark
-on s = \v seen ch -> Mark v (Just s) seen ch
+on s = \v seen ch -> Mark v (Just s) seen ch Nothing
 
 onPage :: Verdict -> Phrase -> Maybe Phrase -> Mark
-onPage = \v seen ch -> Mark v Nothing seen ch
+onPage = \v seen ch -> Mark v Nothing seen ch Nothing
+
+-- | A mark that puts its question to a person.
+asking :: Phrase -> Mark -> Mark
+asking q m = m { mAsk = Just q }
 
 -- | On the surface at that place in the page; on the page, naming the place, where no surface stands there.
 onSel :: Observation -> Text -> Verdict -> Phrase -> Maybe Phrase -> Mark
@@ -413,18 +459,23 @@ presentation o = recorded o $ case fromMaybe [] (styling (page o)) of
 imageAlt :: Observation -> [Mark]
 imageAlt o = orNA ("no images on the page" // "aucune image dans la page") (map img (surfacesOf "img" o) ++ map graphic (surfacesOf "graphic" o))
   where
+    -- A rule can see whether an image has a text alternative, and whether it is declared decorative;
+    -- only a person can see whether the image is decorative, and whether its alternative says what it shows.
     img s = case T.strip <$> alt s of
-      _ | role s `elem` [Just "presentation", Just "none"] -> on s Pass ("role=presentation (decorative)" // "role=presentation (décorative)") Nothing
+      _ | tiny s -> on s Pass ("under 4 px, carries no information" // "moins de 4 px, ne porte aucune information") Nothing
+      _ | role s `elem` [Just "presentation", Just "none"] -> decorative s ("role=presentation, marked decorative" // "role=presentation, marquée décorative")
       Nothing -> on s Fail ("no alt attribute" // "pas d'attribut alt") (Just ("add alt; alt=\"\" if the image is decorative" // "ajouter alt ; alt=\"\" si l'image est décorative"))
-      Just ""
-        | maybe 0 (uncurry (*)) (shown s) >= 40000 -> on s Review ("large image with alt=\"\" (declared decorative)" // "grande image avec alt=\"\" (déclarée décorative)") Nothing
-        | otherwise -> on s Pass ("alt=\"\" (decorative)" // "alt=\"\" (décorative)") Nothing
+      Just "" -> decorative s ("alt=\"\", marked decorative" // "alt=\"\", marquée décorative")
       Just a
-        | fileLike a -> on s Review ("alt " <> quote a <> (" looks like a file name" // " ressemble à un nom de fichier")) (Just ("describe what the image shows" // "décrire ce que montre l'image"))
-        | otherwise -> on s Pass ("alt " <> quote a) Nothing
+        | fileLike a -> asking pertinent (on s Review ("alt " <> quote a <> (", a file name" // ", un nom de fichier")) (Just ("rewrite the alternative to describe the image" // "réécrire l'alternative pour décrire l'image")))
+        | otherwise -> asking pertinent (on s Review ("alt " <> quote a) (Just ("rewrite the alternative to describe the image" // "réécrire l'alternative pour décrire l'image")))
     graphic s
       | blank (name s) = on s Fail ("role=img without a name" // "role=img sans nom") (Just ("add aria-label or <title>" // "ajouter aria-label ou <title>"))
-      | otherwise = on s Pass (quote (fromMaybe "" (name s))) Nothing
+      | otherwise = asking pertinent (on s Review (quote (fromMaybe "" (name s))) (Just ("rewrite the name to describe the image" // "réécrire le nom pour décrire l'image")))
+    decorative s seen = asking ("Is the image decorative?" // "L'image est-elle décorative ?")
+      (on s Review seen (Just ("add an alternative describing the image" // "ajouter une alternative qui décrit l'image")))
+    pertinent = "Does the alternative describe the image?" // "L'alternative décrit-elle l'image ?"
+    tiny s = maybe False (\(w, h) -> w < 4 || h < 4) (shown s)
     fileLike a = let l = T.unpack (T.toLower a) in
       any (`isSuffixOf` l) [".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif", ".svg"] || any (`isPrefixOf` l) ["img_", "dsc"]
 
@@ -636,6 +687,149 @@ noPopup o = recorded o $ case fromMaybe 0 (opened (page o)) of
   0 -> [onPage Pass ("opens no window by itself" // "n'ouvre aucune fenêtre d'elle-même") Nothing]
   n -> [onPage Fail ("tried to open " <> num n <> (if n == 1 then " window" else " windows") <> " by itself" // "a tenté d'ouvrir " <> num n <> (if n == 1 then " fenêtre" else " fenêtres") <> " d'elle-même")
           (Just ("open a window on the reader's action only" // "n'ouvrir une fenêtre qu'à l'action du lecteur"))]
+
+-- page, read in 0.5 -------------------------------------------------------
+
+-- | Facts the observer has recorded since 0.5. An older observation is not judged on them.
+since5 :: Observation -> Maybe a -> (a -> [Mark]) -> [Mark]
+since5 _ x k = maybe [onPage NA ("not recorded by the observer of that time" // "non relevé par l'observateur d'alors") Nothing] k x
+
+-- | A language code: a primary subtag of two letters that ISO 639-1 lists, or of three letters; then subtags of one to eight.
+validLang :: Text -> Bool
+validLang t = case T.splitOn "-" (T.toLower (T.strip t)) of
+  p : rest -> (if T.length p == 2 then p `elem` iso639 else T.length p == 3 && T.all isAlpha p)
+              && all (\x -> T.length x >= 1 && T.length x <= 8 && T.all isAlphaNum x) rest
+  [] -> False
+  where
+    iso639 = T.words "aa ab ae af ak am an ar as av ay az ba be bg bh bi bm bn bo br bs ca ce ch co cr cs cu cv cy da de dv dz ee el en eo es et eu \
+      \fa ff fi fj fo fr fy ga gd gl gn gu gv ha he hi ho hr ht hu hy hz ia id ie ig ii ik io is it iu ja jv ka kg ki kj kk kl km kn ko kr ks ku kv \
+      \kw ky la lb lg li ln lo lt lu lv mg mh mi mk ml mn mr ms mt my na nb nd ne ng nl nn no nr nv ny oc oj om or os pa pi pl ps pt qu rm rn ro \
+      \ru rw sa sc sd se sg si sk sl sm sn so sq sr ss st su sv sw ta te tg th ti tk tl tn to tr ts tt tw ty ug uk ur uz ve vi vo wa wo xh yi yo \
+      \za zh zu"
+
+langCode, direction, textSpacing, motion, clickableC, generatedText, pairedColours, linkVisible, cryptic, captcha, documents :: Observation -> [Mark]
+langCode o = since5 o (langs (page o)) $ \ls -> case T.strip <$> lang (page o) of
+  Nothing -> [onPage NA ("the page states no language" // "la page ne déclare pas de langue") Nothing]
+  Just "" -> [onPage NA ("the page states no language" // "la page ne déclare pas de langue") Nothing]
+  Just l ->
+    (if validLang l
+       then asking (("Is the page written in " // "La page est-elle écrite en ") <> code l <> ("?" // " ?"))
+              (onPage Review (("page language " // "langue de la page ") <> code l) (Just ("set lang to the language the page is written in" // "régler lang sur la langue de la page")))
+       else onPage Fail (("page language " // "langue de la page ") <> code l <> (", not a language code" // ", pas un code de langue")) (Just ("use an ISO 639 code, such as en or fr" // "utiliser un code ISO 639, comme en ou fr")))
+    : [ if validLang v
+          then if ownName v x
+            then onSel o x Pass (quote (shownAt x) <> (" names its language in that language" // " nomme sa langue dans cette langue")) Nothing
+            else asking (("Is this passage in " // "Ce passage est-il en ") <> code v <> ("?" // " ?")) (onSel o x Review (("passage marked " // "passage marqué ") <> code v) (Just ("set lang to the passage's language" // "régler lang sur la langue du passage")))
+          else onSel o x Fail (code v <> (", not a language code" // ", pas un code de langue")) (Just ("use an ISO 639 code" // "utiliser un code ISO 639"))
+      | (x, v) <- ls ]
+    ++ [ asking ("Is every passage in another language marked with lang?" // "Chaque passage dans une autre langue est-il marqué par lang ?")
+           (onPage Review (case length ls of
+                             0 -> "no passage marked in another language" // "aucun passage marqué dans une autre langue"
+                             1 -> "1 passage marked in another language" // "1 passage marqué dans une autre langue"
+                             n -> both (num n) <> (" passages marked in another language" // " passages marqués dans une autre langue")) (Just ("mark each passage in another language with lang" // "marquer chaque passage dans une autre langue avec lang"))) ]
+  where code x = both ("lang=\"" <> x <> "\"")
+        shownAt x = head ([n | s <- surfaces o, sel s == x, Just n <- [name s], not (T.null (T.strip n))] ++ [""])
+        ownName v x = let n = T.toCaseFold (T.strip (shownAt x))
+                      in not (T.null n) && lookup (T.toLower (T.takeWhile (/= '-') v)) endonyms == Just n
+
+-- | Each language's name for itself, as a language switcher shows it.
+endonyms :: [(Text, Text)]
+endonyms = [ (c, T.toCaseFold n) | (c, n) <-
+  [ ("ar", "العربية"), ("bg", "български"), ("br", "brezhoneg"), ("ca", "català"), ("co", "corsu"), ("cs", "čeština")
+  , ("cy", "cymraeg"), ("da", "dansk"), ("de", "deutsch"), ("el", "ελληνικά"), ("en", "english"), ("es", "español")
+  , ("et", "eesti"), ("eu", "euskara"), ("fa", "فارسی"), ("fi", "suomi"), ("fr", "français"), ("ga", "gaeilge")
+  , ("gl", "galego"), ("he", "עברית"), ("hi", "हिन्दी"), ("hr", "hrvatski"), ("hu", "magyar"), ("is", "íslenska")
+  , ("it", "italiano"), ("ja", "日本語"), ("ko", "한국어"), ("lb", "lëtzebuergesch"), ("lt", "lietuvių"), ("lv", "latviešu")
+  , ("mt", "malti"), ("nb", "norsk bokmål"), ("nl", "nederlands"), ("nn", "nynorsk"), ("no", "norsk"), ("oc", "occitan")
+  , ("pl", "polski"), ("pt", "português"), ("ro", "română"), ("ru", "русский"), ("sk", "slovenčina"), ("sl", "slovenščina")
+  , ("sv", "svenska"), ("th", "ไทย"), ("tr", "türkçe"), ("uk", "українська"), ("vi", "tiếng việt"), ("zh", "中文") ] ]
+
+direction o = since5 o (rtl (page o)) $ \r -> case (chars r, marked r) of
+  (0, _) -> [onPage NA ("no right-to-left script on the page" // "aucune écriture de droite à gauche dans la page") Nothing]
+  (n, True) -> [onPage Pass (both (num n) <> (" right-to-left characters; direction declared" // " caractères de droite à gauche ; sens déclaré")) Nothing]
+  (n, False) -> [onPage Fail (both (num n) <> (" right-to-left characters; no direction declared" // " caractères de droite à gauche ; aucun sens déclaré")) (Just ("add dir=\"rtl\" to each right-to-left passage" // "ajouter dir=\"rtl\" à chaque passage de droite à gauche"))]
+
+textSpacing o = since5 o (spaced (page o)) $ \ss -> case ss of
+  [] -> [onPage Pass ("no text cut with wider spacing" // "aucun texte coupé avec un espacement élargi") Nothing]
+  _ -> [ onSel o x Fail ("text cut once spacing is widened" // "texte coupé une fois l'espacement élargi") (Just ("let the box grow with its text: no fixed height with overflow hidden" // "laisser la boîte suivre son texte : pas de hauteur fixe avec overflow hidden")) | x <- ss ]
+
+motion o = since5 o (moving (page o)) $ \ms -> case ms of
+  [] -> [onPage Pass ("no looping animation found" // "aucune animation en boucle trouvée") Nothing]
+  _ -> [ asking ("Can it be paused, stopped or hidden?" // "Peut-on la mettre en pause, l'arrêter ou la masquer ?")
+           (onSel o x Review ("moves without end" // "bouge sans fin") (Just ("add a pause control, or stop it within 5 seconds" // "ajouter une commande de pause, ou l'arrêter sous 5 secondes"))) | x <- ms ]
+
+clickableC o = since5 o (clickable (page o)) $ \cs -> case cs of
+  [] -> [onPage Pass ("nothing clickable is out of the keyboard's reach" // "rien de cliquable n'échappe au clavier") Nothing]
+  _ -> [ if k == "handler"
+           then onSel o x Fail ("acts on click; no key reaches it" // "agit au clic ; aucune touche ne l'atteint") (Just remedy)
+           else asking ("Is it decoration only, with no action on click?" // "Est-ce une décoration, sans action au clic ?")
+                  (onSel o x Review ("pointer cursor; no key reaches it" // "curseur de pointage ; aucune touche ne l'atteint") (Just remedy))
+       | (x, k) <- cs ]
+  where remedy = "use a <button> or a link" // "utiliser un <button> ou un lien"
+
+generatedText o = since5 o (generated (page o)) $ \gs -> case gs of
+  [] -> [onPage Pass ("no words set by the style sheet" // "aucun mot posé par la feuille de styles") Nothing]
+  _ -> [ asking ("Is this text decoration only?" // "Ce texte est-il purement décoratif ?")
+           (onSel o x Review (quote w <> (" set by the style sheet" // " posé par la feuille de styles")) (Just ("move the words into the page" // "placer les mots dans la page"))) | (x, w) <- gs ]
+
+pairedColours o = since5 o (unpaired (page o)) $ \us -> case us of
+  [] -> [onPage Pass ("every text colour has a background" // "chaque couleur de texte a un fond") Nothing]
+  _ -> [ onSel o x Fail ("text colour set, no background set" // "couleur de texte posée, aucun fond posé") (Just ("set a background colour on it or on a parent" // "poser une couleur de fond sur lui ou sur un parent")) | x <- us ]
+
+linkVisible o = since5 o (blended (page o)) $ \bs -> case bs of
+  [] -> [onPage Pass ("links in running text stand out" // "les liens du texte courant se distinguent") Nothing]
+  _ -> [ onSel o x Fail ("looks like the text around it: no underline, contrast under 3:1" // "ressemble au texte autour : pas de soulignement, contraste sous 3:1")
+           (Just ("underline it, or set it at 3:1 against the text around it" // "le souligner, ou le porter à 3:1 face au texte autour")) | x <- bs ]
+
+cryptic o = since5 o (emoji (page o)) $ \n -> case n of
+  0 -> [onPage NA ("no emoji on the page" // "aucun émoji dans la page") Nothing]
+  _ -> [asking ("Does each emoji have a text alternative, or is it decoration?" // "Chaque émoji a-t-il une alternative textuelle, ou est-il décoratif ?")
+          (onPage Review (both (num n) <> (" emoji on the page" // " émojis dans la page")) (Just ("wrap meaningful emoji in role=\"img\" with aria-label" // "entourer les émojis porteurs de sens de role=\"img\" avec aria-label")))]
+
+captcha o = case [r | r <- concat (resources (network o)), any (`T.isInfixOf` T.toLower (xUrl r)) marks] of
+  [] -> [onPage NA ("no CAPTCHA loaded" // "aucun CAPTCHA chargé") Nothing]
+  r : _ ->
+    [ asking ("Is there another way through it, by sound or by another test?" // "Existe-t-il une autre voie, sonore ou par un autre test ?")
+        (onPage Review (("CAPTCHA from " // "CAPTCHA de ") <> both (host (xUrl r))) (Just ("offer an audio test or another way through" // "proposer un test audio ou une autre voie")))
+    , asking ("Does its text alternative say what it is and what it is for?" // "Son alternative dit-elle ce qu'il est et à quoi il sert ?")
+        (onPage Review ("its text alternative" // "son alternative textuelle") (Just ("say what the test is and what it is for" // "dire ce qu'est le test et à quoi il sert"))) ]
+  where
+    marks = ["recaptcha", "hcaptcha", "turnstile", "challenges.cloudflare", "friendlycaptcha", "captcha"]
+    host u = case T.splitOn "/" u of _ : _ : h : _ -> h; _ -> u
+
+documents o = case [s | s <- surfacesOf "link" o, Just h <- [href s], any (`T.isSuffixOf` T.toLower (T.takeWhile (`notElem` ("?#" :: String)) h)) exts] of
+  [] -> [onPage NA ("no office document linked" // "aucun document bureautique lié") Nothing]
+  ds -> [ asking ("Is this document accessible, or is an accessible version offered with the same content?" // "Ce document est-il accessible, ou une version accessible au même contenu est-elle proposée ?")
+            (on s Review (both (file (fromMaybe "" (href s)))) (Just ("tag the document, or offer an accessible version" // "baliser le document, ou proposer une version accessible"))) | s <- ds ]
+  where exts = [".pdf", ".doc", ".docx", ".odt", ".xls", ".xlsx", ".ods", ".ppt", ".pptx", ".odp", ".rtf"]
+
+-- | The keyboard walk, recorded since observer 0.5. An older observation is not judged on it.
+walked :: Observation -> (Keys -> [Mark]) -> [Mark]
+walked o k = maybe [onPage NA ("not recorded by the observer of that time" // "non relevé par l'observateur d'alors") Nothing] k (keys (page o))
+
+-- | A stop "shows nothing" when not one pixel of the screen differs between the element focused and
+--   the element left: any change anywhere counts as seen, so the rule may miss an unseen focus,
+--   and never names a seen one.
+focusVisible :: Observation -> [Mark]
+focusVisible o = walked o $ \k -> case (checked k, unseen k) of
+  (0, _) -> [onPage NA ("nothing on the page takes the focus" // "rien dans la page ne prend le focus") Nothing]
+  (n, []) -> [onPage Pass (both (num n) <> (if n == 1 then " stop, focus visible" // " arrêt, focus visible" else " stops, focus visible at each" // " arrêts, focus visible à chacun")) Nothing]
+  (_, ss) -> [ onSel o x Fail ("no visible focus" // "focus invisible")
+                 (Just ("add a :focus-visible outline that contrasts with its surroundings" // "ajouter un contour :focus-visible contrasté")) | x <- ss ]
+
+keyboardTrap :: Observation -> [Mark]
+keyboardTrap o = walked o $ \k -> case (ended k, trap k) of
+  ("stuck", Just x) -> [onSel o x Fail ("focus held: Tab, Shift+Tab and Escape blocked" // "focus retenu : Tab, Maj+Tab et Échap bloqués")
+                         (Just ("release Tab and Shift+Tab" // "libérer Tab et Maj+Tab"))]
+  ("loop", Just x) -> [asking ("Does the cycle have a stated exit?" // "Le circuit a-t-il une sortie indiquée ?")
+                         (onSel o x Review (("focus cycles after " <> num (stops k) <> " stops; the rest of the page is unreachable")
+                                             // ("le focus tourne après " <> num (stops k) <> " arrêts ; le reste de la page est inaccessible"))
+                            (Just ("release Tab, or state the exit key" // "libérer Tab, ou indiquer la touche de sortie")))]
+  _ | stops k == 0 -> [onPage NA ("nothing on the page takes the focus" // "rien dans la page ne prend le focus") Nothing]
+  ("frame", _) -> [onPage Review (both (num (stops k)) <> (" stops, then an external frame, not followed" // " arrêts, puis un cadre externe, non suivi")) Nothing]
+  ("cap", _) -> [onPage Pass ("first " <> num (stops k) <> " stops lead on; walk ended there" // num (stops k) <> " premiers arrêts sans blocage ; parcours arrêté là") Nothing]
+  _ -> [onPage Pass ((num (stops k) <> (if stops k == 1 then " stop" else " stops") <> ", no trap")
+                     // (num (stops k) <> (if stops k == 1 then " arrêt" else " arrêts") <> ", aucun piège")) Nothing]
 
 -- | <meta http-equiv="refresh">: a delay, then perhaps an address.
 refreshC o = recorded o $ case refresh (page o) of

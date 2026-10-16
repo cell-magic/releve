@@ -1,10 +1,35 @@
 # Relevé · http://localhost:8765/endless.html
 
-Observation `ba3b5656` · 2026-10-11T17:41:54+00:00 · criteria v5 · screenshot `572de61eb21d3697` · Chromium 141.0.7390.37  
-6 surfaces · 0 fail · 0 review · 1 hint · 22 pass · first observation of this page
+Observation `b126606c` · 2026-10-16T10:46:54+00:00 · criteria v6 · screenshot `572de61eb21d3697` · Chromium 141.0.7390.37  
+6 surfaces · 0 fail · 22 review · 1 hint · 28 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
 To correct a line, change its verdict word or add a note after `//`, then run `releve correct`.
+
+## Review (22)
+
+- **REVIEW** lang-code · page · page language lang="en" → set lang to the language the page is written in {037a9ec3}
+- **REVIEW** lang-code · page · no passage marked in another language → mark each passage in another language with lang {df860cc4}
+- **REVIEW** review-colours · page · RGAA 3.1 · this page → add text, a shape or a pattern beside the color {0d0fcd2b}
+- **REVIEW** review-colours · page · RGAA 3.3 · this page → raise their contrast to 3:1 {ba9f12a0}
+- **REVIEW** review-scripts · page · RGAA 7.1 · this page → use native elements, or the matching ARIA pattern {04d649b5}
+- **REVIEW** review-scripts · page · RGAA 7.2 · this page → make the alternative complete {c7bc7cd2}
+- **REVIEW** review-scripts · page · RGAA 7.4 · this page → start changes of context on a button only {ad1847d8}
+- **REVIEW** review-scripts · page · RGAA 7.5 · this page → put them in role="status" or role="alert" {213dbec2}
+- **REVIEW** review-title · page · RGAA 8.6 · “Endless” → rewrite the title: the page, then the site {ffdb03e3}
+- **REVIEW** review-structure · page · RGAA 9.4 · this page → mark quotations with \<q> or \<blockquote> {78b9d89c}
+- **REVIEW** review-presentation · page · RGAA 10.3 · this page → order the code as the page reads {28d2af9d}
+- **REVIEW** review-presentation · page · RGAA 10.9 · this page → add text to the shape, size or position {ea5933eb}
+- **REVIEW** review-presentation · page · RGAA 10.10 · this page → put the text equivalent in the code {2d827e46}
+- **REVIEW** review-presentation · page · RGAA 10.13 · this page → close it with Escape; keep it while hovered {b8a9d60f}
+- **REVIEW** review-presentation · page · RGAA 10.14 · this page → show it on :focus-within as on :hover {49d9faa2}
+- **REVIEW** review-navigation · page · RGAA 12.10 · this page → add a modifier key, or a setting to turn them off {1114b1f0}
+- **REVIEW** review-navigation · page · RGAA 12.11 · this page → make it reachable with Tab {879ef122}
+- **REVIEW** review-consultation · page · RGAA 13.7 · this page → remove the flashing {8ea4a450}
+- **REVIEW** review-consultation · page · RGAA 13.9 · this page → remove the orientation lock {04984447}
+- **REVIEW** review-consultation · page · RGAA 13.10 · this page → add buttons for each gesture {37fe54af}
+- **REVIEW** review-consultation · page · RGAA 13.11 · this page → act on release, not on press {e41e32b7}
+- **REVIEW** review-consultation · page · RGAA 13.12 · this page → add a control, and a setting to turn motion off {ba389baa}
 
 ## Hint (1)
 
@@ -41,6 +66,19 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - unique-ids: 1 of 1 pass
 - tab-order: 1 of 1 pass
 - hidden-focus: 1 of 1 pass
+- focus-visible: n/a · nothing on the page takes the focus
+- keyboard-trap: n/a · nothing on the page takes the focus
+- lang-code: 0 of 2 pass
+- direction: n/a · no right-to-left script on the page
+- text-spacing: 1 of 1 pass
+- motion: 1 of 1 pass
+- clickable: 1 of 1 pass
+- generated-text: 1 of 1 pass
+- paired-colours: 1 of 1 pass
+- link-visible: 1 of 1 pass
+- cryptic: n/a · no emoji on the page
+- captcha: n/a · no CAPTCHA loaded
+- documents: n/a · no office document linked
 - no-popup: 1 of 1 pass
 - refresh: n/a · no timed refresh declared
 - ai-disclosure: n/a · no conversational widget detected
@@ -56,6 +94,18 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - lazy-images: n/a · no image below the second screen
 - image-weight: n/a · no bitmap images on the page
 - image-format: n/a · no weighed images on the page
+- review-images: n/a · no images on the page
+- review-frames: n/a · no frames on the page
+- review-colours: 0 of 2 pass
+- review-media: n/a · no audio or video on the page
+- review-tables: n/a · no tables on the page
+- review-scripts: 0 of 4 pass
+- review-title: 0 of 1 pass
+- review-structure: 0 of 1 pass
+- review-presentation: 0 of 5 pass
+- review-forms: n/a · no form fields on the page
+- review-navigation: 0 of 2 pass
+- review-consultation: 0 of 5 pass
 
 ## Footprint
 

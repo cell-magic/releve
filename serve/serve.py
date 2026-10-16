@@ -18,6 +18,10 @@ the report is the answer. What holds, here and nowhere else:
     Nothing in a count belongs to one request; no time finer than the week.
     No page shows them; serve/counts.py reads them where they are kept.
   - A record handed back is believed only if its seals hold.
+  - What the rules leave to a person is put to them as questions, in the report.
+    Their answers come back with the record, in the same form, and are written
+    into it as a person's readings, beside what the rule said; no page is
+    visited for that. A failure a rule can show is not put as a question.
   - The observer's conduct is the observer's own (robots.txt, one page at a
     time, nothing submitted). Here it is narrowed further: only public
     addresses on the web's own ports are requested, by the page or by anything
@@ -48,6 +52,7 @@ WAITING = 4       # requests that may wait their turn
 PATIENCE = 90     # seconds a request waits for its answer
 LARGEST = 3_000_000  # bytes of a request: a record handed back, compressed
 PAGES = 25        # pages a record may hold
+RECORDS = 500     # records a record may hold: observations, readings and declarations
 RENEW = 40        # observations after which the browser is started afresh
 
 WORDS = {
@@ -59,6 +64,8 @@ WORDS = {
         "keep": "Following this page over time", "keepit": "This service keeps nothing. To follow this page over time, keep its record: "
         "hand it back with the next request, and the report will say what was mended, what is new and what stands.",
         "download": "Download the record", "file": ".gz file", "again": "Report on another page",
+        "recorded": "{} recorded.",
+        "answers": ("1 answer", "{} answers"), "unanswered": "No answers submitted.",
         "no": "The page was not observed", "busy": "Others are waiting. Ask again in a minute.",
         "why": {
             "not a web address": "This is not a web address. It begins with https:// or http://.",
@@ -68,7 +75,7 @@ WORDS = {
             "robots.txt unreachable": "This site did not answer for its robots.txt, so the robot stayed out.",
             "recently": "This site was observed a moment ago. Ask again in a few seconds.",
             "record": "This record cannot be read, or its seals do not hold. Send the file as it was downloaded.",
-            "full": "This record already holds as many pages as it may.",
+            "full": "This record holds as much as it may.",
             "slow": "The page took too long to answer.",
         },
         "left": [(r".*", r"The robot left the page alone: \g<0>.")],
@@ -87,6 +94,8 @@ WORDS = {
         "keep": "Suivre cette page dans le temps", "keepit": "Ce service ne conserve rien. Pour suivre cette page dans le temps, gardez son relevé : "
         "joignez-le à votre prochaine demande, et le rapport dira ce qui a été corrigé, ce qui est nouveau et ce qui persiste.",
         "download": "Télécharger le relevé", "file": "fichier .gz", "again": "Un autre état des lieux",
+        "recorded": "{}.",
+        "answers": ("1 réponse consignée", "{} réponses consignées"), "unanswered": "Aucune réponse envoyée.",
         "no": "La page n’a pas été observée", "busy": "D’autres demandes attendent. Réessayez dans une minute.",
         "why": {
             "not a web address": "Ce n’est pas une adresse web. Elle commence par https:// ou http://.",
@@ -96,7 +105,7 @@ WORDS = {
             "robots.txt unreachable": "Ce site n’a pas répondu pour son robots.txt ; le robot est resté dehors.",
             "recently": "Ce site vient d’être observé. Réessayez dans quelques secondes.",
             "record": "Ce relevé ne peut pas être lu, ou ses scellés ne tiennent pas. Envoyez le fichier tel qu’il a été téléchargé.",
-            "full": "Ce relevé contient déjà autant de pages qu’il peut en contenir.",
+            "full": "Ce relevé contient déjà tout ce qu’il peut contenir.",
             "slow": "La page a mis trop de temps à répondre.",
         },
         "left": [(r"answered (\d+)", r"La page a répondu \1 ; le robot l’a laissée."),
@@ -173,7 +182,10 @@ STYLE = ("*{box-sizing:border-box}html{color:#1a1a1a;background:#fff}body{margin
          "input[type=url],select{width:32rem;padding:.4rem;color:inherit;background:#fff;border:1px solid #1a1a1a}input[type=file]{margin-top:.25rem}"
          "button{font:inherit;margin-top:1.25rem;padding:.5rem 1rem;color:#fff;background:#1a1a1a;border:1px solid #1a1a1a}"
          "code{font:.875rem/1.4 ui-monospace,monospace;color:#5c6066}.meta{color:#5c6066;font-size:.9375rem}dt{font-weight:600}dd{margin:0 0 .5rem}"
-         "a{color:#1f3a8a}:focus-visible{outline:2px solid #1f3a8a;outline-offset:2px}")
+         "a{color:#1f3a8a}:focus-visible{outline:2px solid #1f3a8a;outline-offset:2px}"
+         "fieldset{min-width:0;margin:.5rem 0 0;padding:.5rem .75rem;border:1px solid #c8cacd}legend{padding:0 .25rem;font-weight:600}"
+         "fieldset input[type=radio],fieldset label{display:inline;margin:.5rem .25rem 0 0}fieldset label{margin-right:1rem}"
+         "fieldset label[for^=n-],fieldset label[for^=dn-]{display:block}fieldset input[type=text]{width:100%;padding:.3rem;color:inherit;background:#fff;border:1px solid #5c6066}")
 
 
 def shut(url, local, known={}):
@@ -276,27 +288,86 @@ def releve(*args, feed=None):
     return r.returncode, r.stdout, r.stderr.decode("utf-8", "replace").strip()
 
 
+def opened(record, d):
+    """A record handed back, written where it passes through memory, believed only if its seals hold."""
+    corpus = Path(d, "c")
+    if record:
+        try:
+            corpus.write_bytes(gzip.decompress(record)[:20 * LARGEST])
+        except (OSError, EOFError):
+            raise Refused("record") from None
+        code, said, _ = releve("verify", corpus)
+        if code != 0 or not said.startswith(b"sealed"):
+            raise Refused("record")
+        if int(said.split()[2]) >= RECORDS:
+            raise Refused("full")
+    return corpus
+
+
 def read(observation, record, lang):
     """The report on a record with this observation added, and the record as it now stands.
     The record is a sealed corpus, compressed; it exists here in memory only."""
     with tempfile.TemporaryDirectory(dir=MEMORY, prefix="releve-") as d:
-        corpus = Path(d, "c")
-        if record:
-            try:
-                corpus.write_bytes(gzip.decompress(record)[:20 * LARGEST])
-            except (OSError, EOFError):
-                raise Refused("record") from None
-            code, said, _ = releve("verify", corpus)
-            if code != 0 or not said.startswith(b"sealed"):
-                raise Refused("record")
-            if int(said.split()[2]) >= 4 * PAGES:
-                raise Refused("full")
+        corpus = opened(record, d)
         if releve("ingest", corpus, feed=json.dumps(observation, ensure_ascii=False).encode("utf-8"))[0] != 0:
             raise Refused("record")
-        code, report, _ = releve("report", lang, corpus)
+        code, report, _ = releve("report", lang, corpus, "--ask")
         if code != 0:
             raise Refused("record")
         return report.decode("utf-8"), gzip.compress(corpus.read_bytes(), mtime=0)
+
+
+def markdown(text):
+    """A person's note made safe for one line of the record's working document, as `releve facts` writes it."""
+    text = " ".join(text.split())[:200]
+    return "".join("\\" + c if c in "\\`*_[]</" else c for c in text)
+
+
+def answer(record, given, lang, declared=None):
+    """A person's answers to the points to decide, recorded in the record they hold. Only a point the rule
+    itself left to a person is answered; a failure the rule can show is not argued away. The answers go
+    through the one door a reading has, `releve correct`, and the report is given again, as it now stands."""
+    if not record:
+        raise Refused("record")
+    with tempfile.TemporaryDirectory(dir=MEMORY, prefix="releve-") as d:
+        corpus = opened(record, d)
+        code, doc, _ = releve("facts", corpus, "--all")
+        if code != 0:
+            raise Refused("record")
+        lines, observation, count = [], None, 0
+        for line in doc.decode("utf-8").split("\n"):
+            # A page's report names its observation; questions asked once for pages that share a template name it.
+            head = re.match(r"Observation `(\w+)`", line)
+            shared = re.match(r"Template `(\w+)`", line)
+            observation = head.group(1) if head else "site-" + shared.group(1) if shared else observation
+            point = re.match(r"- \*\*REVIEW\*\* (.*) \{(\w+)\}$", line)
+            if point and observation and " · machine said " not in line and f"{observation}-{point.group(2)}" in given:
+                verdict, note = given[f"{observation}-{point.group(2)}"]
+                line = f"- **{verdict}** {point.group(1)}{' // ' + markdown(note) if note.strip() else ''} {{{point.group(2)}}}"
+                count += 1
+            lines.append(line)
+        if count and releve("correct", corpus, feed="\n".join(lines).encode("utf-8"))[0] != 0:
+            raise Refused("record")
+        # The owner's declarations, through the one door they have, `releve declare`: only what changed is recorded.
+        if declared:
+            code, doc, _ = releve("declarations", corpus)
+            lines = []
+            for line in doc.decode("utf-8").split("\n"):
+                item = re.match(r"- (RGESN|RGAA) (\S+) · \S+ · (.*?)(?: // .*)?$", line)
+                name = item and f"{item.group(1).lower()}-{item.group(2).replace('.', '-')}"
+                if item and name in declared:
+                    said, note = declared[name]
+                    line = f"- {item.group(1)} {item.group(2)} · {said} · {item.group(3)}{' // ' + markdown(note) if note.strip() else ''}"
+                lines.append(line)
+            code, _, said = releve("declare", corpus, feed="\n".join(lines).encode("utf-8"))
+            if code != 0:
+                raise Refused("record")
+            count += int(said.split()[0])
+        code, report, _ = releve("report", lang, corpus, "--ask")
+        if code != 0:
+            raise Refused("record")
+        first = re.search(r"^# Relevé · (.*)$", doc.decode("utf-8"), re.M)
+        return report.decode("utf-8"), gzip.compress(corpus.read_bytes(), mtime=0), count, first.group(1) if first else ""
 
 
 def page(lang, title, body, shell=None):
@@ -314,6 +385,25 @@ def form(lang, heading=2):
             f'<option value="{other}">{"English" if other == "en" else "Français"}</option></select>\n'
             f'<label for="record">{w["record"]}</label>\n<input id="record" name="record" type="file">\n'
             f'<button type="submit">{w["go"]}</button>\n</form>')
+
+
+def given_back(lang, report, record, url, said=""):
+    """The report as a page of the service: its title, and its body with the record to keep. Where the report
+    puts points to a person, it stands inside a form that sends the answers back with the record, and only then;
+    the record goes to the service when the person sends it, as when they hand back the file."""
+    w = WORDS[lang]
+    title = re.search(r"<title>(.*?)</title>", report, re.S).group(1)
+    body = report[report.index("<main>") + 6:report.index("</main>")]
+    kept = base64.b64encode(record).decode("ascii")
+    body = body.replace("</h1>", "</h1>\n" + said, 1)
+    if 'type="radio"' in body:
+        body = (f'<form method="post" action="{PREFIX}/answer" enctype="multipart/form-data">\n<input type="hidden" name="lang" value="{lang}">\n'
+                f'<input type="hidden" name="kept" value="{kept}">\n{body}</form>\n')
+    name = "releve-" + re.sub(r"[^a-z0-9.-]+", "-", (observer.place(url) or ("", "page"))[1].lower()) + ".jsonl.gz"
+    keep = (f'<h2>{w["keep"]}</h2>\n<p>{w["keepit"]}</p>\n'
+            f'<p><a download="{name}" href="data:application/gzip;base64,{kept}">{w["download"]}</a>'
+            f' ({w["file"]}, {len(record) // 1024 + 1} k{"B" if lang == "en" else "o"})</p>\n<h2>{w["again"]}</h2>\n{form(lang)}')
+    return unescape(title), body + keep
 
 
 class Door(BaseHTTPRequestHandler):
@@ -367,26 +457,35 @@ class Door(BaseHTTPRequestHandler):
             else:
                 fields = {k: v[0].encode("utf-8") for k, v in urllib.parse.parse_qs(raw.decode("utf-8", "replace")).items()}
             lang = "fr" if fields.get("lang") == b"fr" else "en"
-            url = (fields.get("url") or b"").decode("utf-8", "replace").strip()
-            if len(url) > 2000 or observer.place(url) is None:
-                raise Refused("not a web address")
-            observation = BENCH.ask(url)
-            report, record = read(observation, fields.get("record") or None, lang)
-            TALLY.count(lang, fields.get("record"), region(self.headers.get("Accept-Language")))
+            said = ""
+            if urllib.parse.urlsplit(self.path).path.removeprefix(PREFIX) == "/answer":
+                # Answers to the points to decide, with the record they belong to. No page is visited.
+                given = {k[2:]: ("PASS" if v == b"pass" else "FAIL", (fields.get("n-" + k[2:]) or b"").decode("utf-8", "replace"))
+                         for k, v in fields.items() if k and k.startswith("a-") and v in (b"pass", b"fail")}
+                try:
+                    held = base64.b64decode(fields.get("kept") or b"", validate=True)
+                except ValueError:
+                    raise Refused("record") from None
+                declared = {k[2:]: (v.decode("ascii"), (fields.get("dn-" + k[2:]) or b"").decode("utf-8", "replace"))
+                            for k, v in fields.items() if k and k.startswith("d-") and v in (b"yes", b"no", b"n/a")}
+                report, record, count, url = answer(held, given, lang, declared)
+                w = WORDS[lang]
+                said = f'<p><strong>{escape(w["recorded"].format(w["answers"][0] if count == 1 else w["answers"][1].format(count)) if count else w["unanswered"])}</strong></p>\n'
+            else:
+                url = (fields.get("url") or b"").decode("utf-8", "replace").strip()
+                if len(url) > 2000 or observer.place(url) is None:
+                    raise Refused("not a web address")
+                observation = BENCH.ask(url)
+                report, record = read(observation, fields.get("record") or None, lang)
+                url = observation["url"]
+                TALLY.count(lang, fields.get("record"), region(self.headers.get("Accept-Language")))
         except TimeoutError:
             return self.refuse(lang, "slow")
         except Refused as r:
             return self.refuse(lang, str(r))
         except Exception as e:  # whatever went wrong, the answer says so and nothing is written
             return self.refuse(lang, type(e).__name__)
-        w = WORDS[lang]
-        title = re.search(r"<title>(.*?)</title>", report, re.S).group(1)
-        body = report[report.index("<main>") + 6:report.index("</main>")]
-        name = "releve-" + re.sub(r"[^a-z0-9.-]+", "-", (observer.place(observation["url"]) or ("", "page"))[1].lower()) + ".jsonl.gz"
-        keep = (f'<h2>{w["keep"]}</h2>\n<p>{w["keepit"]}</p>\n'
-                f'<p><a download="{name}" href="data:application/gzip;base64,{base64.b64encode(record).decode("ascii")}">{w["download"]}</a>'
-                f' ({w["file"]}, {len(record) // 1024 + 1} k{"B" if lang == "en" else "o"})</p>\n<h2>{w["again"]}</h2>\n{form(lang)}')
-        self.answer(200, lang, unescape(title), body + keep)
+        self.answer(200, lang, *given_back(lang, report, record, url, said))
 
     def refuse(self, lang, why):
         w = WORDS[lang]

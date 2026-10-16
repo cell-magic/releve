@@ -116,7 +116,7 @@ def check(name, ok):
 out, err, code = observe(f"{open_}/one", f"{open_}/two")
 check("observes what it may", [o["url"] for o in out] == [f"{open_}/one", f"{open_}/two"] and code == 0)
 check("pauses at least 1 s between pages", hits(a, "/two")[0][4] - hits(a, "/one")[-1][4] >= 1.0)
-check("names itself and its operator", all("releve-observe/0.4" in e[3] and CONTACT in e[3] for e in log if e[0] == a))
+check("names itself and its operator", all("releve-observe/0.5" in e[3] and CONTACT in e[3] for e in log if e[0] == a))
 
 for path, why in [("/locked", "answered 401"), ("/busy", "answered 429"), ("/gone", "answered 404"),
                   ("/gate", "a challenge stands before the content")]:

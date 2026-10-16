@@ -15,6 +15,10 @@ li { margin-bottom: .6rem; overflow-wrap: anywhere; }
 code { font: .875rem/1.4 ui-monospace, monospace; color: #5c6066; }
 .meta { color: #5c6066; font-size: .9375rem; }
 dt { font-weight: 600; } dd { margin: 0 0 .5rem; }
+fieldset { min-width: 0; margin: .5rem 0 0; padding: .5rem .75rem; border: 1px solid #c8cacd; } legend { padding: 0 .25rem; font-weight: 600; }
+fieldset label { margin-right: 1rem; } fieldset input[type=text] { display: block; width: 100%; margin-top: .25rem; padding: .3rem; font: inherit; color: inherit; background: #fff; border: 1px solid #5c6066; }
+button { font: inherit; padding: .5rem 1rem; color: #fff; background: #1a1a1a; border: 1px solid #1a1a1a; }
+input:focus-visible, button:focus-visible { outline: 2px solid #1f3a8a; outline-offset: 2px; }
 table { border-collapse: collapse; width: 100%; } th, td { text-align: left; padding: .4rem .5rem .4rem 0; border-bottom: 1px solid #c8cacd; overflow-wrap: anywhere; } tbody th { font-weight: normal; }
 
 </style>
@@ -22,63 +26,132 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <body>
 <main>
 <h1>Report · http://localhost:8765/structure.html</h1>
-<p>Automated observation of one rendered page, by rule. It is not a conformity audit: a rule decides what a rule can, and puts the rest to a person.</p>
+<p>Automated observation of one rendered page, by rule. It is not a conformity audit. What no rule can decide is listed as an open question.</p>
 <h2>Method</h2>
-<p>A browser opened each page as a reader's would, at 1280 px and again at 320 px, and recorded what it showed: the names assistive technology is given, the colours as rendered, the bytes that travelled. 44 criteria then read that record. Each is a rule in plain code; no trained model takes part, so the same record gives the same report.</p>
+<p>Each page was rendered in a browser at 1280 px and 320 px. Recorded: names given to assistive technology, colors as rendered, bytes transferred. The page was then navigated by keyboard alone. 69 criteria then read the record. Each is a rule in plain code. No trained model is involved: the same record gives the same report.</p>
 <dl>
-<dt>Changes to make</dt><dd>a stated rule is broken; the remedy is given.</dd>
-<dt>Points to decide</dt><dd>the rule has found what only a person can decide, and shows it.</dd>
-<dt>Could be lighter</dt><dd>nothing is broken; fewer bytes would do the same.</dd>
+<dt>Fixes</dt><dd>A stated rule is broken. The remedy is given.</dd>
+<dt>Open questions</dt><dd>Beyond what a rule can decide. Answers are recorded as the reviewer's, beside the rule's reading, and lapse when the element changes.</dd>
+<dt>Lighter options</dt><dd>Nothing is broken. Fewer bytes would do the same.</dd>
 </dl>
 
-<p class="meta">Observed on 11 October 2026, 17:42 UTC · Chromium 141.0.7390.37</p>
-<p><strong>38 checks pass · 8 changes to make · 5 points to decide · nothing to lighten</strong></p>
-<h2>Changes to make (8)</h2>
+<p class="meta">Observed on 16 October 2026, 10:47 UTC · Chromium 141.0.7390.37</p>
+<p><strong>44 checks pass · 8 fixes · 38 open questions · no lighter options</strong></p>
+<h2>Fixes (8)</h2>
 <h3>The main content is marked</h3>
-<p>A marked main region lets a reader go straight to the content, past what every page repeats. <span class="meta">RGAA 9.2 · 12.6 · WCAG 2.4.1 · light work</span></p>
+<p>Lets a reader skip what every page repeats. <span class="meta">RGAA 9.2 · 12.6 · WCAG 2.4.1 · light fix</span></p>
 <ul>
-<li>2 main landmarks are visible<br><strong>Change: </strong>keep one <code>&lt;main&gt;</code>; give the others the hidden attribute</li>
+<li>2 main landmarks are visible<br><strong>Fix: </strong>keep one <code>&lt;main&gt;</code>; give the others the hidden attribute</li>
 </ul>
 <h3>No element is used as a gap</h3>
-<p>An element that holds nothing is still announced, or counted, by assistive technology: spacing belongs to the style sheet. <span class="meta">RGAA 8.9 · WCAG 1.3.1 · light work</span></p>
+<p>Empty elements are still announced. Spacing belongs in CSS. <span class="meta">RGAA 8.9 · WCAG 1.3.1 · light fix</span></p>
 <ul>
-<li>2 empty paragraphs<br><strong>Change: </strong>remove them; spacing belongs to the style sheet</li>
-<li>1 empty heading<br><strong>Change: </strong>remove it; spacing belongs to the style sheet</li>
+<li>2 empty paragraphs<br><strong>Fix: </strong>remove them; spacing belongs to the style sheet</li>
+<li>1 empty heading<br><strong>Fix: </strong>remove it; spacing belongs to the style sheet</li>
 </ul>
 <h3>Appearance is left to the style sheet</h3>
-<p>Appearance written into the markup cannot be adapted by a reader's own styles; left to the style sheet, it can. <span class="meta">RGAA 10.1 · WCAG 1.3.1 · some work</span></p>
+<p>Styling in markup overrides the reader's own settings. <span class="meta">RGAA 10.1 · WCAG 1.3.1 · moderate fix</span></p>
 <ul>
-<li>attribute bgcolor used 1 time<br><strong>Change: </strong>move it to the style sheet</li>
-<li><code>&lt;center&gt;</code> used 1 time<br><strong>Change: </strong>move it to the style sheet</li>
-<li><code>&lt;font&gt;</code> used 1 time<br><strong>Change: </strong>move it to the style sheet</li>
-<li>attribute color used 1 time<br><strong>Change: </strong>move it to the style sheet</li>
+<li>attribute bgcolor used 1 time<br><strong>Fix: </strong>move it to the style sheet</li>
+<li><code>&lt;center&gt;</code> used 1 time<br><strong>Fix: </strong>move it to the style sheet</li>
+<li><code>&lt;font&gt;</code> used 1 time<br><strong>Fix: </strong>move it to the style sheet</li>
+<li>attribute color used 1 time<br><strong>Fix: </strong>move it to the style sheet</li>
 </ul>
 <h3>No window opens by itself</h3>
-<p>A window that opens by itself moves the reader somewhere they did not choose, and may not be noticed at all. <span class="meta">RGAA 13.2 · WCAG 3.2.1 · some work</span></p>
+<p>Unrequested windows move the reader without notice. <span class="meta">RGAA 13.2 · WCAG 3.2.1 · moderate fix</span></p>
 <ul>
-<li>tried to open 1 window by itself<br><strong>Change: </strong>open a window on the reader's action only</li>
+<li>tried to open 1 window by itself<br><strong>Fix: </strong>open a window on the reader's action only</li>
 </ul>
-<h2>Points to decide (5)</h2>
+<h2>Open questions (38)</h2>
 <h3>What looks like a heading is one</h3>
-<p>Text that looks like a heading and is not marked as one titles the page for the eye only. <span class="meta">RGAA 9.1 · WCAG 1.3.1 · thresholds (tool) · light work</span></p>
+<p>A heading styled but not marked is invisible to assistive technology. <span class="meta">RGAA 9.1 · WCAG 1.3.1 · thresholds (tool) · light fix</span></p>
 <ul>
-<li>“Set large and not marked” is set at 28 px, the running text at 16 px, and it is not a heading<br><strong>Change: </strong>if it titles what follows, mark it h1 to h6<br><code>body &gt; main:nth-of-type(1) &gt; div.big:nth-of-type(1)</code></li>
-<li>“Set bold before plain text” is set bolder than the text that follows, and it is not a heading<br><strong>Change: </strong>if it titles what follows, mark it h1 to h6<br><code>body &gt; main:nth-of-type(1) &gt; div.bold:nth-of-type(2)</code></li>
+<li>“Set large and not marked” is set at 28 px, the running text at 16 px, and it is not a heading<br><strong>Fix: </strong>if it titles what follows, mark it h1 to h6<br><code>body &gt; main:nth-of-type(1) &gt; div.big:nth-of-type(1)</code><br><strong>Question: </strong>Holds here: “What looks like a heading is one”?</li>
+<li>“Set bold before plain text” is set bolder than the text that follows, and it is not a heading<br><strong>Fix: </strong>if it titles what follows, mark it h1 to h6<br><code>body &gt; main:nth-of-type(1) &gt; div.bold:nth-of-type(2)</code><br><strong>Question: </strong>Holds here: “What looks like a heading is one”?</li>
 </ul>
 <h3>What looks like a list is one</h3>
-<p>A marked list announces how many items it holds and lets a reader move from one to the next. <span class="meta">RGAA 9.3 · WCAG 1.3.1 · light work</span></p>
+<p>A marked list states its length and allows moving item to item. <span class="meta">RGAA 9.3 · WCAG 1.3.1 · light fix</span></p>
 <ul>
-<li>3 lines in a row begin like list items, from “• First of three”<br><strong>Change: </strong>mark them as a list: <code>&lt;ul&gt;</code> or <code>&lt;ol&gt;</code>, with <code>&lt;li&gt;</code><br><code>body &gt; main:nth-of-type(1) &gt; p:nth-of-type(5)</code></li>
+<li>3 lines in a row begin like list items, from “• First of three”<br><strong>Fix: </strong>mark them as a list: <code>&lt;ul&gt;</code> or <code>&lt;ol&gt;</code>, with <code>&lt;li&gt;</code><br><code>body &gt; main:nth-of-type(1) &gt; p:nth-of-type(5)</code><br><strong>Question: </strong>Holds here: “What looks like a list is one”?</li>
+</ul>
+<h3>Language codes are valid and right</h3>
+<p>A wrong code reads the text in the wrong voice. <span class="meta">RGAA 8.4 · 8.7 · 8.8 · WCAG 3.1.1 · 3.1.2 · light fix</span></p>
+<ul>
+<li>page language <code>lang=&quot;en&quot;</code><br><strong>Question: </strong>Is the page written in <code>lang=&quot;en&quot;</code>?</li>
+<li>no passage marked in another language<br><strong>Question: </strong>Is every passage in another language marked with lang?</li>
 </ul>
 <h3>The page does not reload or leave on a timer</h3>
-<p>A page that reloads or leaves on a timer takes the reader's place, and their time, away from them. <span class="meta">RGAA 13.1 · WCAG 2.2.1 · light work</span></p>
+<p>Timed reloads and redirects take control from the reader. <span class="meta">RGAA 13.1 · WCAG 2.2.1 · light fix</span></p>
 <ul>
-<li>reloads itself every 600 s<br><strong>Change: </strong>let the reader stop or delay it</li>
+<li>reloads itself every 600 s<br><strong>Fix: </strong>let the reader stop or delay it<br><strong>Question: </strong>Holds here: “The page does not reload or leave on a timer”?</li>
+</ul>
+<h3>Colors, reviewed</h3>
+<p>Criteria only a reviewer can decide, one question each. <span class="meta">RGAA 3.1 · 3.3 · moderate fix</span></p>
+<ul>
+<li>RGAA 3.1 · this page<br><strong>Question: </strong>Is no information given by color alone?</li>
+<li>RGAA 3.3 · this page<br><strong>Question: </strong>Do interface parts and informative graphics contrast at 3:1?</li>
+</ul>
+<h3>Media, reviewed</h3>
+<p>Criteria only a reviewer can decide, one question each. <span class="meta">RGAA 4.1 · 4.2 · 4.4 · 4.5 · 4.6 · 4.7 · 4.8 · 4.9 · 4.11 · 4.12 · 4.13 · moderate fix</span></p>
+<ul>
+<li>RGAA 4.1 · 2 audio or video elements<br><strong>Question: </strong>Does each recorded audio or video have a transcript or audio description where needed?</li>
+<li>RGAA 4.2 · 2 audio or video elements<br><strong>Question: </strong>Does each transcript or audio description match the media?</li>
+<li>RGAA 4.4 · 2 audio or video elements<br><strong>Question: </strong>Do the captions match what is said?</li>
+<li>RGAA 4.5 · 2 audio or video elements<br><strong>Question: </strong>Does each video have a synchronized audio description where needed?</li>
+<li>RGAA 4.6 · 2 audio or video elements<br><strong>Question: </strong>Does the audio description say what the picture shows?</li>
+<li>RGAA 4.7 · 2 audio or video elements<br><strong>Question: </strong>Is each media clearly identified by the text around it?</li>
+<li>RGAA 4.8 · 2 audio or video elements<br><strong>Question: </strong>Does each non-temporal media, such as a map or 3D view, have an alternative where needed?</li>
+<li>RGAA 4.9 · 2 audio or video elements<br><strong>Question: </strong>Does each such alternative give the same information?</li>
+<li>RGAA 4.11 · 2 audio or video elements<br><strong>Question: </strong>Can each recorded media be controlled by keyboard and pointer?</li>
+<li>RGAA 4.12 · 2 audio or video elements<br><strong>Question: </strong>Can each non-temporal media be used by keyboard and pointer?</li>
+<li>RGAA 4.13 · 2 audio or video elements<br><strong>Question: </strong>Is each media usable with assistive technology?</li>
+</ul>
+<h3>Scripts, reviewed</h3>
+<p>Criteria only a reviewer can decide, one question each. <span class="meta">RGAA 7.1 · 7.2 · 7.4 · 7.5 · moderate fix</span></p>
+<ul>
+<li>RGAA 7.1 · this page<br><strong>Question: </strong>Does each scripted component expose its name, role and state?</li>
+<li>RGAA 7.2 · this page<br><strong>Question: </strong>Where a script has an alternative, does it give the same function?</li>
+<li>RGAA 7.4 · this page<br><strong>Question: </strong>Is the user warned of, or in control of, any change of context a script starts?</li>
+<li>RGAA 7.5 · this page<br><strong>Question: </strong>Are status messages announced by assistive technology?</li>
+</ul>
+<h3>Page title, reviewed</h3>
+<p>Criteria only a reviewer can decide, one question each. <span class="meta">RGAA 8.6 · moderate fix</span></p>
+<ul>
+<li>RGAA 8.6 · “Structure”<br><strong>Question: </strong>Does the title say what the page is, and on which site?</li>
+</ul>
+<h3>Quotations, reviewed</h3>
+<p>Criteria only a reviewer can decide, one question each. <span class="meta">RGAA 9.4 · moderate fix</span></p>
+<ul>
+<li>RGAA 9.4 · this page<br><strong>Question: </strong>Is every quotation marked with q or blockquote?</li>
+</ul>
+<h3>Presentation, reviewed</h3>
+<p>Criteria only a reviewer can decide, one question each. <span class="meta">RGAA 10.3 · 10.9 · 10.10 · 10.13 · 10.14 · moderate fix</span></p>
+<ul>
+<li>RGAA 10.3 · this page<br><strong>Question: </strong>Does the page still make sense with styles off?</li>
+<li>RGAA 10.9 · this page<br><strong>Question: </strong>Is no information given by shape, size or position alone?</li>
+<li>RGAA 10.10 · this page<br><strong>Question: </strong>Where shape, size or position carry information, is a text equivalent in the code?</li>
+<li>RGAA 10.13 · this page<br><strong>Question: </strong>Can content shown on hover or focus be dismissed, hovered and kept?</li>
+<li>RGAA 10.14 · this page<br><strong>Question: </strong>Can content shown by CSS alone be shown by keyboard too?</li>
+</ul>
+<h3>Navigation, reviewed</h3>
+<p>Criteria only a reviewer can decide, one question each. <span class="meta">RGAA 12.10 · 12.11 · moderate fix</span></p>
+<ul>
+<li>RGAA 12.10 · this page<br><strong>Question: </strong>Can single-key shortcuts be turned off or remapped?</li>
+<li>RGAA 12.11 · this page<br><strong>Question: </strong>Is content shown on hover, focus or activation reachable by keyboard?</li>
+</ul>
+<h3>Consultation, reviewed</h3>
+<p>Criteria only a reviewer can decide, one question each. <span class="meta">RGAA 13.7 · 13.9 · 13.10 · 13.11 · 13.12 · moderate fix</span></p>
+<ul>
+<li>RGAA 13.7 · this page<br><strong>Question: </strong>Does nothing flash more than three times a second?</li>
+<li>RGAA 13.9 · this page<br><strong>Question: </strong>Can the page be used in both portrait and landscape?</li>
+<li>RGAA 13.10 · this page<br><strong>Question: </strong>Can every multi-point or path gesture be done with a single point too?</li>
+<li>RGAA 13.11 · this page<br><strong>Question: </strong>Can a single-pointer action be cancelled before it completes?</li>
+<li>RGAA 13.12 · this page<br><strong>Question: </strong>Can features that use device motion be used another way?</li>
 </ul>
 <h3>Videos carry captions</h3>
-<p>Captions carry speech and sound to those who do not hear them, and to anyone reading with the sound off. <span class="meta">RGAA 4.3 · WCAG 1.2.2 · heavy work</span></p>
+<p>Speech and sound for those who cannot hear, or have sound off. <span class="meta">RGAA 4.3 · WCAG 1.2.2 · heavy fix</span></p>
 <ul>
-<li>video without a caption track<br><strong>Change: </strong>if it carries speech, add <code>&lt;track kind=&quot;captions&quot;&gt;</code><br><code>body &gt; main:nth-of-type(1) &gt; video:nth-of-type(1)</code></li>
+<li>video without a caption track<br><strong>Fix: </strong>if it carries speech, add <code>&lt;track kind=&quot;captions&quot;&gt;</code><br><code>body &gt; main:nth-of-type(1) &gt; video:nth-of-type(1)</code><br><strong>Question: </strong>Holds here: “Videos carry captions”?</li>
 </ul>
 <h2>Criterion by criterion</h2>
 <ul>
@@ -94,56 +167,104 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <li>What looks like a list is one · 0 of 1 pass</li>
 <li>No element is used as a gap · 0 of 2 pass</li>
 <li>Appearance is left to the style sheet · 0 of 4 pass</li>
-<li>Images carry a text alternative · nothing to judge: no images on the page</li>
+<li>Images carry a text alternative · not applicable: no images on the page</li>
 <li>Text contrasts with its background · 19 of 19 pass</li>
-<li>Links have a name · nothing to judge: no links on the page</li>
-<li>Links to different places differ in name · nothing to judge: no links on the page</li>
-<li>Buttons have a name · nothing to judge: no buttons on the page</li>
-<li>The words shown are in the name · nothing to judge: no name given by the code over words shown</li>
-<li>Form fields have a name · nothing to judge: no form fields on the page</li>
-<li>Groups of fields have a legend · nothing to judge: no group of fields on the page</li>
-<li>Choices of one question are grouped · nothing to judge: no radio buttons on the page</li>
-<li>Fields for personal data state their purpose · nothing to judge: no field that asks for personal data</li>
-<li>Data tables declare their headers · nothing to judge: no tables on the page</li>
-<li>Frames have a title · nothing to judge: no frames on the page</li>
+<li>Links have a name · not applicable: no links on the page</li>
+<li>Links to different places differ in name · not applicable: no links on the page</li>
+<li>Buttons have a name · not applicable: no buttons on the page</li>
+<li>The words shown are in the name · not applicable: no name given by the code over words shown</li>
+<li>Form fields have a name · not applicable: no form fields on the page</li>
+<li>Groups of fields have a legend · not applicable: no group of fields on the page</li>
+<li>Choices of one question are grouped · not applicable: no radio buttons on the page</li>
+<li>Fields for personal data state their purpose · not applicable: no field that asks for personal data</li>
+<li>Data tables declare their headers · not applicable: no tables on the page</li>
+<li>Frames have a title · not applicable: no frames on the page</li>
 <li>No sound starts by itself · 2 of 2 pass</li>
 <li>Videos carry captions · 1 of 2 pass</li>
 <li>Element ids are unique · 1 of 1 pass</li>
 <li>The keyboard follows the order of the page · 1 of 1 pass</li>
 <li>Nothing hidden takes the focus · 1 of 1 pass</li>
+<li>The focus can be seen · not applicable: nothing on the page takes the focus</li>
+<li>The keyboard can leave what it enters · not applicable: nothing on the page takes the focus</li>
+<li>Language codes are valid and right · 0 of 2 pass</li>
+<li>Right-to-left text declares its direction · not applicable: no right-to-left script on the page</li>
+<li>Text survives wider spacing · 1 of 1 pass</li>
+<li>What moves can be stopped · 1 of 1 pass</li>
+<li>What the pointer clicks, the keyboard reaches · 1 of 1 pass</li>
+<li>Words stay without the style sheet · 1 of 1 pass</li>
+<li>A text colour comes with a background · 1 of 1 pass</li>
+<li>Links stand out from the text around them · 1 of 1 pass</li>
+<li>Emoji have a text alternative · not applicable: no emoji on the page</li>
+<li>A CAPTCHA has another way through · not applicable: no CAPTCHA loaded</li>
+<li>Office documents are accessible · not applicable: no office document linked</li>
 <li>No window opens by itself · 0 of 1 pass</li>
 <li>The page does not reload or leave on a timer · 0 of 1 pass</li>
-<li>Conversational AI is disclosed · nothing to judge: no conversational widget detected</li>
-<li>Images made by AI say so · nothing to judge: no image states its origin</li>
+<li>Conversational AI is disclosed · not applicable: no conversational widget detected</li>
+<li>Images made by AI say so · not applicable: no image states its origin</li>
 <li>Nothing is asked of the device on arrival · 1 of 1 pass</li>
 <li>Third parties wait for consent · 1 of 1 pass</li>
 <li>Nothing plays by itself · 2 of 2 pass</li>
 <li>The page has an end · 1 of 1 pass</li>
-<li>Fonts are few and light · nothing to judge: no font is downloaded</li>
-<li>Text travels compressed · nothing to judge: read from this machine: how it is served is not judged</li>
-<li>What does not change is kept by the browser · nothing to judge: read from this machine: how it is served is not judged</li>
-<li>The page travels by current protocols · nothing to judge: read from this machine: how it is served is not judged</li>
-<li>Images far down the page wait to be reached · nothing to judge: no image below the second screen</li>
-<li>Images are not larger than shown · nothing to judge: no bitmap images on the page</li>
-<li>Heavy images use a modern format · nothing to judge: no weighed images on the page</li>
+<li>Fonts are few and light · not applicable: no font is downloaded</li>
+<li>Text travels compressed · not applicable: read from this machine: how it is served is not judged</li>
+<li>What does not change is kept by the browser · not applicable: read from this machine: how it is served is not judged</li>
+<li>The page travels by current protocols · not applicable: read from this machine: how it is served is not judged</li>
+<li>Images far down the page wait to be reached · not applicable: no image below the second screen</li>
+<li>Images are not larger than shown · not applicable: no bitmap images on the page</li>
+<li>Heavy images use a modern format · not applicable: no weighed images on the page</li>
+<li>Images, reviewed · not applicable: no images on the page</li>
+<li>Frames, reviewed · not applicable: no frames on the page</li>
+<li>Colors, reviewed · 0 of 2 pass</li>
+<li>Media, reviewed · 0 of 11 pass</li>
+<li>Tables, reviewed · not applicable: no tables on the page</li>
+<li>Scripts, reviewed · 0 of 4 pass</li>
+<li>Page title, reviewed · 0 of 1 pass</li>
+<li>Quotations, reviewed · 0 of 1 pass</li>
+<li>Presentation, reviewed · 0 of 5 pass</li>
+<li>Forms, reviewed · not applicable: no form fields on the page</li>
+<li>Navigation, reviewed · 0 of 2 pass</li>
+<li>Consultation, reviewed · 0 of 5 pass</li>
 </ul>
 <h2>Footprint</h2>
-<p>39 elements in the document · 3 requests · 4 kB transferred · 0 third-party hosts</p>
+<p>39 elements in the document · 3 requests · 3 kB transferred · 0 third-party hosts</p>
 <h2>The reading</h2>
-<p>A measure, not a verdict. The page gives its reader 21 things to take in. Its markup says which of them can be taken independently: a heading opens a section, a list holds items, a table's headers free its cells. What it does not declare independent has to be taken in order.</p>
+<p>A measure, not a verdict. The page holds 21 things to read. Headings, lists and table headers let a reader take them independently. Everything else is read in order.</p>
 <dl>
-<dt>Shown and not said</dt><dd>2: what the eye is given and assistive technology is not.</dd>
-<dt>Said and not shown</dt><dd>0: what is given to assistive technology alone, such as a link past the menu.</dd>
-<dt>Depth</dt><dd>18: the longest run the markup obliges. Without structure it would be 21.</dd>
-<dt>One at a time, by ear</dt><dd>19 steps: each thing that is said, one after the other.</dd>
-<dt>Up to 4 at a time</dt><dd>18 steps as the page stands; 18 with nothing failing. A page of this size and depth takes between 18 and 18.</dd>
-<dt>What the page says</dt><dd>254 bytes of text, by an estimate; 15 bytes travel for each.</dd>
+<dt>Shown and not said</dt><dd>2: visible, but not given to assistive technology.</dd>
+<dt>Said and not shown</dt><dd>0: given to assistive technology only, such as a skip link.</dd>
+<dt>Depth</dt><dd>18: longest sequence the markup imposes. Without structure: 21.</dd>
+<dt>Serial, by ear</dt><dd>19 steps: everything read in sequence.</dd>
+<dt>Up to 4 at a time</dt><dd>18 steps as is; 18 with nothing failing. Range for this size and depth: 18 to 18.</dd>
+<dt>What the page says</dt><dd>254 bytes of text, estimated; 12 bytes transferred per byte of text.</dd>
 </dl>
-<p class="meta">The reader who holds up to 4 is a convention, as a reference device is in a test of speed: it takes what comes first on the page, and fewer things at once where the page fails them.</p>
+<p class="meta">A reader holding up to 4 at a time is a convention, like a reference device in a speed test. Failures reduce what it holds.</p>
+<h2 id="declarations">Declarations</h2>
+<p>Criteria not visible from a page: how the service is decided, built, hosted and run, and how its pages fit together. Declared once by the owner for the whole record. The official texts prevail.</p>
+<p><strong>0 yes · 0 no · 0 not applicable · 69 open</strong></p>
+<h3>Strategy</h3>
+<p>Open: <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.1/">RGESN 1.1</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.2/">RGESN 1.2</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.3/">RGESN 1.3</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.4/">RGESN 1.4</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.5/">RGESN 1.5</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.6/">RGESN 1.6</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.7/">RGESN 1.7</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.8/">RGESN 1.8</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.9/">RGESN 1.9</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.10/">RGESN 1.10</a></p>
+<h3>Specifications</h3>
+<p>Open: <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/2.1/">RGESN 2.1</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/2.2/">RGESN 2.2</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/2.3/">RGESN 2.3</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/2.4/">RGESN 2.4</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/2.6/">RGESN 2.6</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/2.7/">RGESN 2.7</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/2.8/">RGESN 2.8</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/2.9/">RGESN 2.9</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/2.10/">RGESN 2.10</a></p>
+<h3>Architecture</h3>
+<p>Open: <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/3.1/">RGESN 3.1</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/3.2/">RGESN 3.2</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/3.4/">RGESN 3.4</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/3.5/">RGESN 3.5</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/3.6/">RGESN 3.6</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/3.7/">RGESN 3.7</a></p>
+<h3>Interface</h3>
+<p>Open: <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/4.3/">RGESN 4.3</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/4.5/">RGESN 4.5</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/4.6/">RGESN 4.6</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/4.7/">RGESN 4.7</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/4.9/">RGESN 4.9</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/4.10/">RGESN 4.10</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/4.11/">RGESN 4.11</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/4.12/">RGESN 4.12</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/4.14/">RGESN 4.14</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/4.15/">RGESN 4.15</a></p>
+<h3>Content</h3>
+<p>Open: <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/5.2/">RGESN 5.2</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/5.3/">RGESN 5.3</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/5.4/">RGESN 5.4</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/5.5/">RGESN 5.5</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/5.6/">RGESN 5.6</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/5.7/">RGESN 5.7</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/5.8/">RGESN 5.8</a></p>
+<h3>Front end</h3>
+<p>Open: <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/6.1/">RGESN 6.1</a></p>
+<h3>Back end</h3>
+<p>Open: <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/7.1/">RGESN 7.1</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/7.2/">RGESN 7.2</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/7.3/">RGESN 7.3</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/7.4/">RGESN 7.4</a></p>
+<h3>Hosting</h3>
+<p>Open: <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/8.1/">RGESN 8.1</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/8.2/">RGESN 8.2</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/8.3/">RGESN 8.3</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/8.4/">RGESN 8.4</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/8.5/">RGESN 8.5</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/8.6/">RGESN 8.6</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/8.7/">RGESN 8.7</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/8.8/">RGESN 8.8</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/8.9/">RGESN 8.9</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/8.10/">RGESN 8.10</a></p>
+<h3>Algorithms</h3>
+<p>Open: <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/9.1/">RGESN 9.1</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/9.2/">RGESN 9.2</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/9.3/">RGESN 9.3</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/9.4/">RGESN 9.4</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/9.5/">RGESN 9.5</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/9.6/">RGESN 9.6</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/9.7/">RGESN 9.7</a></p>
+<h3>Navigation across pages</h3>
+<p>Open: <a href="https://accessibilite.numerique.gouv.fr/methode/criteres-et-tests/#12.1">RGAA 12.1</a>, <a href="https://accessibilite.numerique.gouv.fr/methode/criteres-et-tests/#12.2">RGAA 12.2</a>, <a href="https://accessibilite.numerique.gouv.fr/methode/criteres-et-tests/#12.3">RGAA 12.3</a>, <a href="https://accessibilite.numerique.gouv.fr/methode/criteres-et-tests/#12.4">RGAA 12.4</a>, <a href="https://accessibilite.numerique.gouv.fr/methode/criteres-et-tests/#12.5">RGAA 12.5</a></p>
 <h2>What was not looked at</h2>
-<p>These rules touch 36 of the 106 criteria of the RGAA 4.1.2, 14 of the 78 of the RGESN 2024, and 4 paragraphs of article 50 of the AI Act. To touch a criterion is not to settle it: most ask for a person's judgement, or for a declaration of the owner's, beyond what a rule can see.</p>
-<p>One page was observed at one moment and at two widths. What appears only after an action (a menu opened, a form sent, a dialogue), what stands behind a login, and what lies inside frames from other sites were not observed.</p>
-<p class="meta">relevé 0.4.0 · criteria v5</p>
+<p>These rules touch 101 of the 106 criteria of the RGAA 4.1.2, 14 of the 78 of the RGESN 2024, and 4 paragraphs of article 50 of the AI Act. The other 64 RGESN criteria and 5 RGAA criteria on the set of pages are declared by the owner; 0 are declared so far.</p>
+<p>Each page was observed once, at two widths. Not observed: content shown only after an action, such as an open menu, a sent form or a dialog; content behind a login; frames from other sites.</p>
+<p class="meta">relevé 0.5.0 · criteria v6</p>
 </main>
 </body>
 </html>
