@@ -34,7 +34,10 @@ report l asking release st = T.unlines $
            <> ", by rule. It is not a conformity audit. What no rule can decide is listed as an open question."
           // (if single then "Observation automatisée d'une page rendue" else "Observation automatisée de " <> num (length pages) <> " pages rendues")
            <> ", par des règles. Ce n'est pas un audit de conformité. Ce qu'aucune règle ne peut trancher figure en question ouverte."))
-  , "<h2>" <> t ("Method" // "Méthode") <> "</h2>"
+  ]
+  ++ dating
+  ++
+  [ "<h2>" <> t ("Method" // "Méthode") <> "</h2>"
   , p (t ("Each page was rendered in a browser at 1280 px and 320 px. Recorded: names given to assistive technology, colors as rendered, bytes transferred. "
           // "Chaque page a été rendue dans un navigateur à 1280 px et 320 px. Relevés : noms donnés aux technologies d'assistance, couleurs rendues, octets transférés. ")
        <> t ("The page was then navigated by keyboard alone. "
@@ -68,6 +71,18 @@ report l asking release st = T.unlines $
   where
     t = codify . typography l . say l
     p x = "<p>" <> x <> "</p>"
+    -- The latest time stamp, what it covers, and what came after it. A page around the report may set a picture where the comment stands.
+    dating = case reverse (stamps st) of
+      [] -> []
+      (n, x) : _ ->
+        let after = recordCount st - 1 - n
+            host' = T.takeWhile (/= '/') (snd (T.breakOnEnd "://" (stTsa x)))
+        in [ "<!-- sky -->"
+           , "<p class=\"meta\">" <> t ("Dated " // "Daté du ") <> esc (date l (stTime x)) <> t (" by " // " par ") <> esc host'
+             <> t (", an outside time-stamping authority (RFC 3161). Its signed reply is in the record and covers it up to record " // ", autorité d'horodatage extérieure (RFC 3161). Sa réponse signée figure dans le relevé et le couvre jusqu'à l'enregistrement ")
+             <> num (n - 1) <> ", <code>" <> esc (T.take 8 (stHead x)) <> "</code>."
+             <> (if after > 0 then t (both (" " <> num after) <> (if after == 1 then " record came after it." // " enregistrement est venu après." else " records came after it." // " enregistrements sont venus après.")) else "")
+             <> "</p>" ]
     others = [i | i <- items, iRef i `notElem` ["RGESN", "RGAA", "AI Act"]]
     dt x = "<dt>" <> t x <> "</dt>"
     dd x = "<dd>" <> t x <> "</dd>"

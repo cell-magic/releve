@@ -22,6 +22,8 @@ import Releve.Kernel
 import Releve.Report
 import Releve.Types
 import Releve.Views
+import Stamp
+import Data.Maybe (listToMaybe)
 
 usage :: String
 usage = unlines
@@ -36,7 +38,10 @@ usage = unlines
   , "  releve declarations CORPUS            the criteria no rule can see, with the owner's answers"
   , "  releve declare CORPUS < answers.md    record the owner's edits to the declarations"
   , "  releve atlas CORPUS                   every observation as study data (JSON lines)"
-  , "  releve verify CORPUS                  check the corpus seals"
+  , "  releve verify CORPUS [--export DIR]   check the corpus seals and each time stamp; with --export,"
+  , "                                        write each stamp's reply to DIR and the OpenSSL command that checks it"
+  , "  releve stamp CORPUS [AUTHORITY]       have a time-stamping authority (RFC 3161) date the latest record;"
+  , "                                        needs openssl and curl"
   , "  releve criteria                       list the criteria and their sources"
   , "  releve guide en|fr                    the criteria and what each is for, as HTML"
   , "  releve frameworks                     each law and standard, and how many of its provisions"
@@ -45,7 +50,7 @@ usage = unlines
 
 -- | The release, as in releve.cabal; tests/run.py holds the two together.
 release :: String
-release = "0.7.0"
+release = "0.8.0"
 
 -- | The same bytes on every system: UTF-8, and line feeds alone on the way out.
 plain :: IO ()
@@ -66,10 +71,28 @@ main = plain >> getArgs >>= \args -> case args of
   ["declarations", c] -> withState c (TIO.putStr . declarations)
   ["declare", c] -> declare c
   ["atlas", c] -> withState c $ \st -> forM_ (observations st) (BL.putStrLn . encode . atlas st)
-  ["verify", c] -> records c >>= \rs -> case verify rs of
-    Right n -> putStrLn ("sealed · " <> show n <> (if n == 1 then " record" else " records")
-                           <> concat [" · head " <> T.unpack (T.take 8 (rHash (last rs))) | not (null rs)])
+  ("verify" : c : rest) | rest == [] || take 1 rest == ["--export"] && length rest == 2 -> records c >>= \rs -> case verify rs of
     Left n -> die ("broken at record " <> show n)
+    Right n -> do
+      putStrLn ("sealed · " <> show n <> (if n == 1 then " record" else " records")
+                  <> concat [" · head " <> T.unpack (T.take 8 (rHash (last rs))) | not (null rs)])
+      st <- either die pure (build rs)
+      checked <- check [ (k, rPrev (rs !! k), x) | (k, x) <- stamps st ]
+      forM_ checked $ \(k, x, ok) -> putStrLn ("dated · " <> T.unpack (stTime x) <> " · " <> T.unpack (stTsa x) <> " · covers record " <> show (k - 1)
+                                                 <> either (" · NOT VERIFIED: " <>) (const " · signature verified") ok)
+      case rest of
+        [_, dir] -> export dir (stamps st) >>= mapM_ putStrLn
+        _ -> pure ()
+      if all (\(_, _, ok) -> either (const False) (const True) ok) checked then pure () else exitWith (ExitFailure 1)
+  ("stamp" : c : rest) | length rest <= 1 -> do
+    rs <- sealed c
+    if null rs then die "nothing to date: the corpus is empty" else pure ()
+    r <- request (maybe authority id (listToMaybe rest)) (rHash (last rs))
+    case r of
+      Left e -> die ("not dated: " <> e)
+      Right x -> do
+        append c (next rs (toJSON (Stamped x)))
+        putStrLn ("dated · " <> T.unpack (stTime x) <> " · " <> T.unpack (stTsa x) <> " · covers record " <> show (length rs - 1) <> " · head " <> T.unpack (T.take 8 (stHead x)))
   ["criteria"] -> do
     putStrLn ("criteria v" <> T.unpack version)
     forM_ criteria $ \k -> TIO.putStrLn (T.justifyLeft 20 ' ' (cId k) <> T.justifyLeft 46 ' ' (en (cTitle k)) <> en (cRef k))

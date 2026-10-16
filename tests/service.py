@@ -3,13 +3,14 @@
 # SPDX-License-Identifier: EUPL-1.2
 """The service, checked against local sites: an address in, a report out, and
 nothing left behind. Needs Python, Playwright, Chromium and `releve`; no network."""
-import base64, gzip, json, os, re, subprocess, sys, tempfile, threading, uuid
+import base64, gzip, hashlib, json, os, re, subprocess, sys, tempfile, threading, uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.request import Request, urlopen
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "serve"))
 import serve  # noqa: E402
+from authority import authority  # noqa: E402
 
 PAGE = "<!doctype html><html lang=en><title>{0}</title><main><h1>{0}</h1><p>Words of the page.</p><img src=/x.png></main></html>"
 hits, checks, shelf = [], [], {}  # requests seen; results; pages put up to be read
@@ -217,6 +218,28 @@ recipe = (Path(serve.__file__).parent / "install.sh").read_text(encoding="utf-8"
 check("its recipe keeps no output and no log of requests, and tells the service nothing of who asked",
       all(x in recipe for x in ("StandardOutput=null", "StandardError=null", "exclude http.log.error", "header_up -X-Forwarded-For"))
       and "output file" not in recipe)
+
+# Dated by an outside authority: the report gives the time, the authority and the sky its reply draws; the
+# record holds the reply, its seals and the stamp check, and the sky's code is the reply's own digest. Only
+# the cloud dots move: the building stays to the point.
+work = Path(tempfile.mkdtemp())
+os.environ["RELEVE_CA"] = str(authority(work / "tsa", 8767))
+dots = "".join(f"m{3 if k else 200}.0 {k % 3}.0h1v1h-1z" for k in range(30))
+(work / "sky.svg").write_text(f'<svg xmlns="http://www.w3.org/2000/svg" width="400" height="100"><path d="M10 10h80v80h-80z{dots}"/></svg>')
+(work / "sky.json").write_text(json.dumps({"svg": "sky.svg", "dot": 2, "frontier": [[1000, 150]], "kept": [], "amp": 6, "jitter": 1,
+                                           "verify": {"en": "https://example.org/verify/", "fr": "https://example.org/fr/verifier/"}}))
+serve.AUTHORITY, serve.SKY = "http://127.0.0.1:8767/", {**json.loads((work / "sky.json").read_text()), "drawing": (work / "sky.svg").read_text()}
+status, headers, text = ask(door, f"http://127.0.0.1:{open_}/dated")
+record = kept(text) if status == 200 else b""
+last = [json.loads(l) for l in gzip.decompress(record).decode("utf-8").splitlines() if '"stamped"' in l] if record else []
+code = hashlib.sha256(base64.b64decode(last[-1]["event"]["stamped"]["reply"])).hexdigest()[:8] if last else None
+(work / "c").write_bytes(gzip.decompress(record) if record else b"")
+drawn = re.search(r'<figure><svg[^>]*><path d="([^"]+)"', text)
+check("dates the record by the authority named, and sets its sky above the date",
+      bool(last) and "an outside time-stamping authority (RFC 3161)" in text and f"sky {code}." in text and drawn is not None
+      and drawn.group(1).startswith("M10 10h80v80h-80z") and drawn.group(1) != (work / "sky.svg").read_text().split('d="')[1].split('"')[0]
+      and 'href="https://example.org/verify/"' in text and "signature verified" in subprocess.run([serve.RELEVE, "verify", work / "c"], capture_output=True, text=True).stdout)
+serve.AUTHORITY = serve.SKY = None
 
 # A service whose browser cannot start is of no use, and does not pretend: it ends, to be started again.
 try:

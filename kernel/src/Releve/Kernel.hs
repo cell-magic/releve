@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 -- | The fold. State is a function of the corpus and nothing else:
 --   the same corpus always yields the same findings.
-module Releve.Kernel (Obs (..), State, Pool (..), build, observations, latest, resolve, assess, previous, declared, builtOn, host, pools, governing) where
+module Releve.Kernel (Obs (..), State, Pool (..), build, observations, latest, resolve, assess, previous, declared, stamps, recordCount, builtOn, host, pools, governing) where
 
 import Data.Aeson (Result (..), fromJSON)
 import Data.Char (toLower)
@@ -24,19 +24,30 @@ data State = State
   { byPage :: M.Map Text [Obs]          -- oldest first
   , byId :: M.Map Text Obs
   , fixes :: [(Int, Correction)]       -- in corpus order
-  , said :: M.Map Text Declaration }    -- the latest answer to each declared criterion
+  , said :: M.Map Text Declaration     -- the latest answer to each declared criterion
+  , dated :: [(Int, Stamp)]            -- in corpus order
+  , count :: Int }                     -- records in the corpus
 
 build :: [Record] -> Either String State
-build = foldl step (Right (State M.empty M.empty [] M.empty))
+build = foldl step (Right (State M.empty M.empty [] M.empty [] 0))
   where
     step (Left e) _ = Left e
-    step (Right st) r = case fromJSON (rEvent r) of
+    step (Right st0) r = let st = st0 { count = rSeq r + 1 } in case fromJSON (rEvent r) of
       Error e -> Left ("record " <> show (rSeq r) <> ": " <> e)
       Success (Observed o) ->
         let x = Obs (T.take 8 (rHash r)) (rSeq r) o
         in Right st { byPage = M.insertWith (flip (++)) (url o) [x] (byPage st), byId = M.insert (oId x) x (byId st) }
       Success (Corrected c) -> Right st { fixes = fixes st ++ [(rSeq r, c)] }
       Success (Declared d) -> Right st { said = M.insert (dCriterion d) d (said st) }
+      Success (Stamped x) -> Right st { dated = dated st ++ [(rSeq r, x)] }
+
+-- | The time stamps, each with the sequence number of its own record, in corpus order.
+stamps :: State -> [(Int, Stamp)]
+stamps = dated
+
+-- | How many records the corpus holds.
+recordCount :: State -> Int
+recordCount = count
 
 -- | The owner's answers in force, by criterion; a withdrawn one is not among them.
 declared :: State -> M.Map Text Declaration

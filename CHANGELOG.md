@@ -1,5 +1,29 @@
 # Changes
 
+## 0.8.0
+
+Records dated from outside. Criteria stay at v9.
+
+- **releve stamp.** The hash of the latest record goes to a time-stamping
+  authority under RFC 3161, DigiCert's free one unless another is named;
+  its signed reply, checked before it is kept, becomes the next record.
+  OpenSSL and curl do the work, called as they are called by hand.
+- **releve verify.** Each time stamp is checked again: it covers the record
+  before it, and the authority's signature holds against the system's
+  roots, or those `RELEVE_CA` names. `--export DIR` writes each reply with
+  the OpenSSL command that checks it.
+- **The report** gives the time, the authority and the record the stamp
+  covers, and says how many records came after it.
+- **The service** dates each record when it is made and when it is
+  answered (`--authority`). With `--sky`, the illustration a look names is
+  set above the date, its cloud dots moved by the signed reply
+  (`serve/sky.py`): anyone can draw it again from the record.
+- **install.sh** names DigiCert unless told otherwise (`--authority URL`,
+  or `none`), installs openssl, and says whether the first report came
+  back dated.
+- **Tests.** A time-stamping authority of the tests' own (`tests/authority.py`),
+  so that dating is checked with no network.
+
 ## 0.7.0
 
 Criteria move from v8 to v9. WCAG 2.2 at levels A and AA, where the RGAA

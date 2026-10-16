@@ -3,7 +3,8 @@
 # SPDX-License-Identifier: EUPL-1.2
 """serve — relevé as a page anyone can use: an address in, a report out.
 
-    serve --contact URL [--port 8000] [--shell en=FILE --shell fr=FILE] [--static DIR] [--counts FILE] [--local]
+    serve --contact URL [--port 8000] [--shell en=FILE --shell fr=FILE] [--static DIR] [--counts FILE]
+          [--authority URL] [--sky FILE] [--local]
 
 A form asks for the address of a page. The page is observed once, judged, and
 the report is the answer. What holds, here and nowhere else:
@@ -29,6 +30,12 @@ the report is the answer. What holds, here and nowhere else:
   - One page is observed at a time. Requests wait their turn; past WAITING of
     them, the answer is to come back later.
 
+`--authority` names a time-stamping authority (RFC 3161): each record is dated
+by it when it is made or answered, and only the record's latest hash is sent
+to it, which says nothing of what it was made from. `--sky` names a JSON file:
+an illustration, and the rule by which a dated record moves its cloud dots
+(sky.py), set above the report's date.
+
 `--shell` sets the report in a page of your own: the file's `<!-- relevé -->`
 is replaced by the report's content, `{title}` by its title; `--static` serves
 the files that page needs, under /static/. `--counts` keeps the weekly counts
@@ -46,7 +53,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "observe"))
 import observe as observer  # noqa: E402  (the observer, beside this file)
+import sky  # noqa: E402  (the sky of a record, beside this file)
 
+AUTHORITY = SKY = None   # set by setup()
 PAUSE = 10        # seconds between two visits to one site, at least
 WAITING = 4       # requests that may wait their turn
 PATIENCE = 90     # seconds a request waits for its answer
@@ -61,6 +70,8 @@ WORDS = {
         "what it shows is read by rule, and the report is the answer. Nothing is kept: no account, no cookie, no record of the address.",
         "address": "URL", "required": "Required · full address, with https://", "record": "Previous record, to compare", "optional": "Optional",
         "go": "Run report", "language": "Report language",
+        "sky": "The sky of this record", "skyis": "Each dot of these clouds is placed by the authority’s signed reply: sky {code}. A record changed, or dated otherwise, has another sky.",
+        "verify": "How to verify a record",
         "keep": "Following this page over time", "keepit": "This service keeps nothing. To follow this page over time, keep its record: "
         "hand it back with the next request, and the report will say what was mended, what is new and what stands.",
         "download": "Download the record", "file": ".gz file", "again": "Report on another page",
@@ -91,6 +102,8 @@ WORDS = {
         "ce qu’elle montre est lu par des règles, et le rapport est la réponse. Rien n’est conservé : ni compte, ni cookie, ni trace de l’adresse.",
         "address": "URL", "required": "Requis · adresse complète, avec https://", "record": "Relevé précédent, pour comparer", "optional": "Facultatif",
         "go": "Obtenir l’état des lieux", "language": "Langue du rapport",
+        "sky": "Le ciel de ce relevé", "skyis": "Chaque point de ces nuages est placé par la réponse signée de l’autorité : ciel {code}. Un relevé modifié, ou daté autrement, a un autre ciel.",
+        "verify": "Vérifier un relevé",
         "keep": "Suivre cette page dans le temps", "keepit": "Ce service ne conserve rien. Pour suivre cette page dans le temps, gardez son relevé : "
         "joignez-le à votre prochaine demande, et le rapport dira ce qui a été corrigé, ce qui est nouveau et ce qui persiste.",
         "download": "Télécharger le relevé", "file": "fichier .gz", "again": "Un autre état des lieux",
@@ -311,10 +324,33 @@ def read(observation, record, lang):
         corpus = opened(record, d)
         if releve("ingest", corpus, feed=json.dumps(observation, ensure_ascii=False).encode("utf-8"))[0] != 0:
             raise Refused("record")
+        stamp(corpus)
         code, report, _ = releve("report", lang, corpus, "--ask")
         if code != 0:
             raise Refused("record")
         return report.decode("utf-8"), gzip.compress(corpus.read_bytes(), mtime=0)
+
+
+def stamp(corpus):
+    """The record dated by the authority named, if one is: only its latest hash leaves. An authority that
+    does not answer leaves the record undated, and the report says nothing of a date."""
+    if AUTHORITY:
+        releve("stamp", corpus, AUTHORITY)
+
+
+def skyline(record, lang):
+    """The record's sky, drawn from its latest time stamp, with what it means; nothing for a record not dated."""
+    reply = None
+    for line in gzip.decompress(record).decode("utf-8").splitlines():
+        if '"stamped":' in line:
+            reply = json.loads(line)["event"].get("stamped", {}).get("reply") or reply
+    if not SKY or not reply:
+        return ""
+    w = WORDS[lang]
+    drawing, code = sky.draw(SKY["drawing"], base64.b64decode(reply), SKY)
+    link = SKY.get("verify", {}).get(lang)
+    return (f'<figure>{sky.inline(drawing, w["sky"])}\n<figcaption class="meta">{w["skyis"].format(code=code)}'
+            + (f' <a href="{escape(link)}">{w["verify"]}</a>' if link else "") + "</figcaption></figure>")
 
 
 def markdown(text):
@@ -363,6 +399,8 @@ def answer(record, given, lang, declared=None):
             if code != 0:
                 raise Refused("record")
             count += int(said.split()[0])
+        if count:
+            stamp(corpus)
         code, report, _ = releve("report", lang, corpus, "--ask")
         if code != 0:
             raise Refused("record")
@@ -397,7 +435,7 @@ def given_back(lang, report, record, url, said=""):
     title = re.search(r"<title>(.*?)</title>", report, re.S).group(1)
     body = report[report.index("<main>") + 6:report.index("</main>")]
     kept = base64.b64encode(record).decode("ascii")
-    body = body.replace("</h1>", "</h1>\n" + said, 1)
+    body = body.replace("</h1>", "</h1>\n" + said, 1).replace("<!-- sky -->", skyline(record, lang), 1)
     if 'type="radio"' in body:
         body = (f'<form method="post" action="{PREFIX}/answer" enctype="multipart/form-data">\n<input type="hidden" name="lang" value="{lang}">\n'
                 f'<input type="hidden" name="kept" value="{kept}">\n{body}</form>\n')
@@ -497,9 +535,14 @@ class Door(BaseHTTPRequestHandler):
         self.answer(200, lang, w["no"], f'<h1>{w["no"]}</h1>\n<p>{said}</p>\n{form(lang)}')
 
 
-def setup(contact, local=False, shells=(), static=None, prefix="", counts=None):
+def setup(contact, local=False, shells=(), static=None, prefix="", counts=None, authority=None, skyfile=None):
     """Everything the door needs, set once before it opens."""
-    global BENCH, MEMORY, PREFIX, RELEVE, SHELLS, STATIC, TALLY
+    global AUTHORITY, BENCH, MEMORY, PREFIX, RELEVE, SHELLS, SKY, STATIC, TALLY
+    AUTHORITY = authority
+    SKY = None
+    if skyfile:
+        SKY = json.loads(Path(skyfile).read_text(encoding="utf-8"))
+        SKY["drawing"] = (Path(skyfile).parent / SKY["svg"]).read_text(encoding="utf-8")
     RELEVE = shutil.which(os.environ.get("RELEVE", "releve")) or sys.exit("serve: releve not found; build it, or name it in RELEVE")
     MEMORY = "/dev/shm" if os.access("/dev/shm", os.W_OK) else None  # records pass through memory, not through a disk
     PREFIX = prefix.rstrip("/")
@@ -521,8 +564,10 @@ def main():
     ap.add_argument("--static", metavar="DIR", help="files the shell needs, served under /static/")
     ap.add_argument("--counts", metavar="FILE", help="where the weekly counts are kept across restarts; without it, in memory only")
     ap.add_argument("--local", action="store_true", help="admit private addresses: for trying it on your own machine only")
+    ap.add_argument("--authority", metavar="URL", help="a time-stamping authority (RFC 3161) to date each record by; without it, none")
+    ap.add_argument("--sky", metavar="FILE", help="the illustration whose cloud dots each dated record moves, and its rule (sky.py)")
     args = ap.parse_args()
-    setup(args.contact, args.local, args.shell, args.static, args.prefix, args.counts)
+    setup(args.contact, args.local, args.shell, args.static, args.prefix, args.counts, args.authority, args.sky)
     ThreadingHTTPServer((args.host, args.port), Door).serve_forever()
 
 

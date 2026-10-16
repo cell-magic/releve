@@ -140,6 +140,7 @@ releve declare corpus.jsonl < d.md         # the owner's answers become events
 releve report fr corpus.jsonl > report.html # for the pages' owner; en or fr
 releve atlas corpus.jsonl > atlas.jsonl
 releve verify corpus.jsonl
+releve stamp corpus.jsonl                 # dated by a time-stamping authority (RFC 3161); needs openssl and curl
 releve guide en > criteria.html             # what each criterion is for
 releve frameworks                           # each law and standard, and what of it is addressed (JSON lines)
 
@@ -314,6 +315,28 @@ owner's declaration for what no page shows, and 6 and 7, which place no duty
 on a site, by saying so. `tests/run.py` holds them to it.
 To cover a criterion is not to settle it: a question is settled by the
 reviewer's answer, a declaration by the owner's.
+
+### Dated from outside
+
+A corpus seals each record to the one before it, so a record changed,
+removed or put out of order breaks the chain. Seals say nothing of when.
+`releve stamp` sends the hash of the latest record, and nothing else, to a
+time-stamping authority under RFC 3161, DigiCert's free one unless another is
+named, and keeps its signed reply as the next record. `releve verify` checks
+each reply again: that it covers the record before it, and that the
+authority's signature holds, against the roots the system already holds
+(`RELEVE_CA` names others). `releve verify CORPUS --export DIR` writes each
+reply out with the OpenSSL command that checks it, for anyone without relevé.
+
+A reply from a qualified trust service provider, listed on the EU Trusted
+List, carries under eIDAS a presumption that its date and the data it
+covers are accurate; another is admissible as evidence all the same. The
+authority is a setting: naming a qualified one changes no code.
+
+The service dates each record it makes or answers. With `--sky`, it sets
+above the date an illustration whose cloud dots are moved by the signed
+reply, as `serve/sky.py` writes: a record changed, or dated otherwise, has
+another sky.
 
 ### Frameworks
 

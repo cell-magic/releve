@@ -17,6 +17,8 @@ from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+from authority import authority
+
 HERE = Path(__file__).resolve().parent
 NAMED = os.environ.get("RELEVE", "releve")   # Windows: the name may come without its .exe
 RELEVE = shutil.which(NAMED) or shutil.which(NAMED + ".exe") or sys.exit("run: releve not found; build it, or name it in RELEVE")
@@ -380,6 +382,35 @@ def main():
           and re.search(r"^- \*\*REVIEW\*\* authentication · `#pass` · .*autocomplete=\"off\" → let a password manager fill it", tg, re.M)
           and "WCAG 3.3.7 · 3 form fields" in tg and "WCAG 2.5.7 · this page" in tg
           and "target-size: n/a · not recorded by the observer of that time" in (HERE / "expected" / "fixture.md").read_text(encoding="utf-8"))
+
+    # Dated from outside: an authority's signed time over the latest record, kept in the record, checked
+    # again by relevé and by OpenSSL alone; what comes after it is said to; a wrong root or a silent
+    # authority is refused, and leaves the record as it was.
+    if shutil.which("openssl") and shutil.which("curl"):
+        os.environ["RELEVE_CA"] = str(authority(tmp / "tsa"))
+        k = tmp / "dated"
+        releve("ingest", k, feed=(HERE / "observations" / "consent.jsonl").read_bytes())
+        head = json.loads(k.read_text().splitlines()[-1])["hash"]
+        code, said, _ = releve("stamp", k, "http://127.0.0.1:8766/")
+        verified = releve("verify", k)[1].decode("utf-8")
+        dated = releve("report", "en", k)[1].decode("utf-8")
+        exported = releve("verify", k, "--export", tmp / "tsa")[1].decode("utf-8")
+        alone = subprocess.run(["openssl", "ts", "-verify", "-digest", head, "-in", tmp / "tsa" / "stamp-1.tsr", "-CAfile", os.environ["RELEVE_CA"]],
+                               capture_output=True, text=True)
+        check("a record is dated by an outside authority, and checked again by relevé and by OpenSSL alone",
+              code == 0 and said.startswith(b"dated \xc2\xb7 ") and "covers record 0 · signature verified" in verified
+              and re.search(r"<!-- sky -->\n<p class=\"meta\">Dated \d+ \w+ \d{4}, \d\d:\d\d UTC by 127\.0\.0\.1:8766, an outside time-stamping authority \(RFC 3161\)\..*record 0, <code>" + head[:8], dated)
+              and f"openssl ts -verify -digest {head} -in " in exported and "Verification: OK" in alone.stdout)
+        releve("ingest", k, feed=(HERE / "observations" / "consent.jsonl").read_bytes())
+        before = k.read_bytes()
+        os.environ["RELEVE_CA"], root = str(tmp / "tsa" / "tsa.crt"), os.environ["RELEVE_CA"]
+        wrong = releve("verify", k)
+        os.environ["RELEVE_CA"] = root
+        check("what came after a stamp is said; a wrong root or a silent authority is refused",
+              "1 record came after it." in releve("report", "en", k)[1].decode("utf-8") and wrong[0] == 1 and "NOT VERIFIED" in wrong[1].decode("utf-8")
+              and releve("stamp", k, "http://127.0.0.1:9/")[0] == 1 and k.read_bytes() == before and releve("verify", k)[0] == 0)
+    else:
+        check("openssl and curl, to date a record", False)
 
     # A question is put only where what it asks about can exist: shortcuts, gestures and motion
     # need a script; a legend needs a group; option groups need a list.

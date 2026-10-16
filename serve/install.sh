@@ -4,7 +4,7 @@
 #
 # install — put the service on a machine given over to it, or renew it there.
 #
-#     sudo bash serve/install.sh NAME CONTACT [--look DIR] [--playwright VERSION]
+#     sudo bash serve/install.sh NAME CONTACT [--look DIR] [--playwright VERSION] [--authority URL]
 #
 #   NAME          the name the service answers to; its DNS record points here
 #   CONTACT       the public page that says who runs the robot and how to refuse it
@@ -12,6 +12,9 @@
 #                 to set the reports in, and what those pages need (static/)
 #   --playwright  a newer Playwright than observe/requirements.txt names, which
 #                 brings a newer browser. The checks decide whether it serves.
+#   --authority   the time-stamping authority (RFC 3161) that dates each record;
+#                 http://timestamp.digicert.com unless named, "none" for none.
+#                 A look that holds sky.json has each dated record draw its sky.
 #
 # For Ubuntu 24.04. In order, stopping at the first thing that fails:
 #
@@ -34,19 +37,21 @@
 # unit, as a user that owns nothing, on a machine that holds no data and no key.
 set -euo pipefail
 
-usage() { echo "usage: sudo bash $0 NAME CONTACT [--look DIR] [--playwright VERSION]" >&2; exit 2; }
+usage() { echo "usage: sudo bash $0 NAME CONTACT [--look DIR] [--playwright VERSION] [--authority URL]" >&2; exit 2; }
 [ $# -ge 2 ] || usage
-name=$1 contact=$2 look='' playwright=''
+name=$1 contact=$2 look='' playwright='' authority=http://timestamp.digicert.com
 shift 2
 while [ $# -gt 0 ]; do
     case $1 in
         --look) look=$(cd "${2:?}" && pwd); shift 2 ;;
         --playwright) playwright=${2:?}; shift 2 ;;
+        --authority) authority=${2:?}; shift 2 ;;
         *) usage ;;
     esac
 done
 [[ $name =~ ^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$ ]] || { echo "install: $name is not a name" >&2; exit 2; }
 [[ $contact =~ ^https?://[A-Za-z0-9._~:/?#@=+,-]+$ ]] || { echo "install: $contact is not an address" >&2; exit 2; }
+[[ $authority = none || $authority =~ ^https?://[A-Za-z0-9._~:/?#@=+,-]+$ ]] || { echo "install: $authority is not an address" >&2; exit 2; }
 [ "$(id -u)" = 0 ] || { echo "install: to be run as root" >&2; exit 2; }
 
 exec > >(tee -a /var/log/releve-install.log) 2>&1
@@ -66,14 +71,14 @@ date -u +"install of %Y-%m-%d %H:%M UTC, for $name, on $PRETTY_NAME"
 say "1. The system's packages"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
-apt-get install -y -qq ghc libghc-aeson-dev libghc-cryptohash-sha256-dev python3-venv caddy curl unattended-upgrades
+apt-get install -y -qq ghc libghc-aeson-dev libghc-cryptohash-sha256-dev python3-venv caddy curl openssl ca-certificates unattended-upgrades
 id releve >/dev/null 2>&1 || useradd --system --user-group --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin releve
 
 say "2. relevé, built from $source"
 mkdir -p "$new"
 cp -a "$source" "$new/src"
 build=$(mktemp -d)
-ghc -O1 -i"$new/src/kernel/src" "$new/src/kernel/app/Main.hs" -outputdir "$build" -o "$new/releve" >/dev/null
+ghc -O1 -i"$new/src/kernel/src" -i"$new/src/kernel/app" "$new/src/kernel/app/Main.hs" -outputdir "$build" -o "$new/releve" >/dev/null
 rm -rf "$build"
 "$new/releve" --version
 python3 -m venv "$new/venv"
@@ -105,6 +110,8 @@ for l in en fr; do
     for f in "$new"/look/*."$l".html; do [ ! -f "$f" ] || shells="$shells --shell $l=$home/current/look/${f##*/}"; done
 done
 [ ! -d "$new/look/static" ] || shells="$shells --static $home/current/look/static"
+[ "$authority" = none ] || shells="$shells --authority $authority"
+[ ! -f "$new/look/sky.json" ] || shells="$shells --sky $home/current/look/sky.json"
 unit=/etc/systemd/system/releve.service proxy=/etc/caddy/Caddyfile
 [ -e $proxy.before-releve ] || [ ! -e $proxy ] || cp -p $proxy $proxy.before-releve
 for f in $unit $proxy; do [ ! -e "$f" ] || cp -p "$f" "$f.previous"; done
@@ -187,6 +194,11 @@ answer=$(curl -s -m 150 -D /tmp/releve-install.head --data-urlencode "url=$conta
 if [[ $answer == *'data:application/gzip;base64,'* ]] && ! grep -qi '^set-cookie' /tmp/releve-install.head; then
     echo "A report came back: $(echo "$answer" | sed -n 's:.*<title>\(.*\)</title>.*:\1:p' | head -n 1)"
     echo "It set no cookie."
+    if [[ $answer == *'(RFC 3161)'* ]]; then
+        echo "It is dated: $(echo "$answer" | grep -o -E '(Dated|Daté du) [^<]*(by|par) [^,]*' | head -n 1)$([[ $answer == *'<figure><svg'* ]] && echo ', under its sky')."
+    elif [ "$authority" != none ]; then
+        echo "It is not dated: $authority did not answer. The service still serves, undated."
+    fi
 else
     echo "No report came back. The service said:"
     echo "${answer:-nothing}" | sed -n '/<h1/,/<\/p>/p' | sed 's/<[^>]*>//g' | head -n 5

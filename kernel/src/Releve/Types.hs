@@ -179,17 +179,29 @@ data Declaration = Declaration { dCriterion :: Text, dAnswer :: Text, dNote :: M
 instance FromJSON Declaration where parseJSON = genericParseJSON evJSON
 instance ToJSON Declaration where toJSON = genericToJSON evJSON
 
-data Event = Observed Observation | Corrected Correction | Declared Declaration deriving Show
+data Event = Observed Observation | Corrected Correction | Declared Declaration | Stamped Stamp deriving Show
+
+-- | A time-stamping authority's answer (RFC 3161) over the record before this
+--   one: its hash, the authority asked, the time it gave, and its signed reply,
+--   kept whole so that anyone can check it again with OpenSSL.
+data Stamp = Stamp { stHead :: Text, stTsa :: Text, stTime :: Text, stReply :: Text } deriving Show
+
+instance ToJSON Stamp where
+  toJSON s = object ["head" .= stHead s, "tsa" .= stTsa s, "time" .= stTime s, "reply" .= stReply s]
+
+instance FromJSON Stamp where
+  parseJSON = withObject "stamp" $ \o -> Stamp <$> o .: "head" <*> o .: "tsa" <*> o .: "time" <*> o .: "reply"
 
 instance ToJSON Event where
   toJSON = \case
     Observed o  -> object ["observed" .= o]
     Corrected c -> object ["corrected" .= c]
     Declared d  -> object ["declared" .= d]
+    Stamped s   -> object ["stamped" .= s]
 
 instance FromJSON Event where
   parseJSON = withObject "event" $ \o ->
-    (Observed <$> o .: "observed") <|> (Corrected <$> o .: "corrected") <|> (Declared <$> o .: "declared")
+    (Observed <$> o .: "observed") <|> (Corrected <$> o .: "corrected") <|> (Declared <$> o .: "declared") <|> (Stamped <$> o .: "stamped")
 
 -- | What one criterion says about one surface. Where only a person can
 --   decide, the question they answer: yes means it holds, no that it does not.
