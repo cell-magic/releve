@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/forms.html
 
-Observation `810d5e3c` · 2026-10-16T10:47:02+00:00 · criteria v6 · screenshot `82dd9fc6e34bafbe` · Chromium 141.0.7390.37  
+Observation `810d5e3c` · 2026-10-16T10:47:02+00:00 · criteria v7 · screenshot `82dd9fc6e34bafbe` · Chromium 141.0.7390.37  
 41 surfaces · 2 fail · 23 review · 0 hint · 70 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.

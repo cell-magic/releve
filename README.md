@@ -104,8 +104,9 @@ writes the report and keeps nothing.
 
 **declarations** lists the criteria that no rule can see from a page and
 that hold for a whole site: the 64 RGESN 2024 criteria on how the service
-is decided, built, hosted and run, and the 5 RGAA criteria on a set of
-pages (navigation systems, menus, site map, search). Each line
+is decided, built, hosted and run, the 5 RGAA criteria on a set of pages
+(navigation systems, menus, site map, search), and paragraphs 2 to 4 of
+article 50 of the AI Act, for what an AI system does beyond the page. Each line
 holds the owner's answer, yes, no, n/a or open, a note after `//`, and
 what the latest observation saw that bears on it. Edited and piped back
 through `releve declare`, the changed lines become events that hold for
@@ -298,7 +299,10 @@ as a diff to review.
 | review-images … review-consultation | twelve themes of questions, one per RGAA criterion no rule decides, put to the reviewer for each page, and once for pages that share a template where it asks of the page as a whole; a theme, or a question, is not applicable where the page holds nothing it applies to | RGAA 1.6–1.9 · 2.2 · 3.1 · 3.3 · 4.1–4.13 · 5.1–5.5 · 7.1–7.5 · 8.6 · 9.4 · 10.3 · 10.9 · 10.10 · 10.13 · 10.14 · 11.3–11.12 · 12.10 · 12.11 · 13.7 · 13.9–13.12 |
 
 Rules, questions and declarations together cover each of the 106 RGAA
-criteria and the 78 RGESN criteria once; `tests/run.py` holds them to it.
+criteria and the 78 RGESN criteria once, and each of the 7 paragraphs of
+article 50 of the AI Act: paragraphs 1 to 5 by rule, 2 to 4 also by the
+owner's declaration for what no page shows, and 6 and 7, which place no duty
+on a site, by saying so. `tests/run.py` holds them to it.
 To cover a criterion is not to settle it: a question is settled by the
 reviewer's answer, a declaration by the owner's.
 

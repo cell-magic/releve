@@ -3,12 +3,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 -- | The criteria that no rule can see from a page and that hold for a whole
 --   site: the RGESN 2024 criteria on how a service is decided, built, hosted and
---   run, and the RGAA 4.1.2 criteria on a set of pages. The owner declares them,
+--   run, the RGAA 4.1.2 criteria on a set of pages, and the duties of article 50
+--   of the AI Act that bear on what no page shows. The owner declares them,
 --   once for the whole record. Each comes with what the observation did see that
 --   bears on it. The questions are this tool's short form; the official texts,
 --   under Licence Ouverte 2.0, prevail and are linked from every report.
-module Releve.Declarations (Item (..), items, family, official, cited) where
+module Releve.Declarations (Item (..), items, family, official, cited, slug, unbinding, covered) where
 
+import Data.Char (isAlphaNum)
 import Data.List (nub)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
@@ -21,15 +23,21 @@ data Item = Item { iRef :: Text, iId :: Text, iAsk :: Phrase, iSeen :: Observati
 cited :: Item -> Text
 cited i = iRef i <> " " <> iId i
 
+-- | A name for a criterion fit for a form field: "rgesn-1-3", "ai-act-50-2".
+slug :: Item -> Text
+slug = T.intercalate "-" . filter (not . T.null) . T.split (not . isAlphaNum) . T.toLower . cited
+
 -- | The address of a criterion in the official referential.
 official :: Item -> Text
 official i
   | iRef i == "RGAA" = "https://accessibilite.numerique.gouv.fr/methode/criteres-et-tests/#" <> iId i
+  | iRef i == "AI Act" = "https://eur-lex.europa.eu/eli/reg/2024/1689/oj#art_50"
   | otherwise = "https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/" <> iId i <> "/"
 
 -- | The family a criterion is listed under: the RGAA ones under navigation.
 family :: Item -> Phrase
 family it | iRef it == "RGAA" = "Navigation across pages" // "Navigation entre les pages"
+family it | iRef it == "AI Act" = "Artificial intelligence, beyond the page" // "Intelligence artificielle, au-delà de la page"
 family it = case T.takeWhile (/= '.') (iId it) of
   "1" -> "Strategy" // "Stratégie"
   "2" -> "Specifications" // "Spécifications"
@@ -115,9 +123,18 @@ items =
   , r "12.4" ("Is the site map reached the same way from every page?" // "Le plan du site s'atteint-il de la même façon depuis chaque page ?") none
   , r "12.5" ("Is the search reached the same way from every page?" // "La recherche s'atteint-elle de la même façon depuis chaque page ?") none
   ]
+  ++
+  [ a "50(2)" ("If the service provides an AI system that generates sound, images, video or text, are its outputs marked, in a form a machine can read, as artificially generated?"
+               // "Si le service fournit un système d'IA qui produit du son, des images, de la vidéo ou du texte, ses productions sont-elles marquées, sous une forme lisible par machine, comme générées artificiellement ?") none
+  , a "50(3)" ("If the service recognizes emotions or sorts people by biometric traits, are the people exposed told how it works?"
+               // "Si le service reconnaît des émotions ou classe des personnes selon des traits biométriques, les personnes exposées sont-elles informées de son fonctionnement ?") asking
+  , a "50(4)" ("Are deep fakes, in image, sound or video, and AI-written text published to inform the public disclosed as such, unless a person holds editorial responsibility for the text?"
+               // "Les hypertrucages, en image, en son ou en vidéo, et le texte écrit par IA publié pour informer le public sont-ils signalés comme tels, sauf si une personne assume la responsabilité éditoriale du texte ?") origins
+  ]
   where
     q = Item "RGESN"
     r = Item "RGAA"
+    a = Item "AI Act"
     none _ = Nothing
     n = T.pack . show
     rs o = concat (resources (network o))
@@ -148,7 +165,32 @@ items =
       [] -> Just ("no linked document on the page" // "aucun document lié dans la page")
       xs -> Just ((n (length xs) <> " linked documents") // (n (length xs) <> " documents liés"))
     exts = [".pdf", ".doc", ".docx", ".odt", ".xls", ".xlsx", ".ods", ".ppt", ".pptx", ".odp"]
+    asking o = case fromMaybe [] (asked (page o)) of
+      [] -> Just ("the page asks nothing of the device on arrival" // "la page ne demande rien à l'appareil à l'arrivée")
+      xs -> Just (("the page asks for " // "la page demande ") <> both (T.intercalate ", " xs))
+    origins o = case [x | s <- surfaces o, kind s == "img", Just x <- [origin s]] of
+      [] -> Just ("no image on the page states its origin" // "aucune image de la page ne déclare son origine")
+      xs -> Just ((n (length xs) <> " images state their origin") // (n (length xs) <> " images déclarent leur origine"))
     host o = Just (both (fromMaybe (url o) (hostOf (url o))) <> (if ipv6 (page o) == Just True then " · IPv6" else ""))
     hostOf u = case T.splitOn "/" u of
       _ : _ : h : _ | not (T.null h) -> Just h
       _ -> Nothing
+
+-- | The paragraphs of article 50 that place no duty on a site, and why.
+unbinding :: [(Text, Phrase)]
+unbinding =
+  [ ("50(6)", "keeps the other rules on high-risk systems and on transparency in force" // "maintient les autres règles sur les systèmes à haut risque et sur la transparence")
+  , ("50(7)", "is addressed to the Commission, which encourages codes of practice" // "s'adresse à la Commission, qui encourage les codes de bonne pratique") ]
+
+-- | How many of a text's provisions are addressed, out of how many: by a rule
+--   or a question (the numbers the criteria cite), by the owner's declaration,
+--   or, for article 50, by saying that a paragraph binds no site.
+covered :: [Text] -> Text -> (Int, Int)
+covered touched' ref = case ref of
+  "RGAA" -> (addressed, 106)
+  "RGESN" -> (addressed, 78)
+  _ -> (length (nub (filter (`elem` paragraphs) (touched' ++ declaredHere ++ map fst unbinding))), 7)
+  where
+    declaredHere = [iId i | i <- items, iRef i == ref || (ref == "art." && iRef i == "AI Act")]
+    addressed = length (nub (touched' ++ declaredHere))
+    paragraphs = ["50(" <> T.pack (show k) <> ")" | k <- [1 .. 7 :: Int]]

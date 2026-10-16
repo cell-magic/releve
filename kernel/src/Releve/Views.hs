@@ -242,10 +242,10 @@ atlas st o = object
 --   edits and gives back to `releve declare`.
 declarations :: State -> Text
 declarations st = T.unlines $
-  [ "# Declarations · RGESN 2024 · RGAA 4.1.2", ""
+  [ "# Declarations · RGESN 2024 · RGAA 4.1.2 · AI Act article 50", ""
   , T.pack (show (length items)) <> " criteria no rule can see from a page, declared by the service's owner for the whole record."
   , "To answer, set yes, no, n/a or open after the criterion and a note after `//`, then run `releve declare`."
-  , "The official texts prevail: https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/ and https://accessibilite.numerique.gouv.fr/methode/criteres-et-tests/" ]
+  , "The official texts prevail: https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/, https://accessibilite.numerique.gouv.fr/methode/criteres-et-tests/ and https://eur-lex.europa.eu/eli/reg/2024/1689/oj" ]
   ++ concat [ ["", "## " <> en (family f), ""] ++ [ line i | i <- items, family i == family f ] | f <- nub' items ]
   where
     nub' = foldl (\acc x -> if any ((== family x) . family) acc then acc else acc ++ [x]) []
@@ -259,7 +259,7 @@ declarations st = T.unlines $
 --   changed becomes a declaration. A line that cannot be read is refused, with
 --   everything else: an owner's answer is never dropped in silence.
 declaring :: State -> Text -> Either Text [Declaration]
-declaring st doc = fmap concat (mapM one [l | l <- T.lines doc, any (`T.isPrefixOf` l) ["- RGESN ", "- RGAA "]])
+declaring st doc = fmap concat (mapM one [l | l <- T.lines doc, any (`T.isPrefixOf` l) ["- RGESN ", "- RGAA ", "- AI Act "]])
   where
     known = map cited items
     one l = do

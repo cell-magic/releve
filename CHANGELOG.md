@@ -1,5 +1,27 @@
 # Changes
 
+## 0.5.1
+
+Criteria move from v6 to v7. Article 50 of the AI Act, each of its seven
+paragraphs addressed, as the RGAA and the RGESN are.
+
+- **50(5), read.** The two rules that find AI on a page, a conversational
+  widget or an image whose file states a synthetic origin, now put the
+  question paragraph 5 asks: is the person told clearly, at the first
+  exchange or where the image is first seen?
+- **50(2), 50(3), 50(4), declared.** What no page shows is declared by the
+  owner beside the RGESN and RGAA declarations: whether outputs of an AI
+  system the service provides carry a machine-readable mark; whether people
+  exposed to emotion recognition or biometric sorting are told; whether deep
+  fakes and AI-written text published to inform the public are disclosed.
+- **50(6), 50(7), said.** The first keeps other rules in force, the second is
+  addressed to the Commission; neither places a duty on a site. The report
+  and the guide say so, and count them.
+- **The reach, in numbers.** The guide gives, beside what the rules touch,
+  what rules, questions and declarations address together: 106 of 106, 78
+  of 78, 7 of 7. A declaration's form field is named from its criterion,
+  whatever the text: `d-rgesn-1-3`, `d-ai-act-50-2`.
+
 ## 0.5.0
 
 Criteria move from v5 to v6: 46 rules where there were 44. A person now

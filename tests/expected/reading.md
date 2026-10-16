@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/reading.html
 
-Observation `00bcc0c0` · 2026-10-16T10:47:30+00:00 · criteria v6 · screenshot `b99cd51906b48b4a` · Chromium 141.0.7390.37  
+Observation `00bcc0c0` · 2026-10-16T10:47:30+00:00 · criteria v7 · screenshot `b99cd51906b48b4a` · Chromium 141.0.7390.37  
 54 surfaces · 6 fail · 28 review · 0 hint · 75 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.

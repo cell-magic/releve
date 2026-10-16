@@ -317,11 +317,21 @@ def main():
     check("an answer that cannot be read is refused, with everything else", code == 1 and "yes, no, n/a or open" in said and d.read_bytes() == before)
     plain, asked = releve("report", "en", d)[1].decode("utf-8"), releve("report", "en", d, "--ask")[1].decode("utf-8")
     check("the report says what is declared, and asking, the answer in force is already chosen",
-          "1 yes · 0 no · 1 not applicable · 67 open" in plain and "Anna Teterkina" in plain and "2 are declared so far" in plain
-          and 'id="d-rgesn-1-3-yes" name="d-rgesn-1-3" value="yes" checked' in asked and asked.count("<fieldset>") >= 69)
+          "1 yes · 0 no · 1 not applicable · 70 open" in plain and "Anna Teterkina" in plain and "2 are declared so far" in plain
+          and 'id="d-rgesn-1-3-yes" name="d-rgesn-1-3" value="yes" checked' in asked and asked.count("<fieldset>") >= 72)
     releve("declare", d, feed=edited(releve("declarations", d)[1].decode("utf-8"), (r"^- RGESN 1\.3 · yes", "- RGESN 1.3 · open")))
-    check("a declaration withdrawn is open again", "0 yes · 0 no · 1 not applicable · 68 open" in releve("report", "en", d)[1].decode("utf-8")
+    check("a declaration withdrawn is open again", "0 yes · 0 no · 1 not applicable · 71 open" in releve("report", "en", d)[1].decode("utf-8")
           and releve("verify", d)[0] == 0)
+
+    # Article 50 of the AI Act: each of its 7 paragraphs read by a rule, declared by the owner for what no page
+    # shows, or said to bind no site; and the guide says so in the numbers it gives.
+    art = {f"50({k})" for k in range(1, 8)}
+    by_rule = set(re.findall(r"50\(\d\)", " ".join(l.split("art.", 1)[1] for l in releve("criteria")[1].decode("utf-8").splitlines() if "art." in l)))
+    by_owner = set(re.findall(r"^- AI Act (50\(\d\)) · open · ", doc, re.M))
+    guide = releve("guide", "en")[1].decode("utf-8")
+    check("every paragraph of article 50 is read by a rule, declared, or said to bind no site",
+          (by_rule | by_owner | {"50(6)", "50(7)"}) == art and "Paragraph 50(6)" in guide and "Paragraph 50(7)" in guide
+          and "address 106 of the 106 criteria of the RGAA 4.1.2, 78 of the 78 of the RGESN 2024, and 7 of the 7 paragraphs of article 50" in guide)
 
     # A question is put only where what it asks about can exist: shortcuts, gestures and motion
     # need a script; a legend needs a group; option groups need a list.

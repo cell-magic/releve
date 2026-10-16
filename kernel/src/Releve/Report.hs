@@ -5,7 +5,7 @@
 --   person whose pages they are. One HTML page, without script, in the
 --   language asked for. Method before findings; a finding with its remedy;
 --   the lightest work first; and what was not looked at, said plainly.
-module Releve.Report (report, guide, typography, touched) where
+module Releve.Report (report, guide, typography, touched, reach) where
 
 import Data.Char (isAlphaNum, isAsciiLower, isDigit)
 import Data.List (nub, sortOn)
@@ -53,11 +53,13 @@ report l asking release st = T.unlines $
   ++ statement
   ++ [ "<h2>" <> t ("What was not looked at" // "Ce qui n'a pas été regardé") <> "</h2>"
      , p (t ("These rules touch " <> num (length (touched "RGAA")) <> " of the 106 criteria of the RGAA 4.1.2, " <> num (length (touched "RGESN")) <> " of the 78 of the RGESN 2024, and "
-              <> num (length (touched "art.")) <> " paragraphs of article 50 of the AI Act. The other " <> num (length [i | i <- items, iRef i == "RGESN"]) <> " RGESN criteria and "
-              <> num (length [i | i <- items, iRef i == "RGAA"]) <> " RGAA criteria on the set of pages are declared by the owner; " <> num (M.size (declared st)) <> " are declared so far."
+              <> num (length (touched "art.")) <> " paragraphs of article 50 of the AI Act. The other " <> num (length [i | i <- items, iRef i == "RGESN"]) <> " RGESN criteria, the "
+              <> num (length [i | i <- items, iRef i == "RGAA"]) <> " RGAA criteria on the set of pages and " <> num (length [i | i <- items, iRef i == "AI Act"])
+              <> " paragraphs of article 50, for what no page shows, are declared by the owner; " <> num (M.size (declared st)) <> " are declared so far. " <> unbound En
             // "Ces règles touchent " <> num (length (touched "RGAA")) <> " des 106 critères du RGAA 4.1.2, " <> num (length (touched "RGESN")) <> " des 78 du RGESN 2024, et "
-              <> num (length (touched "art.")) <> " paragraphes de l'article 50 du règlement sur l'IA. Les " <> num (length [i | i <- items, iRef i == "RGESN"]) <> " autres critères du RGESN et les "
-              <> num (length [i | i <- items, iRef i == "RGAA"]) <> " critères du RGAA portant sur l'ensemble des pages sont déclarés par le responsable ; " <> num (M.size (declared st)) <> " le sont à ce jour."))
+              <> num (length (touched "art.")) <> " paragraphes de l'article 50 du règlement sur l'IA. Les " <> num (length [i | i <- items, iRef i == "RGESN"]) <> " autres critères du RGESN, les "
+              <> num (length [i | i <- items, iRef i == "RGAA"]) <> " critères du RGAA portant sur l'ensemble des pages et " <> num (length [i | i <- items, iRef i == "AI Act"])
+              <> " paragraphes de l'article 50, pour ce qu'aucune page ne montre, sont déclarés par le responsable ; " <> num (M.size (declared st)) <> " le sont à ce jour. " <> unbound Fr))
      , p (t ("Each page was observed once, at two widths. Not observed: content shown only after an action, such as an open menu, a sent form or a dialog; content behind a login; frames from other sites."
             // "Chaque page a été observée une fois, à deux largeurs. Non observés : ce qui n'apparaît qu'après une action, comme un menu ouvert, un formulaire envoyé ou une boîte de dialogue ; ce qui est derrière une connexion ; les cadres d'autres sites."))
      , "<p class=\"meta\">relevé " <> esc release <> " · " <> t ("criteria v" // "critères v") <> esc version <> "</p>"
@@ -209,7 +211,7 @@ report l asking release st = T.unlines $
             "no" -> "No" // "Non"
             "n/a" -> "Not applicable" // "Sans objet"
             _ -> "Open" // "Ouverte"
-          k i = "d-" <> T.toLower (iRef i) <> "-" <> T.replace "." "-" (iId i)
+          k i = "d-" <> slug i
           choice i v w = "<input type=\"radio\" id=\"" <> k i <> "-" <> T.replace "/" "" v <> "\" name=\"" <> k i <> "\" value=\"" <> v <> "\""
                          <> (if answer i == v then " checked" else "") <> "> <label for=\"" <> k i <> "-" <> T.replace "/" "" v <> "\">" <> t w <> "</label>"
           control i = "<fieldset><legend>" <> t (iAsk i) <> "</legend>" <> choice i "yes" ("Yes" // "Oui") <> " " <> choice i "no" ("No" // "Non") <> " "
@@ -220,7 +222,7 @@ report l asking release st = T.unlines $
             | asking = "<li>" <> link i <> seen' i <> control i <> "</li>"
             | otherwise = "<li>" <> link i <> " · " <> t (iAsk i) <> "<br><strong>" <> t (shown (answer i)) <> "</strong>" <> noted i <> seen' i <> "</li>"
       in [ "<h2 id=\"declarations\">" <> t ("Declarations" // "Déclarations") <> "</h2>"
-         , p (t ("Criteria not visible from a page: how the service is decided, built, hosted and run, and how its pages fit together. Declared once by the owner for the whole record. The official texts prevail."
+         , p (t ("Criteria not visible from a page: how the service is decided, built, hosted and run, how its pages fit together, and what its AI does beyond the page. Declared once by the owner for the whole record. The official texts prevail."
                 // "Critères invisibles depuis une page : comment le service est décidé, construit, hébergé et exploité, et comment ses pages s'articulent. Déclarés une fois par le responsable pour tout le relevé. Les textes officiels prévalent."))
          , p ("<strong>" <> T.intercalate " · " [ esc (num (count' a)) <> " " <> t w | (a, w) <- [("yes", "yes" // "oui"), ("no", "no" // "non"), ("n/a", "not applicable" // "sans objet"), ("open", "open" // "ouvertes")] ] <> "</strong>") ]
          ++ concat [ "<h3>" <> t (family f) <> "</h3>" : (if asking then ["<ul>"] ++ map entry xs ++ ["</ul>"]
@@ -350,10 +352,10 @@ guide l release = T.unlines $
   , "<h1>" <> t ("The criteria" // "Les critères") <> "</h1>"
   , "<p>" <> t (num (length criteria) <> " rules, each in plain code. For each: what it checks, what that is for, and the text it comes from. They touch "
                 <> num (length (touched "RGAA")) <> " of the 106 criteria of the RGAA 4.1.2, " <> num (length (touched "RGESN")) <> " of the 78 of the RGESN 2024, and "
-                <> num (length (touched "art.")) <> " paragraphs of article 50 of the AI Act."
+                <> num (length (touched "art.")) <> " paragraphs of article 50 of the AI Act. " <> reach En
                 // num (length criteria) <> " règles, chacune en code clair. Pour chacune : ce qu'elle vérifie, à quoi cela sert, et le texte dont elle vient. Elles touchent "
                 <> num (length (touched "RGAA")) <> " des 106 critères du RGAA 4.1.2, " <> num (length (touched "RGESN")) <> " des 78 du RGESN 2024, et "
-                <> num (length (touched "art.")) <> " paragraphes de l'article 50 du règlement sur l'IA.") <> "</p>" ]
+                <> num (length (touched "art.")) <> " paragraphes de l'article 50 du règlement sur l'IA. " <> reach Fr) <> "</p>" ]
   ++ concat [ [ "<h2 id=\"" <> cId c <> "\">" <> t (cTitle c) <> "</h2>", "<p>" <> t (cWhy c) <> "</p>"
               , "<p class=\"meta\">" <> t (cRef c) <> "</p>" ] | c <- criteria ]
   ++ [ "<p class=\"meta\">relevé " <> esc release <> " · " <> t ("criteria v" // "critères v") <> esc version <> "</p>", "</main>", "</body>", "</html>" ]
@@ -361,6 +363,21 @@ guide l release = T.unlines $
 
 num :: Int -> Text
 num = T.pack . show
+
+-- | What rules, the reviewer's questions and the owner's declarations address together, out of each text.
+reach :: Lang -> Text
+reach l =
+  let (a, a') = covered (touched "RGAA") "RGAA"; (b, b') = covered (touched "RGESN") "RGESN"; (c, c') = covered (touched "art.") "art."
+      n' = T.pack . show
+  in if l == En
+       then "With the reviewer's questions and the owner's declarations, they address " <> n' a <> " of the " <> n' a' <> " criteria of the RGAA 4.1.2, "
+            <> n' b <> " of the " <> n' b' <> " of the RGESN 2024, and " <> n' c <> " of the " <> n' c' <> " paragraphs of article 50 of the AI Act. " <> unbound En
+       else "Avec les questions au relecteur et les déclarations du responsable, elles traitent " <> n' a <> " des " <> n' a' <> " critères du RGAA 4.1.2, "
+            <> n' b <> " des " <> n' b' <> " du RGESN 2024, et " <> n' c <> " des " <> n' c' <> " paragraphes de l'article 50 du règlement sur l'IA. " <> unbound Fr
+
+-- | Why the paragraphs of article 50 that bind no site are counted all the same.
+unbound :: Lang -> Text
+unbound l = T.intercalate " " [ (if l == En then "Paragraph " else "Le paragraphe ") <> p <> " " <> say l w <> "." | (p, w) <- unbinding ]
 
 -- | The criteria of one reference that the rules touch, from the sources they
 --   state: the numbers that follow its name, a span counted whole.

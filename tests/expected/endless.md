@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/endless.html
 
-Observation `b126606c` · 2026-10-16T10:46:54+00:00 · criteria v6 · screenshot `572de61eb21d3697` · Chromium 141.0.7390.37  
+Observation `b126606c` · 2026-10-16T10:46:54+00:00 · criteria v7 · screenshot `572de61eb21d3697` · Chromium 141.0.7390.37  
 6 surfaces · 0 fail · 22 review · 1 hint · 28 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.

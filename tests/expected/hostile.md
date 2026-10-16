@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/hostile.html
 
-Observation `d5783818` · 2026-10-16T10:47:06+00:00 · criteria v6 · screenshot `47e373c1b407f785` · Chromium 141.0.7390.37  
+Observation `d5783818` · 2026-10-16T10:47:06+00:00 · criteria v7 · screenshot `47e373c1b407f785` · Chromium 141.0.7390.37  
 8 surfaces · 4 fail · 19 review · 0 hint · 32 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.

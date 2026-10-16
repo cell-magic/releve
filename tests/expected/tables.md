@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/tables.html
 
-Observation `3da4888e` · 2026-10-16T10:47:38+00:00 · criteria v6 · screenshot `aba3d0c3bae2700c` · Chromium 141.0.7390.37  
+Observation `3da4888e` · 2026-10-16T10:47:38+00:00 · criteria v7 · screenshot `aba3d0c3bae2700c` · Chromium 141.0.7390.37  
 36 surfaces · 5 fail · 19 review · 0 hint · 55 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
