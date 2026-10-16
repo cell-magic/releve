@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/hostile.html
 
-Observation `d5783818` · 2026-10-16T10:47:06+00:00 · criteria v7 · screenshot `47e373c1b407f785` · Chromium 141.0.7390.37  
+Observation `ebe41dfe` · 2026-10-16T10:47:06+00:00 · criteria v8 · screenshot `47e373c1b407f785` · Chromium 141.0.7390.37  
 8 surfaces · 4 fail · 19 review · 0 hint · 32 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
@@ -84,6 +84,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - ai-disclosure: n/a · no conversational widget detected
 - ai-image: n/a · no image states its origin
 - asks-on-arrival: 1 of 1 pass
+- consent-choice: n/a · not recorded by the observer of that time
 - third-parties: 1 of 1 pass
 - media-autoplay: n/a · no audio or video on the page
 - endless: 1 of 1 pass

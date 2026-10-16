@@ -1,5 +1,37 @@
 # Changes
 
+## 0.6.0
+
+Criteria move from v7 to v8. The laws and standards a site answers to
+elsewhere, each written as its provisions, and a rule on how a prompt for
+consent offers its choices.
+
+- **Frameworks.** `releve frameworks` gives, for WCAG 2.1 AA, EN 301 549
+  and the European Accessibility Act, the RGAA, the BITV 2.0, Section 508,
+  ADA Titles II and III, the AODA, JIS X 8341-3, the Australian DDA, the
+  RGESN, article 50 of the AI Act, the GDPR and ePrivacy, the CCPA as the
+  CPRA amended it, article 25 of the DSA and article 24 of the PIPL, how
+  many provisions rules, questions and declarations address, and which are
+  left open. None is. The guide sets them out as a table. The RGAA reaches
+  WCAG through the correspondence the RGAA's own data states.
+- **Declared beyond the page.** WCAG 1.2.4 (live captions), the only
+  WCAG 2.1 AA criterion the RGAA leaves aside, and seven provisions of other
+  texts: EAA article 13(2), BITV 2.0 §4, AODA section 14, CPRA §1798.135
+  and regulations §7025, DSA article 25, PIPL article 24. Each shows what
+  the observation saw that bears on it, such as a "Do Not Sell or Share"
+  or a "Leichte Sprache" link.
+- **consent-choice.** The observer records a prompt for consent on
+  arrival, inside open shadow roots too, and its first choices: what each
+  does, link or button, its area, its look. Accepting with no way to refuse
+  beside it fails. Refusing plainer than accepting, or less than half its
+  area, is put to a person: "Is refusing as easy and as visible as
+  accepting, from the first step?". Answered once for pages that share a
+  template, like the other questions asked of a page as a whole.
+- **Declarations, any text.** `releve declare` and the service read a
+  declaration whatever its text's name: `d-bitv-2-0-4`, `d-cpra-1798-135`.
+- **Tests.** `tests/run.py --record consent` re-records only the pages
+  named.
+
 ## 0.5.1
 
 Criteria move from v6 to v7. Article 50 of the AI Act, each of its seven

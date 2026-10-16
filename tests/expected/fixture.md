@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/fixture.html
 
-Observation `81e0244c` · 2026-10-16T10:46:58+00:00 · criteria v7 · screenshot `c331abf4b86e8edc` · Chromium 141.0.7390.37  
+Observation `249ef8c0` · 2026-10-16T10:46:58+00:00 · criteria v8 · screenshot `c331abf4b86e8edc` · Chromium 141.0.7390.37  
 29 surfaces · 15 fail · 41 review · 3 hint · 37 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
@@ -123,6 +123,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - ai-disclosure: n/a · no conversational widget detected
 - ai-image: n/a · no image states its origin
 - asks-on-arrival: 1 of 1 pass
+- consent-choice: n/a · not recorded by the observer of that time
 - third-parties: 1 of 1 pass
 - media-autoplay: 0 of 1 pass
 - endless: 1 of 1 pass

@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/page.html
 
-Observation `e9cbe525` · 2026-10-16T10:47:19+00:00 · criteria v7 · screenshot `69b8f09771544ffb` · Chromium 141.0.7390.37  
+Observation `d38dbbbd` · 2026-10-16T10:47:19+00:00 · criteria v8 · screenshot `69b8f09771544ffb` · Chromium 141.0.7390.37  
 22 surfaces · 8 fail · 30 review · 0 hint · 42 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
@@ -99,6 +99,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - ai-disclosure: n/a · no conversational widget detected
 - ai-image: n/a · no image states its origin
 - asks-on-arrival: 1 of 1 pass
+- consent-choice: n/a · not recorded by the observer of that time
 - third-parties: 1 of 1 pass
 - media-autoplay: n/a · no audio or video on the page
 - endless: 1 of 1 pass

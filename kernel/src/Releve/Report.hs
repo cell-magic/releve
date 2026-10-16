@@ -5,10 +5,10 @@
 --   person whose pages they are. One HTML page, without script, in the
 --   language asked for. Method before findings; a finding with its remedy;
 --   the lightest work first; and what was not looked at, said plainly.
-module Releve.Report (report, guide, typography, touched, reach) where
+module Releve.Report (report, guide, typography, reach) where
 
-import Data.Char (isAlphaNum, isAsciiLower, isDigit)
-import Data.List (nub, sortOn)
+import Data.Char (isAlphaNum, isAsciiLower)
+import Data.List (find, nub, sortOn)
 import Data.Maybe (listToMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -16,6 +16,7 @@ import Releve.Criteria (criteria, version)
 import Releve.Declarations
 import qualified Data.Map.Strict as M
 import Releve.Footprint
+import Releve.Frameworks
 import Releve.Kernel
 import Releve.Reading
 import Releve.Types
@@ -55,11 +56,11 @@ report l asking release st = T.unlines $
      , p (t ("These rules touch " <> num (length (touched "RGAA")) <> " of the 106 criteria of the RGAA 4.1.2, " <> num (length (touched "RGESN")) <> " of the 78 of the RGESN 2024, and "
               <> num (length (touched "art.")) <> " paragraphs of article 50 of the AI Act. The other " <> num (length [i | i <- items, iRef i == "RGESN"]) <> " RGESN criteria, the "
               <> num (length [i | i <- items, iRef i == "RGAA"]) <> " RGAA criteria on the set of pages and " <> num (length [i | i <- items, iRef i == "AI Act"])
-              <> " paragraphs of article 50, for what no page shows, are declared by the owner; " <> num (M.size (declared st)) <> " are declared so far. " <> unbound En
+              <> " paragraphs of article 50, for what no page shows, and " <> num (length others) <> " provisions of other laws and standards are declared by the owner; " <> num (M.size (declared st)) <> " are declared so far. " <> unbound En
             // "Ces règles touchent " <> num (length (touched "RGAA")) <> " des 106 critères du RGAA 4.1.2, " <> num (length (touched "RGESN")) <> " des 78 du RGESN 2024, et "
               <> num (length (touched "art.")) <> " paragraphes de l'article 50 du règlement sur l'IA. Les " <> num (length [i | i <- items, iRef i == "RGESN"]) <> " autres critères du RGESN, les "
               <> num (length [i | i <- items, iRef i == "RGAA"]) <> " critères du RGAA portant sur l'ensemble des pages et " <> num (length [i | i <- items, iRef i == "AI Act"])
-              <> " paragraphes de l'article 50, pour ce qu'aucune page ne montre, sont déclarés par le responsable ; " <> num (M.size (declared st)) <> " le sont à ce jour. " <> unbound Fr))
+              <> " paragraphes de l'article 50, pour ce qu'aucune page ne montre, et " <> num (length others) <> " dispositions d'autres lois et normes sont déclarés par le responsable ; " <> num (M.size (declared st)) <> " le sont à ce jour. " <> unbound Fr))
      , p (t ("Each page was observed once, at two widths. Not observed: content shown only after an action, such as an open menu, a sent form or a dialog; content behind a login; frames from other sites."
             // "Chaque page a été observée une fois, à deux largeurs. Non observés : ce qui n'apparaît qu'après une action, comme un menu ouvert, un formulaire envoyé ou une boîte de dialogue ; ce qui est derrière une connexion ; les cadres d'autres sites."))
      , "<p class=\"meta\">relevé " <> esc release <> " · " <> t ("criteria v" // "critères v") <> esc version <> "</p>"
@@ -67,6 +68,7 @@ report l asking release st = T.unlines $
   where
     t = codify . typography l . say l
     p x = "<p>" <> x <> "</p>"
+    others = [i | i <- items, iRef i `notElem` ["RGESN", "RGAA", "AI Act"]]
     dt x = "<dt>" <> t x <> "</dt>"
     dd x = "<dd>" <> t x <> "</dd>"
     pages = latest st
@@ -222,8 +224,8 @@ report l asking release st = T.unlines $
             | asking = "<li>" <> link i <> seen' i <> control i <> "</li>"
             | otherwise = "<li>" <> link i <> " · " <> t (iAsk i) <> "<br><strong>" <> t (shown (answer i)) <> "</strong>" <> noted i <> seen' i <> "</li>"
       in [ "<h2 id=\"declarations\">" <> t ("Declarations" // "Déclarations") <> "</h2>"
-         , p (t ("Criteria not visible from a page: how the service is decided, built, hosted and run, how its pages fit together, and what its AI does beyond the page. Declared once by the owner for the whole record. The official texts prevail."
-                // "Critères invisibles depuis une page : comment le service est décidé, construit, hébergé et exploité, et comment ses pages s'articulent. Déclarés une fois par le responsable pour tout le relevé. Les textes officiels prévalent."))
+         , p (t ("Criteria not visible from a page: how the service is decided, built, hosted and run, how its pages fit together, what its AI does beyond the page, and what other laws and standards ask of it. Declared once by the owner for the whole record. The official texts prevail."
+                // "Critères invisibles depuis une page : comment le service est décidé, construit, hébergé et exploité, comment ses pages s'articulent, ce que fait son IA au-delà de la page, et ce que d'autres lois et normes lui demandent. Déclarés une fois par le responsable pour tout le relevé. Les textes officiels prévalent."))
          , p ("<strong>" <> T.intercalate " · " [ esc (num (count' a)) <> " " <> t w | (a, w) <- [("yes", "yes" // "oui"), ("no", "no" // "non"), ("n/a", "not applicable" // "sans objet"), ("open", "open" // "ouvertes")] ] <> "</strong>") ]
          ++ concat [ "<h3>" <> t (family f) <> "</h3>" : (if asking then ["<ul>"] ++ map entry xs ++ ["</ul>"]
                                             else ["<ul>" | not (null done)] ++ map entry done ++ ["</ul>" | not (null done)]
@@ -356,6 +358,14 @@ guide l release = T.unlines $
                 // num (length criteria) <> " règles, chacune en code clair. Pour chacune : ce qu'elle vérifie, à quoi cela sert, et le texte dont elle vient. Elles touchent "
                 <> num (length (touched "RGAA")) <> " des 106 critères du RGAA 4.1.2, " <> num (length (touched "RGESN")) <> " des 78 du RGESN 2024, et "
                 <> num (length (touched "art.")) <> " paragraphes de l'article 50 du règlement sur l'IA. " <> reach Fr) <> "</p>" ]
+  ++ [ "<h2 id=\"frameworks\">" <> t ("Frameworks" // "Cadres") <> "</h2>"
+     , "<p>" <> t ("Each text as the provisions it is made of. A provision is addressed when a rule reads it, a question puts it to the reviewer, or the owner declares it. This says what a record covers, not whether a site conforms."
+                  // "Chaque texte, selon les dispositions qui le composent. Une disposition est traitée quand une règle la lit, qu'une question la soumet au relecteur, ou que le responsable la déclare. Cela dit ce que couvre un relevé, et non la conformité d'un site.") <> "</p>"
+     , "<table><thead><tr><th scope=\"col\">" <> t ("Text" // "Texte") <> "</th><th scope=\"col\">" <> t ("Where it applies" // "Champ") <> "</th><th scope=\"col\">"
+       <> t ("What it asks" // "Ce qu'il demande") <> "</th><th scope=\"col\">" <> t ("Addressed" // "Traitées") <> "</th></tr></thead><tbody>" ]
+  ++ [ "<tr><th scope=\"row\"><a href=\"" <> esc (fUrl f) <> "\">" <> esc (fName f) <> "</a></th><td>" <> t (fWhere f) <> "</td><td>" <> t (fBasis f) <> "</td><td>"
+       <> t (both (num a) <> (" of " // " sur ") <> both (num n)) <> "</td></tr>" | f <- frameworks, let (a, n) = coverage f ]
+  ++ [ "</tbody></table>" ]
   ++ concat [ [ "<h2 id=\"" <> cId c <> "\">" <> t (cTitle c) <> "</h2>", "<p>" <> t (cWhy c) <> "</p>"
               , "<p class=\"meta\">" <> t (cRef c) <> "</p>" ] | c <- criteria ]
   ++ [ "<p class=\"meta\">relevé " <> esc release <> " · " <> t ("criteria v" // "critères v") <> esc version <> "</p>", "</main>", "</body>", "</html>" ]
@@ -367,29 +377,23 @@ num = T.pack . show
 -- | What rules, the reviewer's questions and the owner's declarations address together, out of each text.
 reach :: Lang -> Text
 reach l =
-  let (a, a') = covered (touched "RGAA") "RGAA"; (b, b') = covered (touched "RGESN") "RGESN"; (c, c') = covered (touched "art.") "art."
+  let (a, a') = covering "RGAA 4.1.2"; (b, b') = covering "RGESN 2024"; (c, c') = covering "AI Act article 50"; (d, d') = covering "WCAG 2.1 AA"
       n' = T.pack . show
   in if l == En
        then "With the reviewer's questions and the owner's declarations, they address " <> n' a <> " of the " <> n' a' <> " criteria of the RGAA 4.1.2, "
-            <> n' b <> " of the " <> n' b' <> " of the RGESN 2024, and " <> n' c <> " of the " <> n' c' <> " paragraphs of article 50 of the AI Act. " <> unbound En
+            <> n' b <> " of the " <> n' b' <> " of the RGESN 2024, and " <> n' c <> " of the " <> n' c' <> " paragraphs of article 50 of the AI Act; through the RGAA's own correspondence, "
+            <> n' d <> " of the " <> n' d' <> " success criteria of WCAG 2.1 at levels A and AA. " <> unbound En
        else "Avec les questions au relecteur et les déclarations du responsable, elles traitent " <> n' a <> " des " <> n' a' <> " critères du RGAA 4.1.2, "
-            <> n' b <> " des " <> n' b' <> " du RGESN 2024, et " <> n' c <> " des " <> n' c' <> " paragraphes de l'article 50 du règlement sur l'IA. " <> unbound Fr
+            <> n' b <> " des " <> n' b' <> " du RGESN 2024, et " <> n' c <> " des " <> n' c' <> " paragraphes de l'article 50 du règlement sur l'IA ; par la correspondance du RGAA lui-même, "
+            <> n' d <> " des " <> n' d' <> " critères de succès de WCAG 2.1 aux niveaux A et AA. " <> unbound Fr
+
+-- | A framework's coverage, by name.
+covering :: Text -> (Int, Int)
+covering n = maybe (0, 0) coverage (find ((== n) . fName) frameworks)
 
 -- | Why the paragraphs of article 50 that bind no site are counted all the same.
 unbound :: Lang -> Text
 unbound l = T.intercalate " " [ (if l == En then "Paragraph " else "Le paragraphe ") <> p <> " " <> say l w <> "." | (p, w) <- unbinding ]
-
--- | The criteria of one reference that the rules touch, from the sources they
---   state: the numbers that follow its name, a span counted whole.
-touched :: Text -> [Text]
-touched ref = nub (concatMap (spans . drop 1 . dropWhile (/= ref) . T.words . en . cRef) criteria)
-  where
-    spans = concatMap range . takeWhile numbered . filter (/= "·")
-    numbered w = T.any isDigit (T.take 1 w)
-    range w = case T.splitOn "–" w of
-      [a, b] | [ta, na] <- T.splitOn "." a, [_, nb] <- T.splitOn "." b, Just x <- int' na, Just y <- int' nb -> [ta <> "." <> num k | k <- [x .. y]]
-      _ -> [w]
-    int' x = case reads (T.unpack x) :: [(Int, String)] of [(k, "")] -> Just k; _ -> Nothing
 
 -- | A day and a time, in words, from an ISO 8601 instant.
 date :: Lang -> Text -> Text

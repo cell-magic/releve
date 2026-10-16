@@ -353,11 +353,11 @@ def answer(record, given, lang, declared=None):
             code, doc, _ = releve("declarations", corpus)
             lines = []
             for line in doc.decode("utf-8").split("\n"):
-                item = re.match(r"- (RGESN|RGAA|AI Act) (\S+) · \S+ · (.*?)(?: // .*)?$", line)
-                name = item and re.sub(r"[^a-z0-9]+", "-", f"{item.group(1)} {item.group(2)}".lower()).strip("-")
+                item = re.match(r"- (.+?) · (?:yes|no|n/a|open) · (.*?)(?: // .*)?$", line)
+                name = item and re.sub(r"[^a-z0-9]+", "-", item.group(1).lower()).strip("-")
                 if item and name in declared:
                     said, note = declared[name]
-                    line = f"- {item.group(1)} {item.group(2)} · {said} · {item.group(3)}{' // ' + markdown(note) if note.strip() else ''}"
+                    line = f"- {item.group(1)} · {said} · {item.group(2)}{' // ' + markdown(note) if note.strip() else ''}"
                 lines.append(line)
             code, _, said = releve("declare", corpus, feed="\n".join(lines).encode("utf-8"))
             if code != 0:

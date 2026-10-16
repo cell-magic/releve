@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/provenance.html
 
-Observation `1fd6a796` · 2026-10-16T10:47:22+00:00 · criteria v7 · screenshot `b152eddf1b09f457` · Chromium 141.0.7390.37  
+Observation `02fb0bec` · 2026-10-16T10:47:22+00:00 · criteria v8 · screenshot `b152eddf1b09f457` · Chromium 141.0.7390.37  
 10 surfaces · 0 fail · 48 review · 2 hint · 39 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
@@ -111,6 +111,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - ai-disclosure: n/a · no conversational widget detected
 - ai-image: 1 of 3 pass
 - asks-on-arrival: 0 of 2 pass
+- consent-choice: n/a · not recorded by the observer of that time
 - third-parties: 1 of 1 pass
 - media-autoplay: 0 of 1 pass
 - endless: 1 of 1 pass

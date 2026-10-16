@@ -183,9 +183,10 @@ check("does not let an answer argue away a failure the rule can show", "No answe
 forgery = send({"lang": "en", "kept": base64.b64encode(forged).decode(), asking[0]: "pass"})
 check("takes answers only with a record whose seals hold", "its seals do not hold" in forgery)
 
-declared = send({"lang": "en", "kept": base64.b64encode(kept(answered)).decode(), "d-rgesn-1-3": "yes", "dn-rgesn-1-3": "Anna", "d-rgesn-9-1": "n/a", "dn-rgesn-9-1": ""})
+declared = send({"lang": "en", "kept": base64.b64encode(kept(answered)).decode(), "d-rgesn-1-3": "yes", "dn-rgesn-1-3": "Anna", "d-rgesn-9-1": "n/a", "dn-rgesn-9-1": "",
+                 "d-bitv-2-0-4": "n/a", "dn-bitv-2-0-4": "not a German public body"})
 check("records the owner's declarations with the record, and only what changed",
-      "2 answers recorded." in declared and "1 yes · 0 no · 1 not applicable · 70 open" in declared
+      "3 answers recorded." in declared and "1 yes · 0 no · 2 not applicable · 77 open" in declared and "not a German public body" in declared
       and 'id="d-rgesn-1-3-yes" name="d-rgesn-1-3" value="yes" checked' in declared and len(hits) == before
       and "0 answers" not in send({"lang": "en", "kept": base64.b64encode(kept(declared)).decode(), "d-rgesn-1-3": "yes", "dn-rgesn-1-3": "Anna"})
       and "No answers submitted." in send({"lang": "en", "kept": base64.b64encode(kept(declared)).decode(), "d-rgesn-1-3": "yes", "dn-rgesn-1-3": "Anna"}))

@@ -1,0 +1,33 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
+     SPDX-License-Identifier: EUPL-1.2
+     A prompt for cookies where accepting is a large filled button and refusing a
+     small plain link. Expected reading: the choice is put to a person. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Consent</title>
+<style>
+  body { font: 16px/1.5 sans-serif; margin: 0; color: #222; background: #fff; }
+  main { max-width: 40rem; margin: 2rem auto; padding: 0 1rem; }
+  #cookie-banner { position: fixed; left: 0; right: 0; bottom: 0; padding: 1rem; background: #f4f4f4; border-top: 1px solid #ccc; }
+  #cookie-banner .accept { background: #0b57d0; color: #fff; border: 0; padding: .9rem 2.4rem; font-size: 1.1rem; }
+  #cookie-banner .refuse { color: #555; font-size: .8rem; }
+  #cookie-banner .settings { background: none; border: 1px solid #0b57d0; color: #0b57d0; padding: .5rem 1rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Consent</h1>
+  <p>A page whose prompt for cookies makes accepting easier than refusing.</p>
+  <p><a href="/privacy-choices">Do Not Sell or Share My Personal Information</a> · <a href="/leichte-sprache">Leichte Sprache</a></p>
+</main>
+<div id="cookie-banner" role="region" aria-label="Cookie consent">
+  <p>We use cookies to measure the audience and show partners' offers.</p>
+  <button class="accept" type="button">Accept all</button>
+  <button class="settings" type="button">Customize</button>
+  <a class="refuse" href="#refuse">Continue without accepting</a>
+</div>
+</body>
+</html>

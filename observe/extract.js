@@ -469,6 +469,46 @@
   };
   const inline = digest([...document.querySelectorAll("style")].map(x => x.textContent).join("\n"));
 
+  // A prompt for consent to cookies and trackers, as it stands on arrival, and the choices it offers at once:
+  // each with what it does, whether it is a link or a button, its area and its look. The observer consents to nothing.
+  const deep = (root, sel) => [...root.querySelectorAll(sel),
+    ...[...(root.shadowRoot ? [root.shadowRoot] : []), ...[...root.querySelectorAll("*")].filter(n => n.shadowRoot).map(n => n.shadowRoot)].flatMap(r => deep(r, sel))];
+  const up = n => n.parentElement || (n.getRootNode && n.getRootNode().host) || null;
+  const CMP = [["didomi"], ["onetrust", /onetrust|optanon|cookielaw/], ["axeptio"], ["cookiebot", /cookiebot|cybot/], ["tarteaucitron"], ["usercentrics"],
+    ["quantcast", /qc-cmp/], ["sourcepoint", /sp_message|sp-cc/], ["trustarc", /trustarc|truste/], ["iubenda"], ["complianz", /cmplz/], ["cookieyes", /cky-|cookieyes/],
+    ["osano"], ["klaro"], ["orejime"], ["borlabs"], ["termly"]].map(([v, re]) => [v, re || new RegExp(v)]);
+  const vendorOf = s => (CMP.find(([, re]) => re.test(s.toLowerCase())) || [null])[0];
+  const signOf = n => [n.id, typeof n.className === "string" ? n.className : "", n.getAttribute("aria-label"), n.tagName === "IFRAME" ? n.src + " " + n.title + " " + n.name : ""].join(" ");
+  const ABOUT = /cookie|consent|tracker|traceur|témoin|vie privée|confidentialité|datenschutz|einwilligung|consentimiento|privacidad|consenso|riservatezza/i;
+  const fixedish = n => { for (let x = n; x && x.nodeType === 1; x = up(x)) if (/fixed|sticky/.test(getComputedStyle(x).position)) return true; return false; };
+  const told = n => (n.innerText || "") + " " + (n.shadowRoot ? n.shadowRoot.textContent : "");
+  const KINDS = [
+    ["reject", /reject|refuse|decline|deny|disagree|no,? thanks|(only|just) (the )?(necessary|essential|required)|(necessary|essential|required)( cookies)? only|without accept|refuser|continuer sans|non merci|ablehnen|nein danke|nur (notwendige|erforderliche|essenzielle)|rechaz|rifiut|solo (necessari|essenziali)/i],
+    ["settings", /setting|preference|customi[sz]|manage|option|choose|choice|details|more info|learn more|paramètr|paramétr|personnalis|gérer|préférence|choisir|en savoir plus|einstellung|anpassen|verwalten|configur|preferencia|personaliz|gestisci|impostazion/i],
+    ["accept", /accept|agree|allow|consent|got it|^ok\b|okay|understand|accepter|j'accepte|d'accord|autoriser|akzeptier|zustimm|einverstanden|erlauben|acept|accett/i]];
+  const ground = n => { for (let x = n; x && x.nodeType === 1; x = up(x)) { const c = rgba(getComputedStyle(x).backgroundColor); if (c[3] > 0.5) return c; } return [255, 255, 255, 1]; };
+  const lookOf = el => { const cs = getComputedStyle(el), b = rgba(cs.backgroundColor), g = up(el) ? ground(up(el)) : [255, 255, 255, 1];
+    if ((b[3] > 0.5 && b.slice(0, 3).some((v, i) => Math.abs(v - g[i]) > 8)) || cs.backgroundImage !== "none") return "filled";
+    return parseFloat(cs.borderTopWidth) > 0 && cs.borderTopStyle !== "none" && rgba(cs.borderTopColor)[3] > 0 ? "outlined" : "plain"; };
+  const choicesOf = box => deep(box, 'button, a[href], [role="button"], input[type="button"], input[type="submit"]').filter(rendered).flatMap(el => {
+    const nm = txt(accName(el) || el.value), k = KINDS.find(([, re]) => re.test(nm)), r = el.getBoundingClientRect();
+    return k ? [[k[0], el.tagName === "A" && el.getAttribute("role") !== "button" ? "link" : "button", clip(nm), Math.round(r.width * r.height), lookOf(el)]] : []; });
+  const consent = (() => {
+    const boxes = deep(document, "[id], [class], [role], dialog, [aria-modal]").filter(n => {
+      const sign = signOf(n), named = /cookie|consent|gdpr|rgpd|privacy/i.test(sign) || vendorOf(sign);
+      return !/^(HTML|BODY|MAIN)$/.test(n.tagName) && (named || n.matches('[role="dialog"], [role="alertdialog"], dialog[open], [aria-modal="true"]')) && rendered(n)
+        && ABOUT.test(told(n)) && told(n).length < 4000 && (vendorOf(sign) || fixedish(n) || n.matches('dialog, [role="dialog"], [role="alertdialog"]')); })
+      .map(n => ({ n, cs: choicesOf(n), k: 0, w: told(n).length })).filter(x => x.cs.length);
+    for (const x of boxes) x.k = new Set(x.cs.map(c => c[0])).size;
+    const vendor = n => { for (let x = n; x; x = up(x)) { const v = vendorOf(signOf(x)); if (v) return v; } return null; };
+    if (boxes.length) {
+      const best = boxes.reduce((a, b) => b.k > a.k || (b.k === a.k && b.w < a.w) ? b : a);   // every kind of choice, in the least text
+      return { prompt: true, cmp: vendor(best.n), framed: false, choices: best.cs };
+    }
+    const frame = [...document.querySelectorAll("iframe")].find(f => rendered(f) && (vendorOf(signOf(f)) || /consent|cookie|privacy-mgmt/i.test(signOf(f))));
+    return frame ? { prompt: true, cmp: vendorOf(signOf(frame)), framed: true, choices: [] } : { prompt: false };
+  })();
+
   const vp = document.querySelector('meta[name="viewport"]');
   const refresh = document.querySelector('meta[http-equiv="refresh" i]');
   return {
@@ -483,7 +523,7 @@
       styling: [...styling], empties, tabbed, hiddenFocus, skip, before, mains: mains.length,
       refresh: refresh ? txt(refresh.getAttribute("content")) : null,
       opened: window.__opened || 0, asked: window.__asked || [],
-      langs, rtl, emoji, generated, unpaired, blended, clickable, moving, scripted, inline,
+      langs, rtl, emoji, generated, unpaired, blended, clickable, moving, scripted, inline, consent,
     },
     surfaces, events, sources,
   };

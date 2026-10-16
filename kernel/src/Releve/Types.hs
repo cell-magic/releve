@@ -93,7 +93,15 @@ data Page = Page
   , unpaired :: Maybe [Text], blended :: Maybe [Text], clickable :: Maybe [(Text, Text)], moving :: Maybe [Text], spaced :: Maybe [Text]
   , scripted :: Maybe Int
   , inline :: Maybe Text  -- ^ a digest of the style sheets written into the page
+  , consent :: Maybe Consent  -- ^ recorded since observer 0.6
   } deriving (Show, Generic, FromJSON, ToJSON)
+
+-- | A prompt for consent to cookies and trackers on arrival, whose it is, whether
+--   it sits in a frame the page cannot read into, and the choices it offers at
+--   once: what each does (accept, reject, settings), link or button, its area in
+--   px², and its look (filled, outlined, plain).
+data Consent = Consent { prompt :: Bool, cmp :: Maybe Text, framed :: Maybe Bool, choices :: Maybe [(Text, Text, Text, Int, Text)] }
+  deriving (Show, Generic, FromJSON, ToJSON)
 
 data Rtl = Rtl { chars :: Int, marked :: Bool } deriving (Show, Generic, FromJSON, ToJSON)
 

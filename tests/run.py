@@ -6,8 +6,9 @@ reports compared byte for byte with the expected ones.
 
     python tests/run.py            check
     python tests/run.py --accept   rewrite the expected reports after a deliberate change
-    python tests/run.py --record   re-record the test pages after changing the observer
-                                   (needs Playwright and Chromium), then review the diff
+    python tests/run.py --record [PAGE ...]
+                                   re-record the test pages, or the ones named, after changing
+                                   the observer (needs Playwright and Chromium), then review the diff
 
 The kernel is `releve` on the PATH, or the program named by RELEVE.
 """
@@ -38,13 +39,13 @@ def edited(doc, *changes):
     return doc.encode("utf-8")
 
 
-def record():
+def record(names=()):
     class Quiet(SimpleHTTPRequestHandler):
         def log_message(self, *_):
             pass
     server = ThreadingHTTPServer(("127.0.0.1", 8765), partial(Quiet, directory=HERE / "pages"))
     threading.Thread(target=server.serve_forever, daemon=True).start()
-    for page in sorted((HERE / "pages").glob("*.html")):
+    for page in sorted(p for p in (HERE / "pages").glob("*.html") if not names or p.stem in names):
         r = subprocess.run([sys.executable, HERE.parent / "observe" / "observe.py", f"http://localhost:8765/{page.name}",
                             "--contact", "https://example.org/robot"], capture_output=True, check=True)
         (HERE / "observations" / f"{page.stem}.jsonl").write_bytes(r.stdout)
@@ -139,7 +140,8 @@ def main():
         check(f"report in {lang}", doc == expected.read_bytes() and f'<html lang="{lang}">'.encode() in doc)
         check(f"the same report in {lang} with nothing kept", releve("report", lang, "-", feed=structure)[1] == doc)
     check("the guide names every criterion, in each language",
-          all(releve("guide", lang)[1].count(b"<h2 id=") == len(releve("criteria")[1].splitlines()) - 1 for lang in ("en", "fr")))
+          all(all(f'<h2 id="{l.split()[0]}">'.encode() in releve("guide", lang)[1] for l in releve("criteria")[1].decode("utf-8").splitlines()[1:])
+              for lang in ("en", "fr")))
     everything = b"".join(o.read_bytes() for o in sorted((HERE / "observations").glob("*.jsonl")))
     french = releve("report", "fr", "-", feed=everything)[1].decode("utf-8") + releve("guide", "fr")[1].decode("utf-8")
     ours = re.sub(r"«.*?»|<code>.*?</code>|<a .*?</a>|<title>.*?</title>|<h[12][^>]*>.*?</h[12]>|<style>.*?</style>", "", french, flags=re.S)
@@ -317,10 +319,10 @@ def main():
     check("an answer that cannot be read is refused, with everything else", code == 1 and "yes, no, n/a or open" in said and d.read_bytes() == before)
     plain, asked = releve("report", "en", d)[1].decode("utf-8"), releve("report", "en", d, "--ask")[1].decode("utf-8")
     check("the report says what is declared, and asking, the answer in force is already chosen",
-          "1 yes · 0 no · 1 not applicable · 70 open" in plain and "Anna Teterkina" in plain and "2 are declared so far" in plain
-          and 'id="d-rgesn-1-3-yes" name="d-rgesn-1-3" value="yes" checked' in asked and asked.count("<fieldset>") >= 72)
+          "1 yes · 0 no · 1 not applicable · 78 open" in plain and "Anna Teterkina" in plain and "2 are declared so far" in plain
+          and 'id="d-rgesn-1-3-yes" name="d-rgesn-1-3" value="yes" checked' in asked and asked.count("<fieldset>") >= 80)
     releve("declare", d, feed=edited(releve("declarations", d)[1].decode("utf-8"), (r"^- RGESN 1\.3 · yes", "- RGESN 1.3 · open")))
-    check("a declaration withdrawn is open again", "0 yes · 0 no · 1 not applicable · 71 open" in releve("report", "en", d)[1].decode("utf-8")
+    check("a declaration withdrawn is open again", "0 yes · 0 no · 1 not applicable · 79 open" in releve("report", "en", d)[1].decode("utf-8")
           and releve("verify", d)[0] == 0)
 
     # Article 50 of the AI Act: each of its 7 paragraphs read by a rule, declared by the owner for what no page
@@ -332,6 +334,40 @@ def main():
     check("every paragraph of article 50 is read by a rule, declared, or said to bind no site",
           (by_rule | by_owner | {"50(6)", "50(7)"}) == art and "Paragraph 50(6)" in guide and "Paragraph 50(7)" in guide
           and "address 106 of the 106 criteria of the RGAA 4.1.2, 78 of the 78 of the RGESN 2024, and 7 of the 7 paragraphs of article 50" in guide)
+
+    # The frameworks: each as its provisions. A WCAG-based text is the success criteria it names,
+    # and what it asks beyond them; the RGAA reaches WCAG by its own correspondence.
+    fw = {f["framework"]: f for f in map(json.loads, releve("frameworks")[1].decode("utf-8").splitlines())}
+    sizes = {"WCAG 2.1 AA": 50, "EN 301 549 · EAA": 51, "BITV 2.0": 51, "Section 508": 38, "ADA Title II": 50, "AODA": 37,
+             "JIS X 8341-3:2016": 38, "DDA 1992": 38, "RGAA 4.1.2": 106, "RGESN 2024": 78, "AI Act article 50": 7, "CCPA · CPRA": 3}
+    check("each framework counts its provisions, and every one is addressed",
+          all(fw[n]["of"] == k for n, k in sizes.items()) and all(f["addressed"] == f["of"] and not f["open"] and f["source"].startswith("https://") for f in fw.values())
+          and "through the RGAA's own correspondence, 50 of the 50 success criteria of WCAG 2.1" in guide and guide.count('<th scope="row">') == len(fw))
+    bitv = edited(releve("declarations", d)[1].decode("utf-8"), (r"^- BITV 2\.0 §4 · open · (.*)$", r"- BITV 2.0 §4 · n/a · \1 // not a German public body"))
+    check("a provision of another law is declared like any other",
+          releve("declare", d, feed=bitv)[2] == "1 declaration recorded"
+          and 'id="d-bitv-2-0-4-na" name="d-bitv-2-0-4" value="n/a" checked' in releve("report", "en", d, "--ask")[1].decode("utf-8"))
+
+    # Refusing cookies as easily as accepting them: a filled button against a plain link is put to a person;
+    # accepting alone breaks the rule; alike, it holds; no prompt, nothing to judge.
+    prompt = json.loads((HERE / "observations" / "consent.jsonl").read_text(encoding="utf-8"))
+
+    def consent(c):
+        o, k = json.loads(json.dumps(prompt)), tmp / f"consent-{random.random()}"
+        if c is not None:
+            o["page"]["consent"] = c
+        releve("ingest", k, feed=json.dumps(o).encode("utf-8"))
+        return next(l for l in releve("facts", k)[1].decode("utf-8").splitlines() if "consent-choice" in l)
+    alone = consent({"prompt": True, "choices": [["accept", "button", "OK", 4000, "filled"], ["settings", "link", "Learn more", 900, "plain"]]})
+    alike = consent({"prompt": True, "cmp": "didomi", "choices": [["accept", "button", "Accept", 4000, "filled"], ["reject", "button", "Refuse", 3900, "filled"]]})
+    none = consent({"prompt": False})
+    c = tmp / "consent"
+    cp = releve("declarations", c)[1].decode("utf-8")
+    check("a prompt for consent: refusing smaller than accepting is asked, accepting alone fails, alike holds",
+          "Is refusing as easy and as visible as accepting" in releve("report", "en", c, "--ask")[1].decode("utf-8")
+          and "Continue without accepting" in consent(None)
+          and "no way to refuse beside it" in alone and alike == "- consent-choice: 1 of 1 pass" and "no prompt for consent on arrival" in none
+          and "seen: links: Do Not Sell or Share My Personal Information" in cp and "seen: links: Leichte Sprache" in cp)
 
     # A question is put only where what it asks about can exist: shortcuts, gestures and motion
     # need a script; a legend needs a group; option groups need a list.
@@ -410,4 +446,4 @@ def main():
 
 
 if __name__ == "__main__":
-    record() if "--record" in sys.argv else main()
+    record(sys.argv[sys.argv.index("--record") + 1:]) if "--record" in sys.argv else main()

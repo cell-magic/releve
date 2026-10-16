@@ -28,7 +28,7 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <h1>Report · http://localhost:8765/structure.html</h1>
 <p>Automated observation of one rendered page, by rule. It is not a conformity audit. What no rule can decide is listed as an open question.</p>
 <h2>Method</h2>
-<p>Each page was rendered in a browser at 1280 px and 320 px. Recorded: names given to assistive technology, colors as rendered, bytes transferred. The page was then navigated by keyboard alone. 69 criteria then read the record. Each is a rule in plain code. No trained model is involved: the same record gives the same report.</p>
+<p>Each page was rendered in a browser at 1280 px and 320 px. Recorded: names given to assistive technology, colors as rendered, bytes transferred. The page was then navigated by keyboard alone. 70 criteria then read the record. Each is a rule in plain code. No trained model is involved: the same record gives the same report.</p>
 <dl>
 <dt>Fixes</dt><dd>A stated rule is broken. The remedy is given.</dd>
 <dt>Open questions</dt><dd>Beyond what a rule can decide. Answers are recorded as the reviewer's, beside the rule's reading, and lapse when the element changes.</dd>
@@ -202,6 +202,7 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <li>Conversational AI is disclosed · not applicable: no conversational widget detected</li>
 <li>Images made by AI say so · not applicable: no image states its origin</li>
 <li>Nothing is asked of the device on arrival · 1 of 1 pass</li>
+<li>Refusing is as easy as accepting · not applicable: not recorded by the observer of that time</li>
 <li>Third parties wait for consent · 1 of 1 pass</li>
 <li>Nothing plays by itself · 2 of 2 pass</li>
 <li>The page has an end · 1 of 1 pass</li>
@@ -239,8 +240,8 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 </dl>
 <p class="meta">A reader holding up to 4 at a time is a convention, like a reference device in a speed test. Failures reduce what it holds.</p>
 <h2 id="declarations">Declarations</h2>
-<p>Criteria not visible from a page: how the service is decided, built, hosted and run, how its pages fit together, and what its AI does beyond the page. Declared once by the owner for the whole record. The official texts prevail.</p>
-<p><strong>0 yes · 0 no · 0 not applicable · 72 open</strong></p>
+<p>Criteria not visible from a page: how the service is decided, built, hosted and run, how its pages fit together, what its AI does beyond the page, and what other laws and standards ask of it. Declared once by the owner for the whole record. The official texts prevail.</p>
+<p><strong>0 yes · 0 no · 0 not applicable · 80 open</strong></p>
 <h3>Strategy</h3>
 <p>Open: <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.1/">RGESN 1.1</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.2/">RGESN 1.2</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.3/">RGESN 1.3</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.4/">RGESN 1.4</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.5/">RGESN 1.5</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.6/">RGESN 1.6</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.7/">RGESN 1.7</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.8/">RGESN 1.8</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.9/">RGESN 1.9</a>, <a href="https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/1.10/">RGESN 1.10</a></p>
 <h3>Specifications</h3>
@@ -263,10 +264,14 @@ table { border-collapse: collapse; width: 100%; } th, td { text-align: left; pad
 <p>Open: <a href="https://accessibilite.numerique.gouv.fr/methode/criteres-et-tests/#12.1">RGAA 12.1</a>, <a href="https://accessibilite.numerique.gouv.fr/methode/criteres-et-tests/#12.2">RGAA 12.2</a>, <a href="https://accessibilite.numerique.gouv.fr/methode/criteres-et-tests/#12.3">RGAA 12.3</a>, <a href="https://accessibilite.numerique.gouv.fr/methode/criteres-et-tests/#12.4">RGAA 12.4</a>, <a href="https://accessibilite.numerique.gouv.fr/methode/criteres-et-tests/#12.5">RGAA 12.5</a></p>
 <h3>Artificial intelligence, beyond the page</h3>
 <p>Open: <a href="https://eur-lex.europa.eu/eli/reg/2024/1689/oj#art_50">AI Act 50(2)</a>, <a href="https://eur-lex.europa.eu/eli/reg/2024/1689/oj#art_50">AI Act 50(3)</a>, <a href="https://eur-lex.europa.eu/eli/reg/2024/1689/oj#art_50">AI Act 50(4)</a></p>
+<h3>Live audio and video</h3>
+<p>Open: <a href="https://www.w3.org/TR/WCAG21/#captions-live">WCAG 1.2.4</a></p>
+<h3>Other laws and standards</h3>
+<p>Open: <a href="https://eur-lex.europa.eu/eli/dir/2019/882/oj">EAA article 13(2)</a>, <a href="https://www.gesetze-im-internet.de/bitv_2_0/__4.html">BITV 2.0 §4</a>, <a href="https://www.ontario.ca/laws/statute/05a11">AODA section 14</a>, <a href="https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&amp;sectionNum=1798.135">CPRA §1798.135</a>, <a href="https://cppa.ca.gov/regulations/">CPRA regulations §7025</a>, <a href="https://eur-lex.europa.eu/eli/reg/2022/2065/oj">DSA article 25</a>, <a href="https://www.cac.gov.cn/2021-08/20/c_1631050028355286.htm">PIPL article 24</a></p>
 <h2>What was not looked at</h2>
-<p>These rules touch 101 of the 106 criteria of the RGAA 4.1.2, 14 of the 78 of the RGESN 2024, and 5 paragraphs of article 50 of the AI Act. The other 64 RGESN criteria, the 5 RGAA criteria on the set of pages and 3 paragraphs of article 50, for what no page shows, are declared by the owner; 0 are declared so far. Paragraph 50(6) keeps the other rules on high-risk systems and on transparency in force. Paragraph 50(7) is addressed to the Commission, which encourages codes of practice.</p>
+<p>These rules touch 101 of the 106 criteria of the RGAA 4.1.2, 14 of the 78 of the RGESN 2024, and 5 paragraphs of article 50 of the AI Act. The other 64 RGESN criteria, the 5 RGAA criteria on the set of pages and 3 paragraphs of article 50, for what no page shows, and 8 provisions of other laws and standards are declared by the owner; 0 are declared so far. Paragraph 50(6) keeps the other rules on high-risk systems and on transparency in force. Paragraph 50(7) is addressed to the Commission, which encourages codes of practice.</p>
 <p>Each page was observed once, at two widths. Not observed: content shown only after an action, such as an open menu, a sent form or a dialog; content behind a login; frames from other sites.</p>
-<p class="meta">relevé 0.5.1 · criteria v7</p>
+<p class="meta">relevé 0.6.0 · criteria v8</p>
 </main>
 </body>
 </html>

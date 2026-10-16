@@ -3,12 +3,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 -- | The criteria that no rule can see from a page and that hold for a whole
 --   site: the RGESN 2024 criteria on how a service is decided, built, hosted and
---   run, the RGAA 4.1.2 criteria on a set of pages, and the duties of article 50
---   of the AI Act that bear on what no page shows. The owner declares them,
+--   run, the RGAA 4.1.2 criteria on a set of pages, the duties of article 50
+--   of the AI Act that bear on what no page shows, and what other laws and
+--   standards ask beyond the page. The owner declares them,
 --   once for the whole record. Each comes with what the observation did see that
 --   bears on it. The questions are this tool's short form; the official texts,
---   under Licence Ouverte 2.0, prevail and are linked from every report.
-module Releve.Declarations (Item (..), items, family, official, cited, slug, unbinding, covered) where
+--   prevail and are linked from every report.
+module Releve.Declarations (Item (..), items, family, official, cited, slug, unbinding) where
 
 import Data.Char (isAlphaNum)
 import Data.List (nub)
@@ -32,12 +33,27 @@ official :: Item -> Text
 official i
   | iRef i == "RGAA" = "https://accessibilite.numerique.gouv.fr/methode/criteres-et-tests/#" <> iId i
   | iRef i == "AI Act" = "https://eur-lex.europa.eu/eli/reg/2024/1689/oj#art_50"
+  | Just u <- lookup (cited i) elsewhere = u
   | otherwise = "https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/critere/" <> iId i <> "/"
+
+-- | Where the provisions of other texts are published.
+elsewhere :: [(Text, Text)]
+elsewhere =
+  [ ("WCAG 1.2.4", "https://www.w3.org/TR/WCAG21/#captions-live")
+  , ("EAA article 13(2)", "https://eur-lex.europa.eu/eli/dir/2019/882/oj")
+  , ("BITV 2.0 §4", "https://www.gesetze-im-internet.de/bitv_2_0/__4.html")
+  , ("AODA section 14", "https://www.ontario.ca/laws/statute/05a11")
+  , ("CPRA §1798.135", "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.135")
+  , ("CPRA regulations §7025", "https://cppa.ca.gov/regulations/")
+  , ("DSA article 25", "https://eur-lex.europa.eu/eli/reg/2022/2065/oj")
+  , ("PIPL article 24", "https://www.cac.gov.cn/2021-08/20/c_1631050028355286.htm") ]
 
 -- | The family a criterion is listed under: the RGAA ones under navigation.
 family :: Item -> Phrase
 family it | iRef it == "RGAA" = "Navigation across pages" // "Navigation entre les pages"
 family it | iRef it == "AI Act" = "Artificial intelligence, beyond the page" // "Intelligence artificielle, au-delà de la page"
+family it | iRef it == "WCAG" = "Live audio and video" // "Son et vidéo en direct"
+family it | iRef it /= "RGESN" = "Other laws and standards" // "Autres lois et normes"
 family it = case T.takeWhile (/= '.') (iId it) of
   "1" -> "Strategy" // "Stratégie"
   "2" -> "Specifications" // "Spécifications"
@@ -131,6 +147,26 @@ items =
   , a "50(4)" ("Are deep fakes, in image, sound or video, and AI-written text published to inform the public disclosed as such, unless a person holds editorial responsibility for the text?"
                // "Les hypertrucages, en image, en son ou en vidéo, et le texte écrit par IA publié pour informer le public sont-ils signalés comme tels, sauf si une personne assume la responsabilité éditoriale du texte ?") origins
   ]
+  ++
+  [ Item "WCAG" "1.2.4" ("If the site shows live video with sound, is it captioned as it is shown?" // "Si le site diffuse de la vidéo en direct avec du son, est-elle sous-titrée en direct ?") media
+  , Item "EAA" "article 13(2)" ("If the service falls under the European Accessibility Act, does it publish how it meets the accessibility requirements, in writing and in an accessible form?"
+                               // "Si le service relève de l'acte européen sur l'accessibilité, publie-t-il comment il satisfait aux exigences d'accessibilité, par écrit et sous une forme accessible ?")
+      (linked ["accessibility", "accessibilité", "barrierefreiheit"])
+  , Item "BITV 2.0" "§4" ("If the site belongs to a German public body, does its start page explain the content, the navigation and the accessibility statement in German Sign Language and in Easy German?"
+                         // "Si le site relève d'un organisme public allemand, sa page d'accueil explique-t-elle le contenu, la navigation et la déclaration d'accessibilité en langue des signes allemande et en allemand facile ?")
+      (linked ["leichte sprache", "gebärdensprache"])
+  , Item "AODA" "section 14" ("If the organization operates in Ontario, has it filed the accessibility compliance report the Act asks of it?"
+                             // "Si l'organisation exerce en Ontario, a-t-elle déposé le rapport de conformité que la loi lui demande ?") none
+  , Item "CPRA" "§1798.135" ("If the business sells or shares personal information of Californians, does its home page link to “Do Not Sell or Share My Personal Information”, or to “Your Privacy Choices”?"
+                            // "Si l'entreprise vend ou partage des données personnelles de Californiens, sa page d'accueil porte-t-elle le lien « Do Not Sell or Share My Personal Information », ou « Your Privacy Choices » ?")
+      (linked ["do not sell", "your privacy choices"])
+  , Item "CPRA" "regulations §7025" ("Does the service treat a Global Privacy Control signal as a request to opt out of sale and sharing?"
+                                    // "Le service traite-t-il un signal Global Privacy Control comme une demande d'opposition à la vente et au partage ?") none
+  , Item "DSA" "article 25" ("If the service is an online platform, is its interface free of designs that deceive or manipulate its users, or impair their free and informed decisions?"
+                            // "Si le service est une plateforme en ligne, son interface est-elle exempte de conceptions qui trompent ou manipulent ses utilisateurs, ou entravent leurs décisions libres et éclairées ?") none
+  , Item "PIPL" "article 24" ("If the service makes automated decisions on people in China, are they transparent and fair, and can a person refuse personalised targeting?"
+                             // "Si le service prend des décisions automatisées sur des personnes en Chine, sont-elles transparentes et équitables, et une personne peut-elle refuser le ciblage personnalisé ?") none
+  ]
   where
     q = Item "RGESN"
     r = Item "RGAA"
@@ -171,6 +207,9 @@ items =
     origins o = case [x | s <- surfaces o, kind s == "img", Just x <- [origin s]] of
       [] -> Just ("no image on the page states its origin" // "aucune image de la page ne déclare son origine")
       xs -> Just ((n (length xs) <> " images state their origin") // (n (length xs) <> " images déclarent leur origine"))
+    linked ws o = case nub [x | s <- surfaces o, kind s == "link", Just x <- [name s], any (`T.isInfixOf` T.toLower x) ws] of
+      [] -> Just ("no such link on the page" // "aucun lien de ce nom dans la page")
+      xs -> Just (("links: " // "liens : ") <> both (T.intercalate ", " (take 3 xs)))
     host o = Just (both (fromMaybe (url o) (hostOf (url o))) <> (if ipv6 (page o) == Just True then " · IPv6" else ""))
     hostOf u = case T.splitOn "/" u of
       _ : _ : h : _ | not (T.null h) -> Just h
@@ -181,16 +220,3 @@ unbinding :: [(Text, Phrase)]
 unbinding =
   [ ("50(6)", "keeps the other rules on high-risk systems and on transparency in force" // "maintient les autres règles sur les systèmes à haut risque et sur la transparence")
   , ("50(7)", "is addressed to the Commission, which encourages codes of practice" // "s'adresse à la Commission, qui encourage les codes de bonne pratique") ]
-
--- | How many of a text's provisions are addressed, out of how many: by a rule
---   or a question (the numbers the criteria cite), by the owner's declaration,
---   or, for article 50, by saying that a paragraph binds no site.
-covered :: [Text] -> Text -> (Int, Int)
-covered touched' ref = case ref of
-  "RGAA" -> (addressed, 106)
-  "RGESN" -> (addressed, 78)
-  _ -> (length (nub (filter (`elem` paragraphs) (touched' ++ declaredHere ++ map fst unbinding))), 7)
-  where
-    declaredHere = [iId i | i <- items, iRef i == ref || (ref == "art." && iRef i == "AI Act")]
-    addressed = length (nub (touched' ++ declaredHere))
-    paragraphs = ["50(" <> T.pack (show k) <> ")" | k <- [1 .. 7 :: Int]]

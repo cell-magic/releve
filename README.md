@@ -105,8 +105,12 @@ writes the report and keeps nothing.
 **declarations** lists the criteria that no rule can see from a page and
 that hold for a whole site: the 64 RGESN 2024 criteria on how the service
 is decided, built, hosted and run, the 5 RGAA criteria on a set of pages
-(navigation systems, menus, site map, search), and paragraphs 2 to 4 of
-article 50 of the AI Act, for what an AI system does beyond the page. Each line
+(navigation systems, menus, site map, search), paragraphs 2 to 4 of
+article 50 of the AI Act, for what an AI system does beyond the page, and
+8 provisions other laws and standards add to what a page shows: WCAG 1.2.4
+(live captions), article 13(2) of the European Accessibility Act, §4 of the
+BITV 2.0, section 14 of the AODA, §1798.135 of the CPRA and §7025 of its
+regulations, article 25 of the DSA and article 24 of the PIPL. Each line
 holds the owner's answer, yes, no, n/a or open, a note after `//`, and
 what the latest observation saw that bears on it. Edited and piped back
 through `releve declare`, the changed lines become events that hold for
@@ -137,6 +141,7 @@ releve report fr corpus.jsonl > report.html # for the pages' owner; en or fr
 releve atlas corpus.jsonl > atlas.jsonl
 releve verify corpus.jsonl
 releve guide en > criteria.html             # what each criterion is for
+releve frameworks                           # each law and standard, and what of it is addressed (JSON lines)
 
 # or, keeping nothing:
 python observe/observe.py https://example.org --contact https://you.example/robot | releve report en - > report.html
@@ -225,7 +230,7 @@ unit's address filter is the second lock.
 
 ```sh
 python tests/run.py            # the kernel against recorded pages: no browser, no network
-python tests/run.py --record   # re-record the test pages after changing the observer
+python tests/run.py --record [PAGE ...]   # re-record the test pages, or those named, after changing the observer
 python tests/conduct.py        # the observer against local sites that say no
 python tests/service.py        # the service against local sites: a report out, nothing left behind
 ```
@@ -235,7 +240,7 @@ commented with the reading it should produce. The recorded observations
 and expected reports sit beside them, so any change in judgement shows up
 as a diff to review.
 
-## Criteria (v6)
+## Criteria (v8)
 
 | id | checks | source |
 |---|---|---|
@@ -286,6 +291,7 @@ as a diff to review.
 | ai-disclosure | conversational AI is disclosed | AI Act art. 50(1) |
 | ai-image | images made by AI say so | AI Act art. 50(2) · 50(4) |
 | asks-on-arrival | nothing is asked of the device on arrival | RGESN 4.13 · 6.6 · AI Act art. 50(3) |
+| consent-choice | refusing cookies is as easy as accepting them: accepting alone fails; refusing smaller, or plainer, is put to a person | GDPR article 7 · CNIL 2020-091 · CPRA regulations §7004(a)(2); the threshold (2× the area) is the tool's |
 | third-parties | third parties wait for consent | RGESN 4.4 |
 | media-autoplay | nothing plays by itself | RGESN 4.1 |
 | endless | the page has an end | RGESN 4.2; the threshold (one screen, twice) is the tool's |
@@ -305,6 +311,40 @@ owner's declaration for what no page shows, and 6 and 7, which place no duty
 on a site, by saying so. `tests/run.py` holds them to it.
 To cover a criterion is not to settle it: a question is settled by the
 reviewer's answer, a declaration by the owner's.
+
+### Frameworks
+
+Laws and standards elsewhere are, for the most part, WCAG under another
+name. `kernel/src/Releve/Frameworks.hs` writes each as the provisions it is
+made of: the WCAG success criteria it names, and what it asks beyond them.
+The RGAA reaches WCAG through the correspondence its own data states
+(DINUM, `criteres.json`, Licence Ouverte 2.0); rules that cite WCAG add
+theirs. A provision is addressed when a rule reads it, a question puts it to
+the reviewer, or the owner declares it. `releve frameworks` gives the count,
+and the guide sets it out as a table:
+
+| text | where | provisions | addressed |
+|---|---|---|---|
+| WCAG 2.1 AA | the W3C standard the laws refer to | 50 | 50 |
+| EN 301 549 · EAA | European Union | WCAG 2.1 AA, and article 13(2) | 51 |
+| RGAA 4.1.2 | France | 106 criteria | 106 |
+| BITV 2.0 | Germany, federal public bodies | WCAG 2.1 AA, and §4 | 51 |
+| Section 508 | United States, federal agencies | WCAG 2.0 AA | 38 |
+| ADA Title II | United States, state and local governments | WCAG 2.1 AA | 50 |
+| ADA Title III | United States, businesses open to the public | no standard in the rule; WCAG 2.1 AA as courts cite it | 50 |
+| AODA | Ontario | WCAG 2.0 AA but 1.2.4 and 1.2.5, and the section 14 report | 37 |
+| JIS X 8341-3:2016 | Japan | WCAG 2.0 AA | 38 |
+| DDA 1992 | Australia, advisory notes 4.1 | WCAG 2.0 AA | 38 |
+| RGESN 2024 | France | 78 criteria | 78 |
+| AI Act article 50 | European Union | 7 paragraphs | 7 |
+| GDPR · ePrivacy | European Union, consent to trackers | consent-choice, third-parties | 2 |
+| CCPA · CPRA | California | consent-choice, §1798.135, regulations §7025 | 3 |
+| DSA article 25 | European Union, online platforms | declared | 1 |
+| PIPL article 24 | China, automated decisions | declared | 1 |
+
+Addressed says what a record covers. It says nothing of whether a site
+conforms to any of them; the texts prevail. WCAG 2.2 is not yet among
+them.
 
 Each criterion is one entry in `kernel/src/Releve/Criteria.hs`: what it
 checks, its source, what it is for, and one pure function. Whatever a
@@ -326,7 +366,9 @@ guide to this, in both languages.
   exists.
 - It observes one page, at one viewport (1280 × 800, then 320 px for
   reflow), at one moment. Interactive states (open menus, dialogs), shadow
-  DOM and cross-origin frames are not observed.
+  DOM and cross-origin frames are not observed; a prompt for consent is
+  read inside open shadow roots too, and one in a frame from another site
+  is named and put to a person.
 - Contrast is computed against resolved background colours. Text over an
   image, or partly transparent text, is marked `REVIEW`; fully transparent
   text and text in disabled controls are not judged.

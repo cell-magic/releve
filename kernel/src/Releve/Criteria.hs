@@ -20,7 +20,7 @@ import Releve.Colour
 import Releve.Types
 
 version :: Text
-version = "7"
+version = "8"
 
 criteria :: [Criterion]
 criteria =
@@ -201,6 +201,11 @@ criteria =
       ("Permission requests before any action are answered blind."
        // "Une demande d'autorisation avant toute action reçoit une réponse à l'aveugle.")
       asksOnArrival
+  , Criterion "consent-choice" ("Refusing is as easy as accepting" // "Refuser est aussi simple qu'accepter")
+      ("GDPR article 7 · CNIL 2020-091 · CPRA regulations §7004(a)(2) · threshold 2× the area (tool)" // "RGPD article 7 · CNIL 2020-091 · CPRA regulations §7004(a)(2) · seuil 2× la surface (outil)") Medium
+      ("Consent is free only where refusing takes no more effort, and draws no less notice, than accepting."
+       // "Le consentement n'est libre que si refuser ne demande pas plus d'effort, ni n'attire moins l'attention, qu'accepter.")
+      consentChoice
   , Criterion "third-parties" ("Third parties wait for consent" // "Les tiers attendent le consentement") "RGESN 4.4" Medium
       ("Each third party opens a connection to another company before consent."
        // "Chaque tiers ouvre une connexion vers une autre entreprise avant le consentement.")
@@ -851,7 +856,7 @@ aiDisclosure o = case surfacesOf "widget" o of
 
 -- sobriety --------------------------------------------------------------
 
-aiImage, asksOnArrival, thirdPartiesC, mediaAutoplay, endless, fontsC, compression, caching, protocolC, lazyImages :: Observation -> [Mark]
+aiImage, asksOnArrival, consentChoice, thirdPartiesC, mediaAutoplay, endless, fontsC, compression, caching, protocolC, lazyImages :: Observation -> [Mark]
 
 -- | What an image file says of its own making is read; whether the page says
 --   it too is put to a person, with the page's wording.
@@ -876,6 +881,35 @@ asksOnArrival o = recorded o $ case fromMaybe [] (asked (page o)) of
     what "location" = "the device's location" // "la position de l'appareil"
     what "camera or microphone" = "the camera or the microphone" // "la caméra ou le microphone"
     what a = both a
+
+-- | The choices a prompt for consent offers at once. Accepting with no way to refuse beside it
+--   breaks the rule; refusing smaller, or plainer, than accepting is put to a person.
+consentChoice o = case consent (page o) of
+  Nothing -> [onPage NA ("not recorded by the observer of that time" // "non relevé par l'observateur d'alors") Nothing]
+  Just c | not (prompt c) -> [onPage NA ("no prompt for consent on arrival" // "aucune demande de consentement à l'arrivée") Nothing]
+         | otherwise -> prompted c
+  where
+    ask = asking ("Is refusing as easy and as visible as accepting, from the first step?" // "Refuser est-il aussi simple et aussi visible qu'accepter, dès le premier écran ?")
+    prompted c = case (pick "accept", pick "reject") of
+      (Just a, Nothing) -> [onPage Fail (("accepting: " // "accepter : ") <> shown a <> ("; no way to refuse beside it" // " ; aucun moyen de refuser à côté") <> detour)
+                              (Just ("place a choice to refuse beside the one to accept, alike in size and look" // "placer un choix pour refuser à côté de celui pour accepter, de même taille et de même aspect"))]
+      (Just a@(_, _, _, wa, la), Just r@(_, _, _, wr, lr))
+        | la /= lr || wa > 2 * wr -> [ask (onPage Review (pair a r) (Just ("give refusing the size and look of accepting" // "donner au refus la taille et l'aspect de l'accord")))]
+        | otherwise -> [onPage Pass (pair a r) Nothing]
+      (Nothing, Just r) -> [onPage Pass (("refusing: " // "refuser : ") <> shown r) Nothing]
+      _ -> [ask (onPage Review (("a prompt for consent" // "une demande de consentement") <> who
+                                 <> (if framed c == Just True then ", in a frame this tool does not read into" // ", dans un cadre que cet outil ne lit pas"
+                                     else ", with no choice this tool can read" // ", sans choix lisible par cet outil")) Nothing)]
+      where
+        pick k = listToMaybe [x | x@(k', _, _, _, _) <- fromMaybe [] (choices c), k' == k]
+        who = maybe "" (\v -> both (" (" <> v <> ")")) (cmp c)
+        detour = maybe "" (\x -> ("; settings: " // " ; réglages : ") <> shown x) (pick "settings")
+    pair a r = ("accepting: " // "accepter : ") <> shown a <> ("; refusing: " // " ; refuser : ") <> shown r
+    shown (_, tag, nm, w, lk) = quote nm <> ", " <> looks tag lk <> both (", " <> num w <> " px²")
+    looks tag lk = let (te, tf) = if tag == "link" then ("link", "lien") else ("button", "bouton")
+                   in case lookup lk [("filled", ("filled", "plein")), ("outlined", ("outlined", "bordé")), ("plain", ("plain", "sans fond"))] of
+                        Just (le, lf) -> le <> " " <> te // tf <> " " <> lf
+                        Nothing -> te // tf
 
 -- | The robot gives no consent: whatever third party answered did so without one.
 thirdPartiesC o = case thirdParties (network o) of

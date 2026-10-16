@@ -6,7 +6,8 @@
 module Main (main) where
 
 import Control.Monad (foldM_, forM_)
-import Data.Aeson (eitherDecodeStrict, encode, toJSON)
+import Data.Aeson (Value, eitherDecodeStrict, encode, object, toJSON, (.=))
+import qualified Data.Set as S
 import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.Text as T
@@ -16,6 +17,7 @@ import System.Exit (exitWith, ExitCode (..))
 import System.IO (hPutStrLn, hSetEncoding, hSetNewlineMode, noNewlineTranslation, stderr, stdin, stdout, universalNewlineMode, utf8)
 import Releve.Corpus
 import Releve.Criteria (criteria, version)
+import Releve.Frameworks
 import Releve.Kernel
 import Releve.Report
 import Releve.Types
@@ -37,11 +39,13 @@ usage = unlines
   , "  releve verify CORPUS                  check the corpus seals"
   , "  releve criteria                       list the criteria and their sources"
   , "  releve guide en|fr                    the criteria and what each is for, as HTML"
+  , "  releve frameworks                     each law and standard, and how many of its provisions"
+  , "                                        the criteria address (JSON lines)"
   , "  releve --version" ]
 
 -- | The release, as in releve.cabal; tests/run.py holds the two together.
 release :: String
-release = "0.5.1"
+release = "0.6.0"
 
 -- | The same bytes on every system: UTF-8, and line feeds alone on the way out.
 plain :: IO ()
@@ -70,8 +74,14 @@ main = plain >> getArgs >>= \args -> case args of
     putStrLn ("criteria v" <> T.unpack version)
     forM_ criteria $ \k -> TIO.putStrLn (T.justifyLeft 20 ' ' (cId k) <> T.justifyLeft 46 ' ' (en (cTitle k)) <> en (cRef k))
   ["guide", l] | Just lang <- lookup l [("en", En), ("fr", Fr)] -> TIO.putStr (guide lang (T.pack release))
+  ["frameworks"] -> forM_ frameworks $ \f -> let (a, n) = coverage f in BL.putStrLn . encode $ object
+    [ "framework" .= fName f, "where" .= phrase (fWhere f), "basis" .= phrase (fBasis f), "source" .= fUrl f, "addressed" .= a, "of" .= n
+    , "open" .= [x | x <- fParts f, not (S.member x addressed)] ]
   ["--version"] -> putStrLn ("releve " <> release <> " · criteria v" <> T.unpack version)
   _ -> hPutStrLn stderr usage >> exitWith (ExitFailure 2)
+
+phrase :: Phrase -> Value
+phrase x = object ["en" .= en x, "fr" .= fr x]
 
 die :: String -> IO a
 die m = hPutStrLn stderr ("releve: " <> m) >> exitWith (ExitFailure 1)

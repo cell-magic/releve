@@ -155,5 +155,5 @@ pools st =
     candidates =
       [ ((t, host (oBody o), fId f, en (fSeen f)), (o, f))
       | o <- latest st, Just t <- [builtOn (oBody o)], f <- assess st o
-      , cId (fCrit f) `elem` wholePage, null (fSurface f), fMachine f == Review
+      , cId (fCrit f) `elem` ("consent-choice" : wholePage), null (fSurface f), fMachine f == Review
       , fVerdict f == Review || maybe False (isJust . covers) (governing st o f) ]
