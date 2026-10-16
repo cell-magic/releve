@@ -59,8 +59,8 @@ WORDS = {
     "en": {
         "title": "Free page report", "lead": "Give the address of a page. It is opened once, in a browser, by the robot releve-observe; "
         "what it shows is read by rule, and the report is the answer. Nothing is kept: no account, no cookie, no record of the address.",
-        "address": "Address of the page (URL)", "record": "Earlier record, to compare (optional)",
-        "go": "Get the report", "language": "Language of the report",
+        "address": "URL", "required": "Required · full address, with https://", "record": "Previous record, to compare", "optional": "Optional",
+        "go": "Run report", "language": "Report language",
         "keep": "Following this page over time", "keepit": "This service keeps nothing. To follow this page over time, keep its record: "
         "hand it back with the next request, and the report will say what was mended, what is new and what stands.",
         "download": "Download the record", "file": ".gz file", "again": "Report on another page",
@@ -89,7 +89,7 @@ WORDS = {
     "fr": {
         "title": "État des lieux gratuit", "lead": "Indiquez l’adresse d’une page. Elle est ouverte une fois, dans un navigateur, par le robot releve-observe ; "
         "ce qu’elle montre est lu par des règles, et le rapport est la réponse. Rien n’est conservé : ni compte, ni cookie, ni trace de l’adresse.",
-        "address": "Adresse de la page (URL)", "record": "Relevé précédent, pour comparer (facultatif)",
+        "address": "URL", "required": "Requis · adresse complète, avec https://", "record": "Relevé précédent, pour comparer", "optional": "Facultatif",
         "go": "Obtenir l’état des lieux", "language": "Langue du rapport",
         "keep": "Suivre cette page dans le temps", "keepit": "Ce service ne conserve rien. Pour suivre cette page dans le temps, gardez son relevé : "
         "joignez-le à votre prochaine demande, et le rapport dira ce qui a été corrigé, ce qui est nouveau et ce qui persiste.",
@@ -380,11 +380,13 @@ def page(lang, title, body, shell=None):
 def form(lang, heading=2):
     w, other = WORDS[lang], "fr" if lang == "en" else "en"
     return (f'<form method="post" action="{PREFIX}/" enctype="multipart/form-data">\n'
-            f'<label for="url">{w["address"]}</label>\n<input id="url" name="url" type="url" required autocomplete="url" placeholder="https://">\n'
-            f'<label for="lang">{w["language"]}</label>\n<select id="lang" name="lang"><option value="{lang}" selected>{"English" if lang == "en" else "Français"}</option>'
-            f'<option value="{other}">{"English" if other == "en" else "Français"}</option></select>\n'
-            f'<label for="record">{w["record"]}</label>\n<input id="record" name="record" type="file">\n'
-            f'<button type="submit">{w["go"]}</button>\n</form>')
+            f'<p><label for="url">{w["address"]}</label>\n<span class="meta" id="url-note">{w["required"]}</span>\n'
+            f'<input id="url" name="url" type="url" required autocomplete="url" placeholder="https://" aria-describedby="url-note"></p>\n'
+            f'<p><label for="lang">{w["language"]}</label>\n<select id="lang" name="lang"><option value="{lang}" selected>{"English" if lang == "en" else "Français"}</option>'
+            f'<option value="{other}">{"English" if other == "en" else "Français"}</option></select></p>\n'
+            f'<p><label for="record">{w["record"]}</label>\n<span class="meta" id="record-note">{w["optional"]}</span>\n'
+            f'<input id="record" name="record" type="file" aria-describedby="record-note"></p>\n'
+            f'<p><button type="submit">{w["go"]}</button></p>\n</form>')
 
 
 def given_back(lang, report, record, url, said=""):
@@ -402,7 +404,7 @@ def given_back(lang, report, record, url, said=""):
     name = "releve-" + re.sub(r"[^a-z0-9.-]+", "-", (observer.place(url) or ("", "page"))[1].lower()) + ".jsonl.gz"
     keep = (f'<h2>{w["keep"]}</h2>\n<p>{w["keepit"]}</p>\n'
             f'<p><a download="{name}" href="data:application/gzip;base64,{kept}">{w["download"]}</a>'
-            f' ({w["file"]}, {len(record) // 1024 + 1} k{"B" if lang == "en" else "o"})</p>\n<h2>{w["again"]}</h2>\n{form(lang)}')
+            f' · {w["file"]}, {len(record) // 1024 + 1}&nbsp;k{"B" if lang == "en" else "o"}</p>\n<h2>{w["again"]}</h2>\n{form(lang)}')
     return unescape(title), body + keep
 
 

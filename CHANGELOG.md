@@ -77,6 +77,10 @@ answers what a rule cannot decide, in the report itself.
   page keeps that template: a page that changes it is asked again, and so is
   a page first seen later. Questions about what a page holds stay with the
   page. A correction records the observations it covers and the template.
+- **The service's form, in the site's words.** URL, a note that it is
+  required and starts with https://, the previous record marked optional,
+  "Run report"; each field in its paragraph, its note tied to it. The
+  record's size follows its link without brackets.
 
 ## 0.4.0
 
