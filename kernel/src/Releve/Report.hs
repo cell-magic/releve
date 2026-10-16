@@ -361,9 +361,8 @@ guide l release = T.unlines $
   ++ [ "<h2 id=\"frameworks\">" <> t ("Frameworks" // "Cadres") <> "</h2>"
      , "<p>" <> t ("Each text as the provisions it is made of. A provision is addressed when a rule reads it, a question puts it to the reviewer, or the owner declares it. This says what a record covers, not whether a site conforms."
                   // "Chaque texte, selon les dispositions qui le composent. Une disposition est traitée quand une règle la lit, qu'une question la soumet au relecteur, ou que le responsable la déclare. Cela dit ce que couvre un relevé, et non la conformité d'un site.") <> "</p>"
-     , "<table><thead><tr><th scope=\"col\">" <> t ("Text" // "Texte") <> "</th><th scope=\"col\">" <> t ("Where it applies" // "Champ") <> "</th><th scope=\"col\">"
-       <> t ("What it asks" // "Ce qu'il demande") <> "</th><th scope=\"col\">" <> t ("Addressed" // "Traitées") <> "</th></tr></thead><tbody>" ]
-  ++ [ "<tr><th scope=\"row\"><a href=\"" <> esc (fUrl f) <> "\">" <> esc (fName f) <> "</a></th><td>" <> t (fWhere f) <> "</td><td>" <> t (fBasis f) <> "</td><td>"
+     , "<table class=\"frameworks\"><thead><tr><th scope=\"col\">" <> t ("Text" // "Texte") <> "</th><th scope=\"col\">" <> t ("Where it applies, and what it asks" // "Champ, et ce qu'il demande") <> "</th><th scope=\"col\">" <> t ("Addressed" // "Traitées") <> "</th></tr></thead><tbody>" ]
+  ++ [ "<tr><th scope=\"row\"><a href=\"" <> esc (fUrl f) <> "\">" <> esc (fName f) <> "</a></th><td>" <> t (fWhere f) <> "<br><span class=\"meta\">" <> t (fBasis f) <> "</span></td><td>"
        <> t (both (num a) <> (" of " // " sur ") <> both (num n)) <> "</td></tr>" | f <- frameworks, let (a, n) = coverage f ]
   ++ [ "</tbody></table>" ]
   ++ concat [ [ "<h2 id=\"" <> cId c <> "\">" <> t (cTitle c) <> "</h2>", "<p>" <> t (cWhy c) <> "</p>"
@@ -462,4 +461,5 @@ style = T.unlines
   , "fieldset label { margin-right: 1rem; } fieldset input[type=text] { display: block; width: 100%; margin-top: .25rem; padding: .3rem; font: inherit; color: inherit; background: #fff; border: 1px solid #5c6066; }"
   , "button { font: inherit; padding: .5rem 1rem; color: #fff; background: #1a1a1a; border: 1px solid #1a1a1a; }"
   , "input:focus-visible, button:focus-visible { outline: 2px solid #1f3a8a; outline-offset: 2px; }"
-  , "table { border-collapse: collapse; width: 100%; } th, td { text-align: left; padding: .4rem .5rem .4rem 0; border-bottom: 1px solid #c8cacd; overflow-wrap: anywhere; } tbody th { font-weight: normal; }" ]
+  , "table { border-collapse: collapse; width: 100%; } th, td { text-align: left; padding: .4rem .5rem .4rem 0; border-bottom: 1px solid #c8cacd; overflow-wrap: anywhere; } tbody th { font-weight: normal; }"
+  , ".frameworks th, .frameworks td { overflow-wrap: normal; } .frameworks td:last-child, .frameworks thead th:last-child { white-space: nowrap; }" ]
