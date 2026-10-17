@@ -1,7 +1,7 @@
 # Relevé · http://localhost:8765/consent.html
 
-Observation `e4ef0dce` · 2026-10-16T18:55:42+00:00 · criteria v9 · screenshot `88ff273ba7962254` · Chromium 141.0.7390.37  
-16 surfaces · 0 fail · 15 review · 0 hint · 45 pass · first observation of this page
+Observation `33f638c0` · 2026-10-17T15:57:34+00:00 · criteria v10 · screenshot `25d594a9684115c4` · Chromium 141.0.7390.37  
+20 surfaces · 0 fail · 15 review · 0 hint · 51 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.
 To correct a line, change its verdict word or add a note after `//`, then run `releve correct`.
@@ -39,8 +39,8 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - empty-blocks: 1 of 1 pass
 - presentation: 1 of 1 pass
 - image-alt: n/a · no images on the page
-- text-contrast: 9 of 9 pass
-- link-name: 3 of 3 pass
+- text-contrast: 11 of 11 pass
+- link-name: 5 of 5 pass
 - link-distinct: 1 of 1 pass
 - button-name: 2 of 2 pass
 - label-in-name: n/a · no name given by the code over words shown
@@ -57,7 +57,7 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 - hidden-focus: 1 of 1 pass
 - focus-visible: 1 of 1 pass
 - focus-obscured: 1 of 1 pass
-- target-size: 2 of 2 pass
+- target-size: 4 of 4 pass
 - authentication: n/a · no password or code field on the page
 - keyboard-trap: 1 of 1 pass
 - lang-code: 0 of 2 pass
@@ -102,12 +102,12 @@ To correct a line, change its verdict word or add a note after `//`, then run `r
 
 ## Footprint
 
-- 18 elements · 1 request · 2 kB transferred · 0 third-party hosts
+- 21 elements · 1 request · 2 kB transferred · 0 third-party hosts
 
 ## Reading
 
-- 7 events · 0 shown and not said · 0 said and not shown
-- depth 7: the longest run the markup obliges
-- the page says 151 bytes; 12 bytes travel for each
-- one at a time, by ear: 7 steps
-- up to 4 at a time: 7 steps as the page stands · 7 with nothing failing (between 7 and 7 at this depth and size)
+- 8 events · 0 shown and not said · 0 said and not shown
+- depth 8: the longest run the markup obliges
+- the page says 157 bytes; 12 bytes travel for each
+- one at a time, by ear: 8 steps
+- up to 4 at a time: 8 steps as the page stands · 8 with nothing failing (between 8 and 8 at this depth and size)

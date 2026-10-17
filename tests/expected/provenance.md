@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/provenance.html
 
-Observation `01c9b0c4` · 2026-10-16T10:47:22+00:00 · criteria v9 · screenshot `b152eddf1b09f457` · Chromium 141.0.7390.37  
+Observation `01c9b0c4` · 2026-10-16T10:47:22+00:00 · criteria v10 · screenshot `b152eddf1b09f457` · Chromium 141.0.7390.37  
 10 surfaces · 0 fail · 49 review · 2 hint · 39 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.

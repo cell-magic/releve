@@ -322,7 +322,10 @@ def observe(browser, url, agent, shots, closed, shut=None):
                 origins[r["url"]] = (said, b"c2pa" in raw and (b"jumb" in raw or b"jumd" in raw))
 
         data = page.evaluate(EXTRACT, {"limit": LIMIT, "phrases": DISCLOSURE})
-        shot = page.screenshot(full_page=True)
+        try:
+            shot = page.screenshot(full_page=True)
+        except BrowserError:  # a page too tall to draw whole in time: its first screen stands for it
+            shot = page.screenshot()
         page.set_viewport_size(NARROW)
         page.wait_for_timeout(400)
         data["page"]["reflow"] = page.evaluate("document.documentElement.scrollWidth")
@@ -400,9 +403,12 @@ def main():
     ap.add_argument("--contact", required=True, metavar="URL",
                     help="where site owners can read what this robot does and reach its operator")
     ap.add_argument("--shots", metavar="DIR", help="keep full-page screenshots here")
+    ap.add_argument("--from", dest="seen_from", metavar="CC", help="the country the robot reaches the web from, as two letters; each record says it")
     ap.add_argument("--mandate", metavar="REF",
                     help="reference of the site owner's written leave to observe despite robots.txt")
     args = ap.parse_args()
+    if args.seen_from and not (len(args.seen_from) == 2 and args.seen_from.isascii() and args.seen_from.isupper()):
+        ap.error("--from takes a country as two capital letters, as CH or FR")
     agent = f"{AGENT}; +{args.contact}"
     rules, last, shut, status = {}, {}, {}, 0
     for stream in (sys.stdout, sys.stderr):  # the same bytes on every system: UTF-8, line feeds alone
@@ -450,6 +456,8 @@ def main():
                 last[site] = time.monotonic()
             if args.mandate:
                 record["mandate"] = args.mandate
+            if args.seen_from:
+                record["from"] = args.seen_from
             print(json.dumps(record), flush=True)  # ASCII alone: no shell can re-encode it
         browser.close()
     sys.exit(status)

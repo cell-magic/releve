@@ -94,7 +94,8 @@ statements l release st = T.unlines $
          , "<ul>"
          , "<li>" <> t ("Technologies the site relies on: " // "Technologies utilisées pour la réalisation du site : ") <> field ("HTML, CSS, JavaScript, as the case may be" // "HTML, CSS, JavaScript, selon le cas") <> "</li>"
          , "<li>" <> t ("Test environment: " // "Environnement de test : ") <> esc (T.intercalate ", " (nub (mapMaybe browser bodies)))
-           <> t (", at 1280 px and 320 px wide, then by keyboard alone" // ", à 1280 px et 320 px de large, puis au clavier seul") <> "</li>"
+           <> t (", at 1280 px and 320 px wide, then by keyboard alone" // ", à 1280 px et 320 px de large, puis au clavier seul")
+           <> t (case nub (mapMaybe from bodies) of [cc] -> let Phrase e f = country cc in Phrase (", from " <> e) (", depuis " <> f); _ -> "") <> "</li>"
          , "<li>" <> t ("Tools: relevé " // "Outils : relevé ") <> esc release <> t (", criteria v" // ", critères v") <> esc version <> t (", and " // ", et ") <> field ("the tools and assistive technologies of the complete evaluation" // "les outils et technologies d'assistance de l'évaluation complète") <> "</li>"
          , "<li>" <> t ("Pages observed:" // "Pages observées :") <> "<ul>" <> T.concat [ "<li><a href=\"" <> esc (url b) <> "\">" <> esc (url b) <> "</a></li>" | b <- bodies ] <> "</ul></li>"
          , "</ul>"

@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/targets.html
 
-Observation `fc3acf54` · 2026-10-16T18:56:04+00:00 · criteria v9 · screenshot `91b2bcb81a8a0957` · Chromium 141.0.7390.37  
+Observation `fc3acf54` · 2026-10-16T18:56:04+00:00 · criteria v10 · screenshot `91b2bcb81a8a0957` · Chromium 141.0.7390.37  
 23 surfaces · 16 fail · 30 review · 0 hint · 54 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.

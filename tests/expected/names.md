@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/names.html
 
-Observation `ff6f075b` · 2026-10-16T10:47:15+00:00 · criteria v9 · screenshot `145463d2a82d3273` · Chromium 141.0.7390.37  
+Observation `ff6f075b` · 2026-10-16T10:47:15+00:00 · criteria v10 · screenshot `145463d2a82d3273` · Chromium 141.0.7390.37  
 31 surfaces · 4 fail · 27 review · 0 hint · 52 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.

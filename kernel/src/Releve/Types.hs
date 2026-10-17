@@ -37,6 +37,14 @@ say Fr = fr
 both :: Text -> Phrase
 both t = Phrase t t
 
+-- | A country, from its two letters, as a sentence says it after "from": "from Switzerland", "depuis la Suisse".
+country :: Text -> Phrase
+country cc = maybe (both cc) (uncurry Phrase) (lookup cc
+  [ ("CH", ("Switzerland", "la Suisse")), ("FR", ("France", "la France")), ("DE", ("Germany", "l'Allemagne")), ("NL", ("the Netherlands", "les Pays-Bas"))
+  , ("BE", ("Belgium", "la Belgique")), ("LU", ("Luxembourg", "le Luxembourg")), ("IE", ("Ireland", "l'Irlande")), ("AT", ("Austria", "l'Autriche"))
+  , ("ES", ("Spain", "l'Espagne")), ("IT", ("Italy", "l'Italie")), ("FI", ("Finland", "la Finlande")), ("SE", ("Sweden", "la Suède"))
+  , ("GB", ("the United Kingdom", "le Royaume-Uni")), ("US", ("the United States", "les États-Unis")), ("CA", ("Canada", "le Canada")) ])
+
 data Surface = Surface
   { kind :: Text, key :: Text, sel :: Text, order :: Int
   , box :: Maybe [Double], hidden :: Maybe Bool, role :: Maybe Text
@@ -136,6 +144,7 @@ data Observation = Observation
   , mandate :: Maybe Text    -- ^ the owner's written leave to observe despite robots.txt
   , requested :: Maybe Text  -- ^ the address asked for, which a redirect may have left behind
   , browser :: Maybe Text    -- ^ what rendered the page: rendering is part of the reading
+  , from :: Maybe Text       -- ^ the country the page was seen from, as two letters: a site may answer by country
   } deriving (Show, Generic, FromJSON)
 
 instance ToJSON Observation where

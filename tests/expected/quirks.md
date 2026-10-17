@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/quirks.html
 
-Observation `7e6af90a` · 2026-10-16T10:47:26+00:00 · criteria v9 · screenshot `4d6d183a71bb0913` · Chromium 141.0.7390.37  
+Observation `7e6af90a` · 2026-10-16T10:47:26+00:00 · criteria v10 · screenshot `4d6d183a71bb0913` · Chromium 141.0.7390.37  
 8 surfaces · 2 fail · 15 review · 0 hint · 30 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.

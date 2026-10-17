@@ -4,7 +4,7 @@
 #
 # install — put the service on a machine given over to it, or renew it there.
 #
-#     sudo bash serve/install.sh NAME CONTACT [--look DIR] [--playwright VERSION] [--authority URL]
+#     sudo bash serve/install.sh NAME CONTACT [--look DIR] [--playwright VERSION] [--authority URL] [--from CC]
 #
 #   NAME          the name the service answers to; its DNS record points here
 #   CONTACT       the public page that says who runs the robot and how to refuse it
@@ -15,6 +15,8 @@
 #   --authority   the time-stamping authority (RFC 3161) that dates each record;
 #                 http://timestamp.digicert.com unless named, "none" for none.
 #                 A look that holds sky.json has each dated record draw its sky.
+#   --from        the country this machine reaches the web from, as two letters
+#                 (CH): a site may show other pages, and ask consent, by country.
 #
 # For Ubuntu 24.04. In order, stopping at the first thing that fails:
 #
@@ -37,21 +39,23 @@
 # unit, as a user that owns nothing, on a machine that holds no data and no key.
 set -euo pipefail
 
-usage() { echo "usage: sudo bash $0 NAME CONTACT [--look DIR] [--playwright VERSION] [--authority URL]" >&2; exit 2; }
+usage() { echo "usage: sudo bash $0 NAME CONTACT [--look DIR] [--playwright VERSION] [--authority URL] [--from CC]" >&2; exit 2; }
 [ $# -ge 2 ] || usage
-name=$1 contact=$2 look='' playwright='' authority=http://timestamp.digicert.com
+name=$1 contact=$2 look='' playwright='' authority=http://timestamp.digicert.com from=''
 shift 2
 while [ $# -gt 0 ]; do
     case $1 in
         --look) look=$(cd "${2:?}" && pwd); shift 2 ;;
         --playwright) playwright=${2:?}; shift 2 ;;
         --authority) authority=${2:?}; shift 2 ;;
+        --from) from=${2:?}; shift 2 ;;
         *) usage ;;
     esac
 done
 [[ $name =~ ^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$ ]] || { echo "install: $name is not a name" >&2; exit 2; }
 [[ $contact =~ ^https?://[A-Za-z0-9._~:/?#@=+,-]+$ ]] || { echo "install: $contact is not an address" >&2; exit 2; }
 [[ $authority = none || $authority =~ ^https?://[A-Za-z0-9._~:/?#@=+,-]+$ ]] || { echo "install: $authority is not an address" >&2; exit 2; }
+[[ -z $from || $from =~ ^[A-Z]{2}$ ]] || { echo "install: $from is not a country code, as CH or FR" >&2; exit 2; }
 [ "$(id -u)" = 0 ] || { echo "install: to be run as root" >&2; exit 2; }
 
 exec > >(tee -a /var/log/releve-install.log) 2>&1
@@ -112,6 +116,7 @@ done
 [ ! -d "$new/look/static" ] || shells="$shells --static $home/current/look/static"
 [ "$authority" = none ] || shells="$shells --authority $authority"
 [ ! -f "$new/look/sky.json" ] || shells="$shells --sky $home/current/look/sky.json"
+[ -z "$from" ] || shells="$shells --from $from"
 unit=/etc/systemd/system/releve.service proxy=/etc/caddy/Caddyfile
 [ -e $proxy.before-releve ] || [ ! -e $proxy ] || cp -p $proxy $proxy.before-releve
 for f in $unit $proxy; do [ ! -e "$f" ] || cp -p "$f" "$f.previous"; done

@@ -503,7 +503,9 @@
   const lookOf = el => { const cs = getComputedStyle(el), b = rgba(cs.backgroundColor), g = up(el) ? ground(up(el)) : [255, 255, 255, 1];
     if ((b[3] > 0.5 && b.slice(0, 3).some((v, i) => Math.abs(v - g[i]) > 8)) || cs.backgroundImage !== "none") return "filled";
     return parseFloat(cs.borderTopWidth) > 0 && cs.borderTopStyle !== "none" && rgba(cs.borderTopColor)[3] > 0 ? "outlined" : "plain"; };
-  const choicesOf = box => deep(box, 'button, a[href], [role="button"], input[type="button"], input[type="submit"]').filter(rendered).flatMap(el => {
+  // A tab of the prompt (Consent, Details, About) shows a panel: it is not a choice.
+  const tab = el => el.getAttribute("role") === "tab" || !!el.closest('[role="tablist"]');
+  const choicesOf = box => deep(box, 'button, a[href], [role="button"], input[type="button"], input[type="submit"]').filter(el => rendered(el) && !tab(el)).flatMap(el => {
     const nm = txt(accName(el) || el.value), k = KINDS.find(([, re]) => re.test(nm)), r = el.getBoundingClientRect();
     return k ? [[k[0], el.tagName === "A" && el.getAttribute("role") !== "button" ? "link" : "button", clip(nm), Math.round(r.width * r.height), lookOf(el)]] : []; });
   const consent = (() => {

@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/structure.html
 
-Observation `dc383006` · 2026-10-16T10:47:34+00:00 · criteria v9 · screenshot `7d6520591fc7f158` · Chromium 141.0.7390.37  
+Observation `dc383006` · 2026-10-16T10:47:34+00:00 · criteria v10 · screenshot `7d6520591fc7f158` · Chromium 141.0.7390.37  
 25 surfaces · 8 fail · 39 review · 0 hint · 44 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.

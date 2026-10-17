@@ -247,6 +247,12 @@ that holds no data and no key. Keep that machine away from any private
 network: the address check is made when a request is asked for, and the
 unit's address filter is the second lock.
 
+A site may show other pages by country, and many ask consent only of
+visitors from the European Union. `--from CC` (in `serve` and `observe`,
+and passed on by `install.sh`) names the country the machine reaches the
+web from, as two letters; each record keeps it, and the report says it.
+A service in Switzerland sees what a visitor there sees.
+
 ## Tests
 
 ```sh
@@ -261,7 +267,7 @@ commented with the reading it should produce. The recorded observations
 and expected reports sit beside them, so any change in judgement shows up
 as a diff to review.
 
-## Criteria (v9)
+## Criteria (v10)
 
 | id | checks | source |
 |---|---|---|
@@ -315,7 +321,7 @@ as a diff to review.
 | ai-disclosure | conversational AI is disclosed | AI Act art. 50(1) |
 | ai-image | images made by AI say so | AI Act art. 50(2) · 50(4) |
 | asks-on-arrival | nothing is asked of the device on arrival | RGESN 4.13 · 6.6 · AI Act art. 50(3) |
-| consent-choice | refusing cookies is as easy as accepting them: accepting alone fails; refusing smaller, or plainer, is put to a person | GDPR article 7 · CNIL 2020-091 · CPRA regulations §7004(a)(2); the threshold (2× the area) is the tool's |
+| consent-choice | refusing cookies is as easy as accepting them: accepting alone fails; refusing smaller, or plainer, than the most visible way to accept is put to a person, and so is refusing that takes a subscription | GDPR article 7 · CNIL 2020-091 · CPRA regulations §7004(a)(2); the threshold (2× the area) is the tool's |
 | third-parties | third parties wait for consent | RGESN 4.4 |
 | media-autoplay | nothing plays by itself | RGESN 4.1 |
 | endless | the page has an end | RGESN 4.2; the threshold (one screen, twice) is the tool's |

@@ -55,7 +55,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "observe"))
 import observe as observer  # noqa: E402  (the observer, beside this file)
 import sky  # noqa: E402  (the sky of a record, beside this file)
 
-AUTHORITY = SKY = None   # set by setup()
+AUTHORITY = SKY = FROM = None   # set by setup()
 PAUSE = 10        # seconds between two visits to one site, at least
 WAITING = 4       # requests that may wait their turn
 PATIENCE = 90     # seconds a request waits for its answer
@@ -537,6 +537,8 @@ class Door(BaseHTTPRequestHandler):
                 if len(url) > 2000 or observer.place(url) is None:
                     raise Refused("not a web address")
                 observation = BENCH.ask(url)
+                if FROM:  # where the page was seen from: a site may answer, and ask consent, by country
+                    observation = {**observation, "from": FROM}
                 report, record = read(observation, fields.get("record") or None, lang)
                 url = observation["url"]
                 TALLY.count(lang, fields.get("record"), region(self.headers.get("Accept-Language")))
@@ -556,10 +558,10 @@ class Door(BaseHTTPRequestHandler):
         self.answer(200, lang, w["no"], f'<h1>{w["no"]}</h1>\n<p>{said}</p>\n{form(lang)}')
 
 
-def setup(contact, local=False, shells=(), static=None, prefix="", counts=None, authority=None, skyfile=None):
+def setup(contact, local=False, shells=(), static=None, prefix="", counts=None, authority=None, skyfile=None, seen_from=None):
     """Everything the door needs, set once before it opens."""
-    global AUTHORITY, BENCH, MEMORY, PREFIX, RELEVE, SHELLS, SKY, STATIC, TALLY
-    AUTHORITY = authority
+    global AUTHORITY, BENCH, FROM, MEMORY, PREFIX, RELEVE, SHELLS, SKY, STATIC, TALLY
+    AUTHORITY, FROM = authority, seen_from
     SKY = None
     if skyfile:
         SKY = json.loads(Path(skyfile).read_text(encoding="utf-8"))
@@ -586,9 +588,12 @@ def main():
     ap.add_argument("--counts", metavar="FILE", help="where the weekly counts are kept across restarts; without it, in memory only")
     ap.add_argument("--local", action="store_true", help="admit private addresses: for trying it on your own machine only")
     ap.add_argument("--authority", metavar="URL", help="a time-stamping authority (RFC 3161) to date each record by; without it, none")
+    ap.add_argument("--from", dest="seen_from", metavar="CC", help="the country this machine reaches the web from, as two letters; each record says it")
     ap.add_argument("--sky", metavar="FILE", help="the illustration whose cloud dots each dated record moves, and its rule (sky.py)")
     args = ap.parse_args()
-    setup(args.contact, args.local, args.shell, args.static, args.prefix, args.counts, args.authority, args.sky)
+    if args.seen_from and not re.fullmatch(r"[A-Z]{2}", args.seen_from):
+        ap.error("--from takes a country as two capital letters, as CH or FR")
+    setup(args.contact, args.local, args.shell, args.static, args.prefix, args.counts, args.authority, args.sky, args.seen_from)
     ThreadingHTTPServer((args.host, args.port), Door).serve_forever()
 
 

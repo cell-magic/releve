@@ -1,6 +1,6 @@
 # Relevé · http://localhost:8765/keyboard.html
 
-Observation `77c294d8` · 2026-10-16T10:47:10+00:00 · criteria v9 · screenshot `518436acc78dbd65` · Chromium 141.0.7390.37  
+Observation `77c294d8` · 2026-10-16T10:47:10+00:00 · criteria v10 · screenshot `518436acc78dbd65` · Chromium 141.0.7390.37  
 16 surfaces · 3 fail · 35 review · 0 hint · 42 pass · first observation of this page
 
 Automated observation of one rendered page; not a conformity audit. REVIEW lines need a person's judgement.

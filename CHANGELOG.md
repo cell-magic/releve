@@ -1,5 +1,22 @@
 # Changes
 
+## 0.9.1
+
+Read on fourteen real sites through the service. Criteria move from v9 to
+v10.
+
+- **consent-choice.** Of several ways to accept, the most visible is
+  weighed against the most visible way to refuse. Refusing that takes a
+  subscription, a consent wall, is put to a person, with the CNIL's
+  question: is a real and fair alternative offered, at a reasonable price?
+- **The observer** leaves out the tabs of a prompt (Consent, Details,
+  About): they show a panel and are no choice. A page too tall to draw whole
+  in time is fingerprinted by its first screen, rather than refused.
+- **Seen from.** `--from CC` names the country the robot reaches the web
+  from; the record keeps it, and the report and the drafts say it. Where no
+  prompt for consent is seen, the report says from where, since many sites
+  ask only visitors from the European Union.
+
 ## 0.9.0
 
 What a record shows over time, and the statements it can feed. Criteria

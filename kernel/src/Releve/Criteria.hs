@@ -12,6 +12,7 @@ import Data.Char (isAlpha, isAlphaNum, isDigit, isSpace)
 import Data.List (isSuffixOf, isPrefixOf, nub, sortOn)
 import qualified Data.Map.Strict as M
 import Data.Maybe (fromMaybe, isNothing, listToMaybe, mapMaybe)
+import Data.Ord (Down (..))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Printf (printf)
@@ -20,7 +21,7 @@ import Releve.Colour
 import Releve.Types
 
 version :: Text
-version = "9"
+version = "10"
 
 criteria :: [Criterion]
 criteria =
@@ -948,11 +949,20 @@ asksOnArrival o = recorded o $ case fromMaybe [] (asked (page o)) of
 --   breaks the rule; refusing smaller, or plainer, than accepting is put to a person.
 consentChoice o = case consent (page o) of
   Nothing -> [onPage NA ("not recorded by the observer of that time" // "non relevé par l'observateur d'alors") Nothing]
-  Just c | not (prompt c) -> [onPage NA ("no prompt for consent on arrival" // "aucune demande de consentement à l'arrivée") Nothing]
+  Just c | not (prompt c) -> [onPage NA (("no prompt for consent on arrival" // "aucune demande de consentement à l'arrivée") <> seen) Nothing]
          | otherwise -> prompted c
   where
     ask = asking ("Is refusing as easy and as visible as accepting, from the first step?" // "Refuser est-il aussi simple et aussi visible qu'accepter, dès le premier écran ?")
+    -- A site may ask consent only of visitors from some countries: where the observer says where it stood, the note says it.
+    seen = case from o of
+      Just cc -> let Phrase e f = country cc in Phrase (", seen from " <> e <> "; a site may ask only visitors from some countries") (", vue depuis " <> f <> " ; un site peut ne la présenter qu'aux visiteurs de certains pays")
+      Nothing -> ""
+    -- Refusing that costs a subscription: a consent wall, which the CNIL weighs case by case.
+    paid (_, _, nm, _, _) = any (`T.isInfixOf` T.toLower nm) ["abonn", "subscri", "pay", "payer", "abo ", "bezahl", "€"]
     prompted c = case (pick "accept", pick "reject") of
+      (Just a, Just r) | paid r -> [asking ("Refusing here takes a subscription. Is a real and fair alternative to accepting offered, at a reasonable price, as the CNIL asks of a consent wall?"
+                                            // "Refuser demande ici un abonnement. Une alternative réelle et équitable à l'acceptation est-elle proposée, à un prix raisonnable, comme la CNIL le demande d'un mur de consentement ?")
+                                            (onPage Review (pair a r <> ("; refusing comes with a subscription" // " ; refuser passe par un abonnement")) Nothing)]
       (Just a, Nothing) -> [onPage Fail (("accepting: " // "accepter : ") <> shown a <> ("; no way to refuse beside it" // " ; aucun moyen de refuser à côté") <> detour)
                               (Just ("place a choice to refuse beside the one to accept, alike in size and look" // "placer un choix pour refuser à côté de celui pour accepter, de même taille et de même aspect"))]
       (Just a@(_, _, _, wa, la), Just r@(_, _, _, wr, lr))
@@ -963,7 +973,9 @@ consentChoice o = case consent (page o) of
                                  <> (if framed c == Just True then ", in a frame this tool does not read into" // ", dans un cadre que cet outil ne lit pas"
                                      else ", with no choice this tool can read" // ", sans choix lisible par cet outil")) Nothing)]
       where
-        pick k = listToMaybe [x | x@(k', _, _, _, _) <- fromMaybe [] (choices c), k' == k]
+        -- Of several choices of one kind, the one that draws the eye most: filled before outlined before plain, then the larger.
+        pick k = listToMaybe (sortOn (\(_, _, _, w, lk) -> (Down (weight lk), Down w)) [x | x@(k', _, _, _, _) <- fromMaybe [] (choices c), k' == k])
+        weight lk = fromMaybe (0 :: Int) (lookup lk [("filled", 3), ("outlined", 2), ("plain", 1)])
         who = maybe "" (\v -> both (" (" <> v <> ")")) (cmp c)
         detour = maybe "" (\x -> ("; settings: " // " ; réglages : ") <> shown x) (pick "settings")
     pair a r = ("accepting: " // "accepter : ") <> shown a <> ("; refusing: " // " ; refuser : ") <> shown r

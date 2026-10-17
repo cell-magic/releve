@@ -363,6 +363,13 @@ def main():
     alone = consent({"prompt": True, "choices": [["accept", "button", "OK", 4000, "filled"], ["settings", "link", "Learn more", 900, "plain"]]})
     alike = consent({"prompt": True, "cmp": "didomi", "choices": [["accept", "button", "Accept", 4000, "filled"], ["reject", "button", "Refuse", 3900, "filled"]]})
     none = consent({"prompt": False})
+    walled = consent({"prompt": True, "choices": [["reject", "button", "Refuser et s'abonner", 7621, "filled"], ["accept", "button", "Accepter et fermer", 6936, "filled"]]})
+    eyed = consent({"prompt": True, "choices": [["accept", "link", "Consent", 17100, "plain"], ["reject", "button", "Deny", 16240, "filled"], ["accept", "button", "Allow all", 16240, "filled"]]})
+    o = json.loads(json.dumps(prompt))
+    o["page"]["consent"], o["from"] = {"prompt": False}, "CH"
+    releve("ingest", tmp / "consent-ch", feed=json.dumps(o).encode("utf-8"))
+    swiss = releve("facts", tmp / "consent-ch")[1].decode("utf-8")
+    seen = json.loads((HERE / "observations" / "consent.jsonl").read_text(encoding="utf-8"))["page"]["consent"]
     c = tmp / "consent"
     cp = releve("declarations", c)[1].decode("utf-8")
     check("a prompt for consent: refusing smaller than accepting is asked, accepting alone fails, alike holds",
@@ -370,6 +377,12 @@ def main():
           and "Continue without accepting" in consent(None)
           and "no way to refuse beside it" in alone and alike == "- consent-choice: 1 of 1 pass" and "no prompt for consent on arrival" in none
           and "seen: links: Do Not Sell or Share My Personal Information" in cp and "seen: links: Leichte Sprache" in cp)
+    check("a prompt for consent: refusing behind a subscription is asked; the most visible accept is weighed; a tab is no choice; the country seen from is said",
+          "**REVIEW** consent-choice" in walled and "refusing comes with a subscription" in walled
+          and eyed == "- consent-choice: 1 of 1 pass"
+          and not any(ch[2] in ("Consent", "Details") for ch in seen["choices"])
+          and "no prompt for consent on arrival, seen from Switzerland; a site may ask only visitors from some countries" in swiss
+          and "seen from Switzerland, as a visitor there sees it" in releve("report", "en", tmp / "consent-ch")[1].decode("utf-8"))
 
     # WCAG 2.2, where the RGAA stops: crowded small targets fail, a small one with room, a link in a
     # sentence and the browser's own checkbox do not; a fixed sheet over the focused element fails;

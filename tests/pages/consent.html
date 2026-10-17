@@ -2,7 +2,8 @@
 <!-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
      SPDX-License-Identifier: EUPL-1.2
      A prompt for cookies where accepting is a large filled button and refusing a
-     small plain link. Expected reading: the choice is put to a person. -->
+     small plain link, under a tab the prompt shows its panels by. Expected reading:
+     the choice is put to a person; the tab is no choice. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -24,6 +25,7 @@
   <p><a href="/privacy-choices">Do Not Sell or Share My Personal Information</a> · <a href="/leichte-sprache">Leichte Sprache</a></p>
 </main>
 <div id="cookie-banner" role="region" aria-label="Cookie consent">
+  <div role="tablist"><a role="tab" href="#consent" aria-selected="true">Consent</a> <a role="tab" href="#details">Details</a></div>
   <p>We use cookies to measure the audience and show partners' offers.</p>
   <button class="accept" type="button">Accept all</button>
   <button class="settings" type="button">Customize</button>

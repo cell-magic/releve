@@ -247,6 +247,12 @@ drafts = base64.b64decode(draft.group(1)).decode("utf-8") if draft else ""
 check("hands over the draft statements of the record, dated as the record is",
       "<h2>Accessibility statement</h2>" in drafts and "<h2>Eco-design declaration</h2>" in drafts and "The record is dated " in drafts)
 
+# Where the service stands is said: a site may answer, and ask consent, by country.
+serve.FROM = "CH"
+status, headers, text = ask(door, f"http://localhost:{open_}/dated")
+serve.FROM = None
+check("says the country it sees the page from", status == 200 and "seen from Switzerland, as a visitor there sees it" in text)
+
 # A service whose browser cannot start is of no use, and does not pretend: it ends, to be started again.
 try:
     ended = subprocess.run([sys.executable, serve.__file__, "--contact", "https://example.org/robot", "--port", "0"], timeout=60, capture_output=True,

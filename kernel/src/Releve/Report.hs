@@ -38,8 +38,12 @@ report l asking release st = T.unlines $
   ++ dating
   ++
   [ "<h2>" <> t ("Method" // "Méthode") <> "</h2>"
-  , p (t ("Each page was rendered in a browser at 1280 px and 320 px. Recorded: names given to assistive technology, colors as rendered, bytes transferred. "
-          // "Chaque page a été rendue dans un navigateur à 1280 px et 320 px. Relevés : noms donnés aux technologies d'assistance, couleurs rendues, octets transférés. ")
+  , p (t ("Each page was rendered in a browser at 1280 px and 320 px" // "Chaque page a été rendue dans un navigateur à 1280 px et 320 px")
+       <> t (case nub [cc | o <- pages, Just cc <- [from (oBody o)]] of
+               [cc] -> let Phrase e f = country cc in Phrase (", seen from " <> e <> ", as a visitor there sees it") (", vue depuis " <> f <> ", comme un visiteur de ce pays la voit")
+               _ -> "")
+       <> t (". Recorded: names given to assistive technology, colors as rendered, bytes transferred. "
+          // ". Relevés : noms donnés aux technologies d'assistance, couleurs rendues, octets transférés. ")
        <> t ("The page was then navigated by keyboard alone. "
           // "La page a ensuite été parcourue au clavier seul. ")
        <> esc (num (length criteria)) <> t (" criteria then read the record. Each is a rule in plain code. No trained model is involved: the same record gives the same report."
