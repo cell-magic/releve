@@ -68,7 +68,7 @@ page ──observe──▶ observation ──releve ingest──▶ corpus   (a
    the smallest change that satisfies it: the nearest compliant colour, or
    the size an image should be served at.
 
-## The three outputs
+## The outputs
 
 **facts** is a Markdown document made for proofreading. Each finding is one
 line:
@@ -117,6 +117,24 @@ through `releve declare`, the changed lines become events that hold for
 the whole record. The questions are this tool's
 short form; the official text prevails, and every report links to it.
 
+**statement** drafts, from the record, two texts the owner completes and
+publishes under their own name: an accessibility statement on the model
+the RGAA sets out, and an eco-design declaration on the 78 criteria of the
+RGESN 2024. The first lists the failures the rules observed, by criterion,
+with the number of pages each was seen on, the test environment and the
+pages observed, and the remedies open to a user before the Défenseur des
+droits. The second gives each RGESN criterion as the rules read it on the
+pages, or as the owner declared it. What only the owner can state is
+marked: the entity, the contact, the derogations, and the state of
+conformity, which takes a complete evaluation. The drafts state no
+conformity.
+
+**history** is JSON lines, one per point that stood open on a page: when
+it was first seen open, when it was seen closed, whether the page mended
+it or the reviewer answered it, and the time stamp that dates the closing
+reading. The report gives the same history in words once a page has two
+readings.
+
 **atlas** is JSON lines, one per observation: the page's shape (its
 landmarks, headings and controls in reading order), its footprint, what
 changed since the previous observation, and every open finding with the
@@ -138,6 +156,8 @@ releve correct corpus.jsonl < facts.md     # your edits become events
 releve declarations corpus.jsonl > d.md    # the RGESN criteria no rule can see, to declare
 releve declare corpus.jsonl < d.md         # the owner's answers become events
 releve report fr corpus.jsonl > report.html # for the pages' owner; en or fr
+releve statement fr corpus.jsonl > drafts.html # accessibility and eco-design statements to complete
+releve history corpus.jsonl                 # what opened and closed, and when (JSON lines)
 releve atlas corpus.jsonl > atlas.jsonl
 releve verify corpus.jsonl
 releve stamp corpus.jsonl                 # dated by a time-stamping authority (RFC 3161); needs openssl and curl

@@ -8,7 +8,7 @@
 --   correspondence the RGAA itself states. Addressed means a rule reads it, a
 --   question puts it to a person, or the owner answers it; it says nothing of
 --   whether a site conforms.
-module Releve.Frameworks (Framework (..), frameworks, coverage, addressed, touched, crosswalk, wcag20, wcag21, wcag22) where
+module Releve.Frameworks (Framework (..), frameworks, coverage, addressed, touched, cites, rgesn, crosswalk, wcag20, wcag21, wcag22) where
 
 import Data.Char (isDigit)
 import Data.List (nub, (\\))
@@ -69,7 +69,11 @@ coverage f = (length (filter (`S.member` addressed) (fParts f)), length (fParts 
 
 -- | The numbers of one referential that the criteria cite, after its name; a span counted whole.
 touched :: Text -> [Text]
-touched ref = nub (concatMap (spans . drop 1 . dropWhile (/= ref) . T.words . en . cRef) criteria)
+touched ref = nub (concatMap (cites ref) criteria)
+
+-- | The numbers of one referential that a criterion cites.
+cites :: Text -> Criterion -> [Text]
+cites ref = spans . drop 1 . dropWhile (/= ref) . T.words . en . cRef
   where
     spans = concatMap range . takeWhile numbered . filter (/= "·")
     numbered w = T.any isDigit (T.take 1 w)

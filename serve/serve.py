@@ -75,6 +75,9 @@ WORDS = {
         "keep": "Following this page over time", "keepit": "This service keeps nothing. To follow this page over time, keep its record: "
         "hand it back with the next request, and the report will say what was mended, what is new and what stands.",
         "download": "Download the record", "file": ".gz file", "again": "Report on another page",
+        "drafts": "Draft statements", "draftsare": "An accessibility statement and an eco-design declaration, drafted from this record, for the owner to complete and publish.",
+        "getdrafts": "Download the drafts",
+        "html": ".html file",
         "recorded": "{} recorded.",
         "answers": ("1 answer", "{} answers"), "unanswered": "No answers submitted.",
         "no": "The page was not observed", "busy": "Others are waiting. Ask again in a minute.",
@@ -107,6 +110,9 @@ WORDS = {
         "keep": "Suivre cette page dans le temps", "keepit": "Ce service ne conserve rien. Pour suivre cette page dans le temps, gardez son relevé : "
         "joignez-le à votre prochaine demande, et le rapport dira ce qui a été corrigé, ce qui est nouveau et ce qui persiste.",
         "download": "Télécharger le relevé", "file": "fichier .gz", "again": "Un autre état des lieux",
+        "drafts": "Projets de déclarations", "draftsare": "Une déclaration d’accessibilité et une déclaration d’écoconception, rédigées à partir de ce relevé, que le responsable complète et publie.",
+        "getdrafts": "Télécharger les projets",
+        "html": "fichier .html",
         "recorded": "{}.",
         "answers": ("1 réponse consignée", "{} réponses consignées"), "unanswered": "Aucune réponse envoyée.",
         "no": "La page n’a pas été observée", "busy": "D’autres demandes attendent. Réessayez dans une minute.",
@@ -427,6 +433,15 @@ def form(lang, heading=2):
             f'<p><button type="submit">{w["go"]}</button></p>\n</form>')
 
 
+def drafted(record, lang):
+    """The draft statements of a record, as a file to keep: drawn from the record alone, in memory."""
+    with tempfile.TemporaryDirectory(dir=MEMORY, prefix="releve-") as d:
+        corpus = Path(d, "c")
+        corpus.write_bytes(gzip.decompress(record))
+        code, out, _ = releve("statement", lang, corpus)
+        return out if code == 0 else b""
+
+
 def given_back(lang, report, record, url, said=""):
     """The report as a page of the service: its title, and its body with the record to keep. Where the report
     puts points to a person, it stands inside a form that sends the answers back with the record, and only then;
@@ -442,7 +457,13 @@ def given_back(lang, report, record, url, said=""):
     name = "releve-" + re.sub(r"[^a-z0-9.-]+", "-", (observer.place(url) or ("", "page"))[1].lower()) + ".jsonl.gz"
     keep = (f'<h2>{w["keep"]}</h2>\n<p>{w["keepit"]}</p>\n'
             f'<p><a download="{name}" href="data:application/gzip;base64,{kept}">{w["download"]}</a>'
-            f' · {w["file"]}, {len(record) // 1024 + 1}&nbsp;k{"B" if lang == "en" else "o"}</p>\n<h2>{w["again"]}</h2>\n{form(lang)}')
+            f' · {w["file"]}, {len(record) // 1024 + 1}&nbsp;k{"B" if lang == "en" else "o"}</p>\n')
+    drafts = drafted(record, lang)
+    if drafts:
+        keep += (f'<h2>{w["drafts"]}</h2>\n<p>{w["draftsare"]}</p>\n<p><a download="{name.replace("releve-", "statements-").replace(".jsonl.gz", ".html")}" '
+                 f'href="data:text/html;base64,{base64.b64encode(drafts).decode("ascii")}">{w["getdrafts"]}</a>'
+                 f' · {w["html"]}, {len(drafts) // 1024 + 1}&nbsp;k{"B" if lang == "en" else "o"}</p>\n')
+    keep += f'<h2>{w["again"]}</h2>\n{form(lang)}'
     return unescape(title), body + keep
 
 

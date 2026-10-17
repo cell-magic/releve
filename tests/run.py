@@ -409,6 +409,46 @@ def main():
         check("what came after a stamp is said; a wrong root or a silent authority is refused",
               "1 record came after it." in releve("report", "en", k)[1].decode("utf-8") and wrong[0] == 1 and "NOT VERIFIED" in wrong[1].decode("utf-8")
               and releve("stamp", k, "http://127.0.0.1:9/")[0] == 1 and k.read_bytes() == before and releve("verify", k)[0] == 0)
+
+        # The page over time: a weak contrast mended on the page, then the reading dated; a question
+        # answered by the reviewer. Each says what closed it, and when; the page closure, by whom it was dated.
+        h = tmp / "history"
+        o1 = json.loads((HERE / "observations" / "fixture.jsonl").read_text(encoding="utf-8"))
+        o1["at"] = "2026-10-01T09:00:00+00:00"
+        releve("ingest", h, feed=json.dumps(o1).encode("utf-8"))
+        weak = next(f for f in json.loads(releve("atlas", h)[1])["findings"] if f["criterion"] == "text-contrast" and f["verdict"] == "fail")
+        asked = next(f for f in json.loads(releve("atlas", h)[1])["findings"] if f["verdict"] == "review" and f["criterion"] == "main-region")
+        o2 = json.loads(json.dumps(o1))
+        o2["at"] = "2026-10-08T09:00:00+00:00"
+        next(s for s in o2["surfaces"] if s["key"] == weak["surface"]["key"])["fg"] = [0, 0, 0, 1]
+        releve("ingest", h, feed=json.dumps(o2).encode("utf-8"))
+        releve("correct", h, feed=edited(releve("facts", h)[1].decode("utf-8"), (r"^- \*\*REVIEW\*\* main-region(.*) \{(.*)\}$", r"- **PASS** main-region\1 // one article {\2}")))
+        releve("stamp", h, "http://127.0.0.1:8766/")
+        spans = {r["finding"]: r for r in map(json.loads, releve("history", h)[1].decode("utf-8").splitlines())}
+        story = releve("report", "en", h)[1].decode("utf-8")
+        check("a page's history: what the page mended and what the reviewer answered, each with its dates, the closing reading dated",
+              spans[weak["id"]]["closed_by"] == "page" and spans[weak["id"]]["opened"].startswith("2026-10-01") and spans[weak["id"]]["closed"].startswith("2026-10-08")
+              and spans[weak["id"]]["dated"]["tsa"] == "http://127.0.0.1:8766/" and spans[asked["id"]]["closed_by"] == "answer"
+              and "<h2>History</h2>" in story and "2 readings, from 1 October 2026, 09:00 UTC to 8 October 2026, 09:00 UTC: 2 points closed" in story
+              and "seen open on 1 October 2026, 09:00 UTC; no longer found on 8 October 2026, 09:00 UTC, dated " in story
+              and "answered by the reviewer, reading of 8 October 2026, 09:00 UTC" in story)
+
+        # The drafts: what the rules saw failing, by criterion; the 78 criteria of the RGESN, read or declared;
+        # what only the owner can state, marked; no word that would state conformity.
+        d = tmp / "drafts"
+        releve("ingest", d, feed=(HERE / "observations" / "fixture.jsonl").read_bytes())
+        releve("declare", d, feed=releve("declarations", d)[1].decode("utf-8").replace("- RGESN 1.1 · open · Has the service's usefulness been weighed against its environmental impact?", "- RGESN 1.1 · yes · Has the service's usefulness been weighed against its environmental impact? // weighed in 2026").encode("utf-8"))
+        releve("stamp", d, "http://127.0.0.1:8766/")
+        drafts = {l: releve("statement", l, d)[1].decode("utf-8") for l in ("en", "fr")}
+        mended = releve("statement", "en", h)[1].decode("utf-8")
+        check("draft statements: failures by criterion with their pages, every RGESN criterion read or declared, the owner's part marked, no conformity stated",
+              "Text contrasts with its background · RGAA 3.2 · WCAG 1.4.3 · 1 of 1 pages" in drafts["en"]
+              and "Text contrasts with its background" not in mended.split("Content that is not accessible")[1].split("How this statement")[0]
+              and all(len(re.findall(r">RGESN \d\.\d+</a> · ", x)) == 78 for x in drafts.values())
+              and "RGESN 1.1</a> · declared: yes · <em>weighed in 2026</em>" in drafts["en"] and "RGESN 1.1</a> · déclaré\u00a0: oui" in drafts["fr"]
+              and "<mark>Name of the entity</mark>" in drafts["en"] and "<mark>Nom de l'entité</mark>" in drafts["fr"]
+              and "The record is dated " in drafts["en"] and "Défenseur des droits, Libre réponse 71120" in drafts["fr"]
+              and not re.search(r"\b(conforms to|is compliant|fully compliant|totalement conforme|partiellement conforme|est conforme)\b", drafts["en"] + drafts["fr"]))
     else:
         check("openssl and curl, to date a record", False)
 

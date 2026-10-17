@@ -213,7 +213,7 @@
   const used = new Map();
   let read = 0;
   const weigh = said => {
-    const words = said.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+    const words = (said || "").toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
     let bits = 0;
     for (const w of words) {
       const c = used.get(w), v = used.size;
@@ -232,6 +232,8 @@
   }
   const events = stream.map(e => {
     const el = e.el, cs = getComputedStyle(el), r = el.getBoundingClientRect();
+    // A control whose own box is not rendered (display: contents) is named from what it holds.
+    if (e.kind && e.name === undefined) { e.name = quiet(el) ? "" : accName(el) || ""; e.unsaid = !e.name && !quiet(el); }
     const said = e.kind ? e.name : txt(e.words.join(" ")), [words, bits] = weigh(said);
     const hd = el.closest("h1, h2, h3, h4, h5, h6, [role=heading]");
     const cell = el.closest("th, td, caption, [role=columnheader], [role=rowheader], [role=cell], [role=gridcell]");

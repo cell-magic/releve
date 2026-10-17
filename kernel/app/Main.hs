@@ -20,6 +20,7 @@ import Releve.Criteria (criteria, version)
 import Releve.Frameworks
 import Releve.Kernel
 import Releve.Report
+import Releve.Statement
 import Releve.Types
 import Releve.Views
 import Stamp
@@ -34,10 +35,14 @@ usage = unlines
   , "  releve report en|fr CORPUS [--ask]    the report for the pages' owner, as HTML;"
   , "                                        CORPUS may be - : observations on stdin, nothing kept;"
   , "                                        --ask: each point to decide with the controls to answer it"
+  , "  releve statement en|fr CORPUS        draft accessibility statement and eco-design declaration,"
+  , "                                        as HTML, for the owner to complete"
   , "  releve correct CORPUS < facts.md      record a person's edits to a report"
   , "  releve declarations CORPUS            the criteria no rule can see, with the owner's answers"
   , "  releve declare CORPUS < answers.md    record the owner's edits to the declarations"
   , "  releve atlas CORPUS                   every observation as study data (JSON lines)"
+  , "  releve history CORPUS                 every point that stood open on each page, when it opened and"
+  , "                                        when it was seen closed (JSON lines)"
   , "  releve verify CORPUS [--export DIR]   check the corpus seals and each time stamp; with --export,"
   , "                                        write each stamp's reply to DIR and the OpenSSL command that checks it"
   , "  releve stamp CORPUS [AUTHORITY]       have a time-stamping authority (RFC 3161) date the latest record;"
@@ -50,7 +55,7 @@ usage = unlines
 
 -- | The release, as in releve.cabal; tests/run.py holds the two together.
 release :: String
-release = "0.8.0"
+release = "0.9.0"
 
 -- | The same bytes on every system: UTF-8, and line feeds alone on the way out.
 plain :: IO ()
@@ -67,9 +72,18 @@ main = plain >> getArgs >>= \args -> case args of
   ["facts", c, ref] -> withState c $ \st -> maybe (die "no such observation") (TIO.putStr . facts st) (resolve st (Just (T.pack ref)))
   ("report" : l : c : rest) | Just lang <- lookup l [("en", En), ("fr", Fr)], rest `elem` [[], ["--ask"]] ->
     (if c == "-" then passing else records c) >>= either die (TIO.putStr . report lang (rest == ["--ask"]) (T.pack release)) . build
+  ["statement", l, c] | Just lang <- lookup l [("en", En), ("fr", Fr)] -> withState c (TIO.putStr . statements lang (T.pack release))
   ["correct", c] -> correct c
   ["declarations", c] -> withState c (TIO.putStr . declarations)
   ["declare", c] -> declare c
+  ["history", c] -> withState c $ \st -> forM_ (latest st) $ \o -> forM_ (history st o) $ \x ->
+    let f = sFinding x; when' = fmap (at . oBody) in BL.putStrLn . encode $ object
+      [ "page" .= url (oBody o), "finding" .= fId f, "criterion" .= cId (fCrit f), "where" .= fmap sel (fSurface f)
+      , "seen" .= en (fSeen f), "verdict" .= T.toLower (T.pack (show (fVerdict f)))
+      , "opened" .= when' (Just (sOpened x)), "opened_in" .= oId (sOpened x)
+      , "closed" .= when' (sClosed x), "closed_in" .= fmap oId (sClosed x)
+      , "closed_by" .= fmap (const (if sAnswered x then "answer" else "page" :: T.Text)) (sClosed x)
+      , "dated" .= (sClosed x >>= datedBy st >>= \d -> Just (object ["time" .= stTime d, "tsa" .= stTsa d])) ]
   ["atlas", c] -> withState c $ \st -> forM_ (observations st) (BL.putStrLn . encode . atlas st)
   ("verify" : c : rest) | rest == [] || take 1 rest == ["--export"] && length rest == 2 -> records c >>= \rs -> case verify rs of
     Left n -> die ("broken at record " <> show n)

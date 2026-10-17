@@ -5,11 +5,11 @@
 --   person whose pages they are. One HTML page, without script, in the
 --   language asked for. Method before findings; a finding with its remedy;
 --   the lightest work first; and what was not looked at, said plainly.
-module Releve.Report (report, guide, typography, reach) where
+module Releve.Report (report, guide, typography, reach, codify, esc, date, style, hostOf) where
 
 import Data.Char (isAlphaNum, isAsciiLower)
 import Data.List (find, nub, sortOn)
-import Data.Maybe (listToMaybe)
+import Data.Maybe (isJust, isNothing, listToMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Releve.Criteria (criteria, version)
@@ -76,7 +76,7 @@ report l asking release st = T.unlines $
       [] -> []
       (n, x) : _ ->
         let after = recordCount st - 1 - n
-            host' = T.takeWhile (/= '/') (snd (T.breakOnEnd "://" (stTsa x)))
+            host' = hostOf (stTsa x)
         in [ "<!-- sky -->"
            , "<p class=\"meta\">" <> t ("Dated " // "Daté du ") <> esc (date l (stTime x)) <> t (" by " // " par ") <> esc host'
              <> t (", an outside time-stamping authority (RFC 3161). Its signed reply is in the record and covers it up to record " // ", autorité d'horodatage extérieure (RFC 3161). Sa réponse signée figure dans le relevé et le couvre jusqu'à l'enregistrement ")
@@ -168,7 +168,7 @@ report l asking release st = T.unlines $
     page' (i, o) = let b = oBody o; every = assess st o; fs = own o every; k' = length (pooledHere o) in
       [ if single then "" else "<h2 id=\"p" <> num i <> "\">" <> esc (url b) <> "</h2>"
       , "<p class=\"meta\">" <> t ("Observed on " // "Observée le ") <> esc (date l (at b)) <> maybe "" ((" · " <>) . esc) (browser b)
-          <> (if truncated (page b) == Just True then t (" · page too large: first surfaces only" // " · page trop grande : premières surfaces seulesses premières surfaces ont été lues") else "") <> "</p>"
+          <> (if truncated (page b) == Just True then t (" · page too large: first surfaces only" // " · page trop grande : premières surfaces seules") else "") <> "</p>"
       , p ("<strong>" <> T.intercalate " · "
             [ tally ("no check passes" // "aucun contrôle ne passe") ("check passes" // "contrôle passe") ("checks pass" // "contrôles passent") (count Pass fs)
             , tally ("no fixes" // "aucune correction") ("fix" // "correction") ("fixes" // "corrections") (count Fail fs)
@@ -188,11 +188,34 @@ report l asking release st = T.unlines $
                     : p (t ("Confirmed by the reviewer, not by rule. Each confirmation lapses when the element changes."
                             // "Confirmé par le relecteur, non par une règle. Chaque confirmation tombe quand l'élément change."))
                     : concat [ criterion b 3 c [f | f <- xs, cId (fCrit f) == cId c] | c <- criteria, any ((== cId c) . cId . fCrit) xs ])
+      ++ chronicle o
       ++ [ hd 2 (t ("Criterion by criterion" // "Critère par critère")), "<ul>" ]
       ++ [ "<li>" <> t (cTitle c) <> " · " <> summary [f | f <- every, cId (fCrit f) == cId c] <> "</li>" | c <- criteria ]
       ++ [ "</ul>", hd 2 (t ("Footprint" // "Empreinte")) ]
       ++ weight b
       ++ maybe [] (lecture b) (readingOf b fs)
+
+    -- The page over time: every point that stood open, when it opened and when it was seen closed,
+    -- and whether the reading that saw it closed is dated from outside. Shown once a page has two readings.
+    chronicle o = case reverse (previous st o) of
+      [] -> []
+      first : _ ->
+        let spans = history st o
+            closed = [x | x <- spans, isJust (sClosed x)]
+            open' = [x | x <- spans, isNothing (sClosed x)]
+            again = length closed + length open' - length (nub [fId (sFinding x) | x <- spans])
+            readings = 1 + length (previous st o)
+            item x = "<li>" <> t (cTitle (fCrit (sFinding x))) <> " · " <> maybe (t ("the page" // "la page")) (\s' -> "<code>" <> esc (sel s') <> "</code>") (fSurface (sFinding x))
+                     <> " · " <> t ("seen open on " // "constaté ouvert le ") <> esc (date l (at (oBody (sOpened x))))
+                     <> maybe "" (\c -> t (if sAnswered x then "; answered by the reviewer, reading of " // " ; tranché par le relecteur, relevé du " else "; no longer found on " // " ; plus constaté le ") <> esc (date l (at (oBody c)))
+                                        <> maybe "" (\d -> t (", dated " // ", daté du ") <> esc (date l (stTime d)) <> t (" by " // " par ") <> esc (hostOf (stTsa d))) (datedBy st c)) (sClosed x)
+                     <> "</li>"
+        in [ hd 2 (t ("History" // "Historique"))
+           , p (t (both (num readings) <> (" readings, from " // " relevés, du ") ) <> esc (date l (at (oBody first))) <> t (" to " // " au ") <> esc (date l (at (oBody o)))
+                <> t (": " // " : ") <> tally ("nothing closed" // "rien de fermé") ("point closed" // "point fermé") ("points closed" // "points fermés") (length closed)
+                <> ", " <> tally ("none still open" // "aucun encore ouvert") ("still open" // "encore ouvert") ("still open" // "encore ouverts") (length open')
+                <> (if again > 0 then ", " <> tally ("" // "") ("reopened" // "rouvert") ("reopened" // "rouverts") again else "") <> ".") ]
+           ++ (if null closed then [] else [ "<ul>" ] ++ map item closed ++ [ "</ul>" ])
 
     since o fs = case previous st o of
       [] -> ""
@@ -387,6 +410,10 @@ guide l release = T.unlines $
 
 num :: Int -> Text
 num = T.pack . show
+
+-- | An authority named by the host of its address.
+hostOf :: Text -> Text
+hostOf = T.takeWhile (/= '/') . snd . T.breakOnEnd "://"
 
 -- | What rules, the reviewer's questions and the owner's declarations address together, out of each text.
 reach :: Lang -> Text

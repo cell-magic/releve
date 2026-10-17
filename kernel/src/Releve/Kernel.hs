@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 -- | The fold. State is a function of the corpus and nothing else:
 --   the same corpus always yields the same findings.
-module Releve.Kernel (Obs (..), State, Pool (..), build, observations, latest, resolve, assess, previous, declared, stamps, recordCount, builtOn, host, pools, governing) where
+module Releve.Kernel (Obs (..), State, Pool (..), Span (..), history, datedBy, build, observations, latest, resolve, assess, previous, declared, stamps, recordCount, builtOn, host, pools, governing) where
 
 import Data.Aeson (Result (..), fromJSON)
 import Data.Char (toLower)
@@ -168,3 +168,29 @@ pools st =
       | o <- latest st, Just t <- [builtOn (oBody o)], f <- assess st o
       , cId (fCrit f) `elem` ("consent-choice" : wholePage), null (fSurface f), fMachine f == Review
       , fVerdict f == Review || maybe False (isJust . covers) (governing st o f) ]
+
+-- | A point that stood open on a page, a fix or an open question: the reading that first showed it,
+--   and the first reading after that where it no longer stood, if one came, and whether a person's
+--   answer closed it rather than the page. A point can open and close more than once; each time is a
+--   span of its own.
+data Span = Span { sFinding :: Finding, sOpened :: Obs, sClosed :: Maybe Obs, sAnswered :: Bool }
+
+history :: State -> Obs -> [Span]
+history st o = sortOn (\x -> (oSeq (sOpened x), maybe maxBound oSeq (sClosed x))) (concatMap spans ids)
+  where
+    obs = reverse (previous st o) ++ [o]
+    readings = [ (x, M.fromList [ (fId f, f) | f <- fs, fVerdict f `elem` [Fail, Review] ], M.fromList [ (fId f, f) | f <- fs ])
+               | x <- obs, let fs = assess st x ]
+    ids = nub (concatMap (\(_, m, _) -> M.keys m) readings)
+    spans i = go Nothing readings
+      where
+        go cur [] = maybe [] (\(f, a) -> [Span f a Nothing False]) cur
+        go cur ((x, m, every) : rest) = case (cur, M.lookup i m) of
+          (Nothing, Just f) -> go (Just (f, x)) rest
+          (Just (_, a), Just f) -> go (Just (f, a)) rest
+          (Just (f, a), Nothing) -> Span f a (Just x) (maybe False (\g -> fMachine g /= fVerdict g) (M.lookup i every)) : go Nothing rest
+          (Nothing, Nothing) -> go Nothing rest
+
+-- | The first time stamp that covers a reading: dated from outside from then on.
+datedBy :: State -> Obs -> Maybe Stamp
+datedBy st x = listToMaybe [ s | (k, s) <- dated st, k > oSeq x ]

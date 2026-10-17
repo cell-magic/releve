@@ -1,5 +1,26 @@
 # Changes
 
+## 0.9.0
+
+What a record shows over time, and the statements it can feed. Criteria
+stay at v9.
+
+- **releve statement en|fr.** Two drafts from the record, for the owner to
+  complete and publish: an accessibility statement on the RGAA's model,
+  with the failures the rules observed by criterion and page count, the
+  test environment, the pages, and the remedies before the Défenseur des
+  droits; and an eco-design declaration giving each of the 78 RGESN
+  criteria as read by rule or declared by the owner. The owner's part is
+  marked; no conformity is stated.
+- **releve history.** Every point that stood open on a page, when it opened,
+  when and how it closed, by the page or by the reviewer's answer, and the
+  time stamp of the closing reading. The report says the same in words.
+- **The service** hands over the drafts with each report, drawn from the
+  record and kept nowhere.
+- **The observer** no longer stops on a control whose box the page does not
+  draw (`display: contents`): its name is read before its weight. Pages of
+  several news and shop sites failed on it.
+
 ## 0.8.0
 
 Records dated from outside. Criteria stay at v9.
