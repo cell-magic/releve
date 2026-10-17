@@ -1,5 +1,14 @@
 # Changes
 
+## 0.9.4
+
+Axeptio's page, read through the service on 0.9.3, showed one more gap.
+
+- **Consent prompts:** a refusal worded as closing without accepting
+  ("Fermer sans accepter les cookies", Axeptio's own) is read as a refusal,
+  not as accepting; so are its German, Spanish and Italian forms. Criteria
+  stay at v10.
+
 ## 0.9.3
 
 - **The observer** records a page it cannot picture in time without its

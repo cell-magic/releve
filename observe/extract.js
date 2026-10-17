@@ -496,7 +496,7 @@
   const fixedish = n => { for (let x = n; x && x.nodeType === 1; x = up(x)) if (/fixed|sticky/.test(getComputedStyle(x).position)) return true; return false; };
   const told = n => (n.innerText || "") + " " + (n.shadowRoot ? n.shadowRoot.textContent : "");
   const KINDS = [
-    ["reject", /reject|refuse|decline|deny|disagree|no,? thanks|(only|just) (the )?(necessary|essential|required)|(necessary|essential|required)( cookies)? only|without accept|refuser|continuer sans|non merci|ablehnen|nein danke|nur (notwendige|erforderliche|essenzielle)|rechaz|rifiut|solo (necessari|essenziali)/i],
+    ["reject", /reject|refuse|decline|deny|disagree|no,? thanks|(only|just) (the )?(necessary|essential|required)|(necessary|essential|required)( cookies)? only|without accept|refuser|continuer sans|sans accepter|sans consentir|non merci|ablehnen|nein danke|ohne (zu )?(akzeptieren|zustimm)|nur (notwendige|erforderliche|essenzielle)|rechaz|sin aceptar|rifiut|senza accettare|solo (necessari|essenziali)/i],
     ["settings", /setting|preference|customi[sz]|manage|option|choose|choice|details|more info|learn more|paramètr|paramétr|personnalis|gérer|préférence|choisir|en savoir plus|einstellung|anpassen|verwalten|configur|preferencia|personaliz|gestisci|impostazion/i],
     ["accept", /accept|agree|allow|consent|got it|^ok\b|okay|understand|accepter|j'accepte|d'accord|autoriser|akzeptier|zustimm|einverstanden|erlauben|acept|accett/i]];
   const ground = n => { for (let x = n; x && x.nodeType === 1; x = up(x)) { const c = rgba(getComputedStyle(x).backgroundColor); if (c[3] > 0.5) return c; } return [255, 255, 255, 1]; };

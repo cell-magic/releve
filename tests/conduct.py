@@ -32,6 +32,10 @@ WORDY = f"""<!doctype html><html lang=en><title>{LONG}</title><main><h1>{LONG}</
 UNSETTLED = """<!doctype html><html lang=en><title>Unsettled</title><style>@font-face{font-family:Late;src:url(/font.woff2)}</style>
 <main><h1>Unsettled</h1><p><a href="/one">One</a> <a href="/two">Two</a></p></main>
 <script>addEventListener("load", () => setTimeout(() => { const s = document.createElement("span"); s.style.fontFamily = "Late"; s.textContent = "late"; document.body.append(s) }, 50))</script>"""
+# A prompt whose way to refuse is worded as closing without accepting.
+SANS = """<!doctype html><html lang=fr><title>Sans</title><main><h1>Sans</h1></main>
+<div id=axeptio_overlay style="position:fixed;bottom:0;left:0;right:0;background:#fff"><p>Ce site utilise des cookies.</p>
+<button>Fermer sans accepter les cookies</button> <button style="background:#000;color:#fff">Accepter les cookies</button></div>"""
 log, posts = [], []  # requests as (port, method, path, user agent, time); anything submitted
 
 
@@ -67,6 +71,8 @@ def site(robots):
                 body, code = WORDY, 200
             elif self.path == "/unsettled":
                 body, code = UNSETTLED, 200
+            elif self.path == "/sans":
+                body, code = SANS, 200
             elif self.path in ANSWERS:
                 body, code = "no", ANSWERS[self.path]
             elif self.path == "/gate":
@@ -193,6 +199,10 @@ check("keeps extracts of 80 characters at most of what a page says", len(out) ==
 out, err, code = observe(f"{open_}/unsettled")
 check("observes a page that cannot be pictured in time, without its picture, and walks it by keyboard",
       len(out) == 1 and out[0]["shot"] is None and out[0]["page"]["keys"]["stops"] == 2 and out[0]["page"]["keys"]["checked"] == 0)
+
+out, err, code = observe(f"{open_}/sans")
+check("reads a refusal worded as closing without accepting", len(out) == 1
+      and [c[0] for c in out[0]["page"]["consent"]["choices"]] == ["reject", "accept"])
 
 check("submits nothing", not posts)
 sys.exit(0 if all(checks) else 1)
