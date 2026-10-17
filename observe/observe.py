@@ -163,7 +163,7 @@ SPACING = ("*{line-height:1.5!important;letter-spacing:.12em!important;word-spac
            "p{margin-bottom:2em!important}")
 
 
-def walk(page):
+def walk(page, unsettled=False):
     """The page by keyboard alone, from the top: Tab after Tab, until the focus leaves the page, goes
     round without reaching the rest, holds still, or TABS presses have been made. At each of the first
     LOOKS stops, the screen with the element focused is compared with the screen with it left: where
@@ -196,7 +196,7 @@ def walk(page):
 
     page.evaluate("window.scrollTo(0, 0)")
     page.evaluate_handle(DEEPEST).evaluate("e => e && e.blur && e.blur()")
-    order, unseen, looked, ended, trap, held, under, blind = [], [], 0, "cap", None, 0, [], []
+    order, unseen, looked, ended, trap, held, under, blind = [], [], 0, "cap", None, 0, [], [True] if unsettled else []
     for _ in range(TABS):
         page.keyboard.press("Tab")
         here = page.evaluate(KEYS)
@@ -327,10 +327,15 @@ def observe(browser, url, agent, shots, closed, shut=None):
                 origins[r["url"]] = (said, b"c2pa" in raw and (b"jumb" in raw or b"jumd" in raw))
 
         data = page.evaluate(EXTRACT, {"limit": LIMIT, "phrases": DISCLOSURE})
-        try:
-            shot = page.screenshot(full_page=True, timeout=15000)
-        except BrowserError:  # a page that never settles, as a font that never arrives: the browser's own picture of the screen stands for it
-            shot = base64.b64decode(cdp.send("Page.captureScreenshot", {"format": "png"})["data"])
+        # A page that cannot be pictured in time, waiting on a font that never arrives or drawing no new
+        # frame, is recorded without its picture, and the keyboard walk does not look at the focus.
+        unsettled = page.evaluate("document.fonts.status") != "loaded"
+        shot = None
+        if not unsettled:
+            try:
+                shot = page.screenshot(full_page=True, timeout=10000)
+            except BrowserError:
+                unsettled = True
         page.set_viewport_size(NARROW)
         page.wait_for_timeout(400)
         data["page"]["reflow"] = page.evaluate("document.documentElement.scrollWidth")
@@ -342,7 +347,7 @@ def observe(browser, url, agent, shots, closed, shut=None):
         page.set_viewport_size(DESKTOP)
         page.wait_for_timeout(300)
         try:
-            data["page"]["keys"] = walk(page)
+            data["page"]["keys"] = walk(page, unsettled)
         except BrowserError:
             data["page"]["keys"] = None  # the page went elsewhere under the keys: the walk says nothing
         if page.url != final and not barred:
@@ -388,8 +393,8 @@ def observe(browser, url, agent, shots, closed, shut=None):
     for w in widgets:
         w["key"] = key(w)
 
-    digest = hashlib.sha256(shot).hexdigest()
-    if shots:
+    digest = hashlib.sha256(shot).hexdigest() if shot else None
+    if shots and shot:
         Path(shots).mkdir(parents=True, exist_ok=True)
         Path(shots, digest[:16] + ".png").write_bytes(shot)
 

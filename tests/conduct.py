@@ -191,7 +191,8 @@ kept = [v for o in out for part in [o["page"]] + o["surfaces"] + o["events"] for
 check("keeps extracts of 80 characters at most of what a page says", len(out) == 1 and len(kept) > 12 and max(map(len, kept)) <= 80)
 
 out, err, code = observe(f"{open_}/unsettled")
-check("observes a page that never settles, and walks it by keyboard", len(out) == 1 and out[0]["shot"] and out[0]["page"]["keys"]["stops"] == 2)
+check("observes a page that cannot be pictured in time, without its picture, and walks it by keyboard",
+      len(out) == 1 and out[0]["shot"] is None and out[0]["page"]["keys"]["stops"] == 2 and out[0]["page"]["keys"]["checked"] == 0)
 
 check("submits nothing", not posts)
 sys.exit(0 if all(checks) else 1)

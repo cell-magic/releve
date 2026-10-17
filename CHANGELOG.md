@@ -1,5 +1,13 @@
 # Changes
 
+## 0.9.3
+
+- **The observer** records a page it cannot picture in time without its
+  picture, rather than waiting on it. 0.9.2 fell back on the browser's own
+  picture of the screen; on Axeptio's page no picture came at all, the
+  service's patience ran out, and the page was refused again. The keyboard
+  walk goes on, without looking at the focus. Criteria stay at v10.
+
 ## 0.9.2
 
 - **The observer** pictures a page that never settles. A font asked for
