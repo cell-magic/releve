@@ -7,7 +7,7 @@ Needs Python, Playwright and Chromium; no network."""
 import base64, json, subprocess, sys, threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from time import monotonic
+from time import monotonic, sleep
 
 OBSERVE = Path(__file__).resolve().parent.parent / "observe" / "observe.py"
 CONTACT = "https://example.org/robot"
@@ -28,6 +28,10 @@ WORDY = f"""<!doctype html><html lang=en><title>{LONG}</title><main><h1>{LONG}</
 <a href="/one" aria-label="{LONG}">{LONG}</a><img src="/img/wide.png" alt="{LONG}"><button>{LONG}</button>
 <label>{LONG}<input placeholder="{LONG}" name="{LONG}"></label><fieldset><legend>{LONG}</legend></fieldset>
 <table><caption>{LONG}</caption><tr><th>{LONG}</th></tr></table></main></html>"""
+# A page that never settles: once loaded, it asks for a font that never arrives.
+UNSETTLED = """<!doctype html><html lang=en><title>Unsettled</title><style>@font-face{font-family:Late;src:url(/font.woff2)}</style>
+<main><h1>Unsettled</h1><p><a href="/one">One</a> <a href="/two">Two</a></p></main>
+<script>addEventListener("load", () => setTimeout(() => { const s = document.createElement("span"); s.style.fontFamily = "Late"; s.textContent = "late"; document.body.append(s) }, 50))</script>"""
 log, posts = [], []  # requests as (port, method, path, user agent, time); anything submitted
 
 
@@ -39,6 +43,15 @@ def site(robots):
                 self.send_response(302)
                 self.send_header("Location", REDIRECTS[self.path])
                 self.end_headers()
+                return
+            if self.path == "/font.woff2":  # a font that never arrives
+                self.send_response(200)
+                self.send_header("Content-Type", "font/woff2")
+                self.send_header("Content-Length", "100000")
+                self.end_headers()
+                self.wfile.write(b"wOF2")
+                self.wfile.flush()
+                sleep(120)
                 return
             if self.path.startswith("/img/"):
                 self.send_response(200)
@@ -52,6 +65,8 @@ def site(robots):
                 body, code = WEIGHED, 200
             elif self.path == "/wordy":
                 body, code = WORDY, 200
+            elif self.path == "/unsettled":
+                body, code = UNSETTLED, 200
             elif self.path in ANSWERS:
                 body, code = "no", ANSWERS[self.path]
             elif self.path == "/gate":
@@ -174,6 +189,9 @@ out, err, code = observe(f"{open_}/wordy")
 kept = [v for o in out for part in [o["page"]] + o["surfaces"] + o["events"] for k, v in part.items()
         if k in ("title", "text", "name", "label", "alt", "placeholder", "hint", "said", "skip") and isinstance(v, str)]
 check("keeps extracts of 80 characters at most of what a page says", len(out) == 1 and len(kept) > 12 and max(map(len, kept)) <= 80)
+
+out, err, code = observe(f"{open_}/unsettled")
+check("observes a page that never settles, and walks it by keyboard", len(out) == 1 and out[0]["shot"] and out[0]["page"]["keys"]["stops"] == 2)
 
 check("submits nothing", not posts)
 sys.exit(0 if all(checks) else 1)

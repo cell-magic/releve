@@ -1,5 +1,13 @@
 # Changes
 
+## 0.9.2
+
+- **The observer** pictures a page that never settles. A font asked for
+  after the page has loaded, and never delivered, held every screenshot
+  until it timed out, and the page was refused (Axeptio's). The page's
+  fingerprint is now the browser's own picture of the screen, and the
+  keyboard walk goes on without looking at the focus. Criteria stay at v10.
+
 ## 0.9.1
 
 Read on fourteen real sites through the service. Criteria move from v9 to

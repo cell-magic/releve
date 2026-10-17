@@ -170,7 +170,7 @@ def walk(page):
     not one pixel differs, the focus shows nothing. At each stop, what of the page's own content lies
     over the whole of the focused element. Facts only: which stops, how it ended."""
     def shot(clip=None):
-        return page.screenshot(clip=clip, animations="disabled", caret="hide")
+        return page.screenshot(clip=clip, animations="disabled", caret="hide", timeout=5000)
 
     def seen(here):
         x, y, w, h = here["box"]
@@ -181,9 +181,14 @@ def walk(page):
         near = {"x": max(0, x - 12), "y": max(0, y - 12)}
         near.update(width=min(view["width"], x + w + 12) - near["x"], height=min(view["height"], y + h + 12) - near["y"])
         for clip in (near, None):  # close by first; then the whole screen, where close by nothing changed
-            focused = shot(clip)
-            el.evaluate("e => e.blur()")
-            left = shot(clip)
+            try:
+                focused = shot(clip)
+                el.evaluate("e => e.blur()")
+                left = shot(clip)
+            except BrowserError:  # a page that never settles cannot be pictured: the focus is not looked at
+                el.evaluate("e => e.focus({ preventScroll: true })")
+                blind.append(True)
+                return None
             el.evaluate("e => e.focus({ preventScroll: true })")
             if focused != left:
                 return True
@@ -191,7 +196,7 @@ def walk(page):
 
     page.evaluate("window.scrollTo(0, 0)")
     page.evaluate_handle(DEEPEST).evaluate("e => e && e.blur && e.blur()")
-    order, unseen, looked, ended, trap, held, under = [], [], 0, "cap", None, 0, []
+    order, unseen, looked, ended, trap, held, under, blind = [], [], 0, "cap", None, 0, [], []
     for _ in range(TABS):
         page.keyboard.press("Tab")
         here = page.evaluate(KEYS)
@@ -220,7 +225,7 @@ def walk(page):
         order.append(at)
         if here.get("by") and len(under) < 20:
             under.append([at, here["by"]])
-        if looked < LOOKS and not here["frame"]:
+        if looked < LOOKS and not here["frame"] and not blind:
             visible = seen(here)
             if visible is not None:
                 looked += 1
@@ -323,9 +328,9 @@ def observe(browser, url, agent, shots, closed, shut=None):
 
         data = page.evaluate(EXTRACT, {"limit": LIMIT, "phrases": DISCLOSURE})
         try:
-            shot = page.screenshot(full_page=True)
-        except BrowserError:  # a page too tall to draw whole in time: its first screen stands for it
-            shot = page.screenshot()
+            shot = page.screenshot(full_page=True, timeout=15000)
+        except BrowserError:  # a page that never settles, as a font that never arrives: the browser's own picture of the screen stands for it
+            shot = base64.b64decode(cdp.send("Page.captureScreenshot", {"format": "png"})["data"])
         page.set_viewport_size(NARROW)
         page.wait_for_timeout(400)
         data["page"]["reflow"] = page.evaluate("document.documentElement.scrollWidth")
