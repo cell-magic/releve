@@ -1,3 +1,5 @@
+# Text is stored and checked out with LF, on every machine.
+* text=auto eol=lf
 *.jsonl -text
 tests/expected/* -text
 tests/pages/** -text

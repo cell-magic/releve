@@ -74,4 +74,4 @@ jobs:
       - run: python tests/service.py
         env:
           RELEVE: dist/releve
-      - run: bash -n serve/install.sh && shellcheck serve/install.sh
+      - run: bash -n serve/install.sh && bash -n serve/egress.sh && shellcheck serve/install.sh serve/egress.sh

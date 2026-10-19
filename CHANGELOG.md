@@ -1,5 +1,20 @@
 # Changes
 
+## 0.9.5
+
+The robot reaches the web from the country it names, not from where it is served.
+
+- **Egress:** `serve/egress.sh` makes a second, small machine in that country
+  the robot's only way out. Pages, what they load, robots.txt and the names
+  they look up leave through a WireGuard tunnel; without the tunnel they go
+  nowhere, never from the service's machine instead. The exit keeps no log
+  and answers the service's machine only. `egress.sh check` shows it, on the
+  machines. Criteria stay at v10.
+- **Licence:** the French text of the EUPL-1.2, equally valid, beside the
+  English one. CONTRIBUTING.md: issue reports open, code contributions closed
+  until a contributor agreement is published.
+- **Line endings:** text is stored and checked out with LF on every machine.
+
 ## 0.9.4
 
 Axeptio's page, read through the service on 0.9.3, showed one more gap.
