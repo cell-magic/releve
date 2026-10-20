@@ -150,6 +150,12 @@ def main():
     left = sorted(set(re.findall(r"\b(?:the|with|without|and|is|are|of|not|no|by|has)\b", re.sub(r"<[^>]+>", " ", ours))))
     check("the French report is in French" + (": " + ", ".join(left) if left else ""), not left)
 
+    # A page that writes markup and the report's own syntax is shown as text in the report, never run as markup.
+    for lang in ("en", "fr"):
+        poisoned = re.sub(r"<style>.*?</style>", "", releve("report", lang, tmp / "hostile")[1].decode("utf-8"), flags=re.S)
+        check(f"a hostile page's words stay words in the {lang} report",
+              "alert(1)" in poisoned and "alert(2)" in poisoned and not re.search(r"<script|<img[^>]*\bonerror", poisoned, re.I))
+
     # What a report says, it says of the page, and it claims nothing for it: no audit, no conformity, no
     # certificate, no quality mark, no guarantee. The one thing it says of audits is that it is not one. Words
     # quoted from the page are the page's; what HTML itself writes (<label>, aria-label) is set as code.

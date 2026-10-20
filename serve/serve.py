@@ -42,7 +42,7 @@ the files that page needs, under /static/. `--counts` keeps the weekly counts
 in a file, across restarts. `--local` admits private addresses, for trying it
 on your own machine; never use it in the open.
 """
-import argparse, base64, gzip, ipaddress, json, os, queue, re, shutil, socket, subprocess, sys, tempfile, threading, time, urllib.parse
+import argparse, base64, gzip, ipaddress, json, os, queue, re, shutil, socket, subprocess, sys, tempfile, threading, time, urllib.parse, zlib
 from datetime import date
 from concurrent.futures import Future
 from email.parser import BytesParser
@@ -307,14 +307,24 @@ def releve(*args, feed=None):
     return r.returncode, r.stdout, r.stderr.decode("utf-8", "replace").strip()
 
 
+def unpacked(record):
+    """A record handed back, opened no further than 20 times the largest request: a small file that would
+    open into a huge one is refused before it can fill the memory it passes through."""
+    unzip = zlib.decompressobj(16 + zlib.MAX_WBITS)
+    try:
+        whole = unzip.decompress(record, 20 * LARGEST)
+    except zlib.error:
+        raise Refused("record") from None
+    if unzip.unconsumed_tail or not unzip.eof:
+        raise Refused("record")
+    return whole
+
+
 def opened(record, d):
     """A record handed back, written where it passes through memory, believed only if its seals hold."""
     corpus = Path(d, "c")
     if record:
-        try:
-            corpus.write_bytes(gzip.decompress(record)[:20 * LARGEST])
-        except (OSError, EOFError):
-            raise Refused("record") from None
+        corpus.write_bytes(unpacked(record))
         code, said, _ = releve("verify", corpus)
         if code != 0 or not said.startswith(b"sealed"):
             raise Refused("record")
@@ -347,7 +357,7 @@ def stamp(corpus):
 def skyline(record, lang):
     """The record's sky, drawn from its latest time stamp, with what it means; nothing for a record not dated."""
     reply = None
-    for line in gzip.decompress(record).decode("utf-8").splitlines():
+    for line in unpacked(record).decode("utf-8").splitlines():
         if '"stamped":' in line:
             reply = json.loads(line)["event"].get("stamped", {}).get("reply") or reply
     if not SKY or not reply:
@@ -437,7 +447,7 @@ def drafted(record, lang):
     """The draft statements of a record, as a file to keep: drawn from the record alone, in memory."""
     with tempfile.TemporaryDirectory(dir=MEMORY, prefix="releve-") as d:
         corpus = Path(d, "c")
-        corpus.write_bytes(gzip.decompress(record))
+        corpus.write_bytes(unpacked(record))
         code, out, _ = releve("statement", lang, corpus)
         return out if code == 0 else b""
 

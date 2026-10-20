@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: EUPL-1.2
 """The service, checked against local sites: an address in, a report out, and
 nothing left behind. Needs Python, Playwright, Chromium and `releve`; no network."""
-import base64, gzip, hashlib, json, os, re, subprocess, sys, tempfile, threading, uuid
+import base64, gzip, hashlib, json, os, re, subprocess, sys, tempfile, threading, uuid, zlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.request import Request, urlopen
@@ -106,7 +106,10 @@ check("reads a record handed back, and says what stands", "Since " in text and r
 check("hands the record back longer by one observation", len(gzip.decompress(kept(text)).splitlines()) == 2)
 
 forged = gzip.compress(gzip.decompress(record).replace(b"Words of the page", b"Words of another"))
-for name, bad in (("forged", forged), ("damaged", b"not a record")):
+# About a megabyte that opens into a gigabyte: refused before it fills the memory it passes through.
+squeeze, chunk = zlib.compressobj(9, zlib.DEFLATED, 16 + zlib.MAX_WBITS), bytes(1 << 24)
+swollen = b"".join([squeeze.compress(chunk) for _ in range(64)] + [squeeze.flush()])
+for name, bad in (("forged", forged), ("damaged", b"not a record"), ("swollen", swollen)):
     code, heads, text = ask(door, f"http://127.0.0.1:{open_}/two", "en", bad)
     check(f"believes no {name} record", "its seals do not hold" in text and "Method" not in text)
     threading.Event().wait(serve.PAUSE + 0.2)

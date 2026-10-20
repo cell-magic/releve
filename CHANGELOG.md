@@ -1,5 +1,19 @@
 # Changes
 
+## 0.9.6
+
+The security gate before the repository goes public.
+
+- **The service** opens a record handed back no further than twenty times the
+  largest request. A file of a few megabytes that opened into gigabytes
+  filled the memory before it was cut; it is now refused, in a fraction of a
+  second. A check of the service holds it.
+- **The report:** a check that a page writing markup and the report's own
+  syntax is shown as text in the HTML report, in each language.
+- **SECURITY.md:** how to report a vulnerability privately, and when an answer
+  comes. Dependabot proposes newer versions weekly; none is taken without the
+  checks. Criteria stay at v10.
+
 ## 0.9.5
 
 The robot reaches the web from the country it names, not from where it is served.

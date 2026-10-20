@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
+# SPDX-License-Identifier: EUPL-1.2
+# Newer versions are proposed, never taken: the browser that renders is part of
+# the reading, so a new Playwright is accepted on purpose, with the checks run.
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /observe
+    schedule:
+      interval: weekly
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
