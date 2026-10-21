@@ -90,6 +90,27 @@ SPACED = Path(__file__).with_name("spacing.js").read_text(encoding="utf-8")
 DEEPEST = "() => { let e = document.activeElement; while (e && e.shadowRoot && e.shadowRoot.activeElement) e = e.shadowRoot.activeElement; return e; }"
 
 
+# Authorities whose signing keys are public, so a certificate under them proves nothing: anyone
+# could have signed it. The browser the robot runs takes no revocation updates; it is told here.
+EMUDHRA = ("eMudhra", "its private key is a number below 256, found and published in October 2026")
+FORGEABLE = {
+    **{f"EM {k} TLS CA - G3{s}": EMUDHRA for k in ("DV", "EV", "OV") for s in "BC"},
+    **{f"EM OV CS CA - G3{s}": EMUDHRA for s in "BC"},
+}
+
+
+def forgeable(responses):
+    """Why one of these responses cannot be told from a forgery, or None."""
+    for r, _ in responses:
+        issuer = (r.get("securityDetails") or {}).get("issuer", "")
+        if issuer in FORGEABLE:
+            who, why = FORGEABLE[issuer]
+            return (f"the certificate of {r.get('url', 'a resource')} is signed by {issuer}, an {who} authority "
+                    f"that can no longer vouch for anyone: {why}, so anyone can sign as it, and what the "
+                    "address served cannot be shown to be the site's own")
+    return None
+
+
 class Refused(Exception):
     """The site said no, in one of the ways a robot must hear. `whole`: no to the robot, not to one page."""
     def __init__(self, why, whole=False):
@@ -288,6 +309,9 @@ def observe(browser, url, agent, shots, closed, shut=None):
             page.wait_for_load_state("networkidle", timeout=15000)
         except BrowserError:
             pass
+        why = forgeable([(h, "Redirect") for h in hops] + list(responses.values()))
+        if why:
+            raise Refused(why, whole=True)
         frames = " ".join(f.url for f in page.frames[1:]).lower()
         if (page.title().strip().lower().startswith(GATE_TITLES) or any(g in page.url.lower() for g in GATE_ADDRESSES)
                 or any(g in frames for g in GATE_FRAMES)):
@@ -309,6 +333,9 @@ def observe(browser, url, agent, shots, closed, shut=None):
         # its end, every redirect hop counted. It closes here: what the measuring itself fetches
         # (the screenshot, the narrow pass) is not the page's, and a data: address is not a request.
         # Each response says which address asked for it: the chain of requests is read from these links.
+        why = forgeable(list(responses.values()))  # and what the scroll brought in
+        if why:
+            raise Refused(why, whole=True)
         fetched = [dict(resource(r, kind, weights.get(rid, 0)), **({"from": asked[rid]} if asked.get(rid) else {}))
                    for rid, (r, kind) in responses.items()] \
             + [resource(h, "Redirect", int(h.get("encodedDataLength", 0))) for h in hops]
