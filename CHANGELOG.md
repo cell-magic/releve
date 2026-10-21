@@ -1,5 +1,25 @@
 # Changes
 
+## 0.10.0
+
+Each report comes with the page as it was served, and a way to check it.
+
+- **The service** hands back, with each report, the page the robot was
+  served: whole, in a WACZ bundle signed with ECDSA P-256 when it was made,
+  with the receipt that replays it (a SHA-256 chain over the page's
+  address, content and structure) and `verifier.html`, one file that checks
+  both offline. The record keeps the receipt's head, dated with the rest.
+  Nothing of the page is kept by the service.
+- **receipt/** holds the selector, the receipt and the bundle, in Python,
+  with the verifier's sources; `receipt/build.sh` builds the verifier, and
+  CI checks that the file handed out is the one its sources build. Its one
+  new dependency is `cryptography`, pinned.
+- **The observer** returns the page's HTML beside its observation, taken
+  once the page has loaded, before anything is measured. The observation,
+  and so the record, holds none of it.
+- **The kernel** keeps the receipt's head in an observation. Criteria stay
+  at v10.
+
 ## 0.9.7
 
 The robot stops at a certificate anyone could have signed.

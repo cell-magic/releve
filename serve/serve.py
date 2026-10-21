@@ -19,6 +19,10 @@ the report is the answer. What holds, here and nowhere else:
     Nothing in a count belongs to one request; no time finer than the week.
     No page shows them; serve/counts.py reads them where they are kept.
   - A record handed back is believed only if its seals hold.
+  - The page observed goes back to whoever asked, whole, in a signed bundle with
+    the receipt that replays it, and the verifier that checks both offline. The
+    record keeps the receipt's head, dated with the rest; the page itself is
+    kept nowhere.
   - What the rules leave to a person is put to them as questions, in the report.
     Their answers come back with the record, in the same form, and are written
     into it as a person's readings, beside what the rule said; no page is
@@ -51,8 +55,10 @@ from html import escape, unescape
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "observe"))
+ROOT = Path(__file__).resolve().parent.parent
+sys.path[:0] = [str(ROOT / "observe"), str(ROOT)]
 import observe as observer  # noqa: E402  (the observer, beside this file)
+from receipt import bundle, sampler  # noqa: E402  (the page as served, and its receipt)
 import sky  # noqa: E402  (the sky of a record, beside this file)
 
 AUTHORITY = SKY = FROM = None   # set by setup()
@@ -78,6 +84,10 @@ WORDS = {
         "drafts": "Draft statements", "draftsare": "An accessibility statement and an eco-design declaration, drafted from this record, for the owner to complete and publish.",
         "getdrafts": "Download the drafts",
         "html": ".html file",
+        "served": "The page as it was served", "servedis": "The page the robot was served, held whole in a signed bundle, with the receipt that "
+        "replays it. The verifier checks both in a browser, offline. The record carries the receipt’s head, dated with the rest.",
+        "getreceipt": "Download the receipt", "json": ".json file", "getbundle": "Download the bundle", "wacz": ".wacz file",
+        "getverifier": "Download the verifier",
         "recorded": "{} recorded.",
         "answers": ("1 answer", "{} answers"), "unanswered": "No answers submitted.",
         "no": "The page was not observed", "busy": "Others are waiting. Ask again in a minute.",
@@ -113,6 +123,10 @@ WORDS = {
         "drafts": "Projets de déclarations", "draftsare": "Une déclaration d’accessibilité et une déclaration d’écoconception, rédigées à partir de ce relevé, que le responsable complète et publie.",
         "getdrafts": "Télécharger les projets",
         "html": "fichier .html",
+        "served": "La page telle qu’elle a été servie", "servedis": "La page servie au robot, gardée entière dans un paquet signé, avec le reçu "
+        "qui la rejoue. Le vérificateur contrôle l’un et l’autre dans un navigateur, hors ligne. Le relevé porte l’empreinte du reçu, datée avec le reste.",
+        "getreceipt": "Télécharger le reçu", "json": "fichier .json", "getbundle": "Télécharger le paquet", "wacz": "fichier .wacz",
+        "getverifier": "Télécharger le vérificateur",
         "recorded": "{}.",
         "answers": ("1 réponse consignée", "{} réponses consignées"), "unanswered": "Aucune réponse envoyée.",
         "no": "La page n’a pas été observée", "busy": "D’autres demandes attendent. Réessayez dans une minute.",
@@ -302,6 +316,14 @@ class Bench(threading.Thread):
                     browser, seen = pw.chromium.launch(), 0
 
 
+def receipted(url, html, conditions):
+    """The page as the robot was served it, held whole in a signed bundle, and the receipt that replays it.
+    Made in memory for whoever asked; kept nowhere."""
+    pages = [(url, html)]
+    _, receipt, _ = sampler.run(pages, len(pages))
+    return receipt, bundle.build(pages, receipt, conditions)
+
+
 def releve(*args, feed=None):
     r = subprocess.run([RELEVE, *map(str, args)], input=feed, capture_output=True, timeout=60)
     return r.returncode, r.stdout, r.stderr.decode("utf-8", "replace").strip()
@@ -452,7 +474,14 @@ def drafted(record, lang):
         return out if code == 0 else b""
 
 
-def given_back(lang, report, record, url, said=""):
+def offered(lang, name, kind, data, words):
+    """A file to keep, as a link that holds it."""
+    w = WORDS[lang]
+    return (f'<a download="{name}" href="data:{kind};base64,{base64.b64encode(data).decode("ascii")}">{w[words[0]]}</a>'
+            f' · {w[words[1]]}, {len(data) // 1024 + 1}&nbsp;k{"B" if lang == "en" else "o"}')
+
+
+def given_back(lang, report, record, url, said="", served=None):
     """The report as a page of the service: its title, and its body with the record to keep. Where the report
     puts points to a person, it stands inside a form that sends the answers back with the record, and only then;
     the record goes to the service when the person sends it, as when they hand back the file."""
@@ -465,14 +494,18 @@ def given_back(lang, report, record, url, said=""):
         body = (f'<form method="post" action="{PREFIX}/answer" enctype="multipart/form-data">\n<input type="hidden" name="lang" value="{lang}">\n'
                 f'<input type="hidden" name="kept" value="{kept}">\n{body}</form>\n')
     name = "releve-" + re.sub(r"[^a-z0-9.-]+", "-", (observer.place(url) or ("", "page"))[1].lower()) + ".jsonl.gz"
-    keep = (f'<h2>{w["keep"]}</h2>\n<p>{w["keepit"]}</p>\n'
-            f'<p><a download="{name}" href="data:application/gzip;base64,{kept}">{w["download"]}</a>'
-            f' · {w["file"]}, {len(record) // 1024 + 1}&nbsp;k{"B" if lang == "en" else "o"}</p>\n')
+    keep = f'<h2>{w["keep"]}</h2>\n<p>{w["keepit"]}</p>\n<p>{offered(lang, name, "application/gzip", record, ("download", "file"))}</p>\n'
+    if served:
+        receipt, wacz = served
+        stem = name.replace(".jsonl.gz", "")
+        keep += (f'<h2>{w["served"]}</h2>\n<p>{w["servedis"]}</p>\n<ul>\n'
+                 f'<li>{offered(lang, stem + ".receipt.json", "application/json", json.dumps(receipt, indent=1).encode("utf-8"), ("getreceipt", "json"))}</li>\n'
+                 f'<li>{offered(lang, stem + ".wacz", "application/wacz", wacz, ("getbundle", "wacz"))}</li>\n'
+                 f'<li>{offered(lang, "verifier.html", "text/html", VERIFIER, ("getverifier", "html"))}</li>\n</ul>\n')
     drafts = drafted(record, lang)
     if drafts:
-        keep += (f'<h2>{w["drafts"]}</h2>\n<p>{w["draftsare"]}</p>\n<p><a download="{name.replace("releve-", "statements-").replace(".jsonl.gz", ".html")}" '
-                 f'href="data:text/html;base64,{base64.b64encode(drafts).decode("ascii")}">{w["getdrafts"]}</a>'
-                 f' · {w["html"]}, {len(drafts) // 1024 + 1}&nbsp;k{"B" if lang == "en" else "o"}</p>\n')
+        keep += (f'<h2>{w["drafts"]}</h2>\n<p>{w["draftsare"]}</p>\n'
+                 f'<p>{offered(lang, name.replace("releve-", "statements-").replace(".jsonl.gz", ".html"), "text/html", drafts, ("getdrafts", "html"))}</p>\n')
     keep += f'<h2>{w["again"]}</h2>\n{form(lang)}'
     return unescape(title), body + keep
 
@@ -528,7 +561,7 @@ class Door(BaseHTTPRequestHandler):
             else:
                 fields = {k: v[0].encode("utf-8") for k, v in urllib.parse.parse_qs(raw.decode("utf-8", "replace")).items()}
             lang = "fr" if fields.get("lang") == b"fr" else "en"
-            said = ""
+            said, served = "", None
             if urllib.parse.urlsplit(self.path).path.removeprefix(PREFIX) == "/answer":
                 # Answers to the points to decide, with the record they belong to. No page is visited.
                 given = {k[2:]: ("PASS" if v == b"pass" else "FAIL", (fields.get("n-" + k[2:]) or b"").decode("utf-8", "replace"))
@@ -546,9 +579,11 @@ class Door(BaseHTTPRequestHandler):
                 url = (fields.get("url") or b"").decode("utf-8", "replace").strip()
                 if len(url) > 2000 or observer.place(url) is None:
                     raise Refused("not a web address")
-                observation = BENCH.ask(url)
+                observation, html = BENCH.ask(url)
                 if FROM:  # where the page was seen from: a site may answer, and ask consent, by country
                     observation = {**observation, "from": FROM}
+                served = receipted(observation["url"], html, {"from": FROM} if FROM else {})
+                observation = {**observation, "receipt": served[0]["head"]}
                 report, record = read(observation, fields.get("record") or None, lang)
                 url = observation["url"]
                 TALLY.count(lang, fields.get("record"), region(self.headers.get("Accept-Language")))
@@ -558,7 +593,7 @@ class Door(BaseHTTPRequestHandler):
             return self.refuse(lang, str(r))
         except Exception as e:  # whatever went wrong, the answer says so and nothing is written
             return self.refuse(lang, type(e).__name__)
-        self.answer(200, lang, *given_back(lang, report, record, url, said))
+        self.answer(200, lang, *given_back(lang, report, record, url, said, served))
 
     def refuse(self, lang, why):
         w = WORDS[lang]
@@ -570,12 +605,13 @@ class Door(BaseHTTPRequestHandler):
 
 def setup(contact, local=False, shells=(), static=None, prefix="", counts=None, authority=None, skyfile=None, seen_from=None):
     """Everything the door needs, set once before it opens."""
-    global AUTHORITY, BENCH, FROM, MEMORY, PREFIX, RELEVE, SHELLS, SKY, STATIC, TALLY
+    global AUTHORITY, BENCH, FROM, MEMORY, PREFIX, RELEVE, SHELLS, SKY, STATIC, TALLY, VERIFIER
     AUTHORITY, FROM = authority, seen_from
     SKY = None
     if skyfile:
         SKY = json.loads(Path(skyfile).read_text(encoding="utf-8"))
         SKY["drawing"] = (Path(skyfile).parent / SKY["svg"]).read_text(encoding="utf-8")
+    VERIFIER = (ROOT / "receipt" / "verifier.html").read_bytes()
     RELEVE = shutil.which(os.environ.get("RELEVE", "releve")) or sys.exit("serve: releve not found; build it, or name it in RELEVE")
     MEMORY = "/dev/shm" if os.access("/dev/shm", os.W_OK) else None  # records pass through memory, not through a disk
     PREFIX = prefix.rstrip("/")

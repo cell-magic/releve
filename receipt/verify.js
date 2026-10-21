@@ -1,0 +1,269 @@
+// SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
+// SPDX-License-Identifier: EUPL-1.2
+// Browser and Node verifier for these receipts. Same arithmetic, hashing and
+// tokenizer as the Python reference beside it; held equal by
+// tests/service.py. No network, no storage: pages never leave the machine.
+
+// ---------- SHA-256 (synchronous) ----------
+const K256 = new Uint32Array([
+  0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,
+  0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+  0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,
+  0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+  0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,
+  0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2]);
+export function sha256(bytes) {
+  const l = bytes.length, bl = ((l + 9 + 63) >> 6) << 6, m = new Uint8Array(bl);
+  m.set(bytes); m[l] = 0x80;
+  const dv = new DataView(m.buffer); dv.setUint32(bl - 4, (l * 8) >>> 0); dv.setUint32(bl - 8, Math.floor(l / 0x20000000));
+  const H = new Uint32Array([0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19]);
+  const W = new Uint32Array(64);
+  const rotr = (x, n) => (x >>> n) | (x << (32 - n));
+  for (let o = 0; o < bl; o += 64) {
+    for (let i = 0; i < 16; i++) W[i] = dv.getUint32(o + i * 4);
+    for (let i = 16; i < 64; i++) {
+      const s0 = rotr(W[i-15],7) ^ rotr(W[i-15],18) ^ (W[i-15] >>> 3), s1 = rotr(W[i-2],17) ^ rotr(W[i-2],19) ^ (W[i-2] >>> 10);
+      W[i] = (W[i-16] + s0 + W[i-7] + s1) >>> 0;
+    }
+    let [a,b,c,d,e,f,g,h] = H;
+    for (let i = 0; i < 64; i++) {
+      const t1 = (h + (rotr(e,6) ^ rotr(e,11) ^ rotr(e,25)) + ((e & f) ^ (~e & g)) + K256[i] + W[i]) >>> 0;
+      const t2 = ((rotr(a,2) ^ rotr(a,13) ^ rotr(a,22)) + ((a & b) ^ (a & c) ^ (b & c))) >>> 0;
+      h = g; g = f; f = e; e = (d + t1) >>> 0; d = c; c = b; b = a; a = (t1 + t2) >>> 0;
+    }
+    H[0]+=a; H[1]+=b; H[2]+=c; H[3]+=d; H[4]+=e; H[5]+=f; H[6]+=g; H[7]+=h;
+  }
+  const out = new Uint8Array(32); const ov = new DataView(out.buffer);
+  for (let i = 0; i < 8; i++) ov.setUint32(i * 4, H[i]);
+  return out;
+}
+const enc = new TextEncoder();
+const hex = (b) => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
+
+// ---------- nouns ----------
+const isCell = (n) => Array.isArray(n);
+const cell = (h, t) => [h, t];
+function slot(axis, n) { const b = axis.toString(2); for (let i = 1; i < b.length; i++) n = b[i] === '1' ? n[1] : n[0]; return n; }
+function edit(axis, v, n) {
+  if (axis === 1) return v;
+  const parent = Math.floor(axis / 2), sub = slot(parent, n);
+  return edit(parent, axis % 2 ? [sub[0], v] : [v, sub[1]], n);
+}
+const peg = (a, b) => (b === 1 ? a : peg(a, Math.floor(b / 2)) * 2 + (b % 2));
+const listAxis = (i) => 2 ** (i + 2) - 2;
+function fromList(xs) { let o = 0n; for (let i = xs.length - 1; i >= 0; i--) o = [xs[i], o]; return o; }
+function toList(n) { const o = []; while (isCell(n)) { o.push(n[0]); n = n[1]; } return o; }
+function atomBytes(a) { const o = []; while (a > 0n) { o.push(Number(a & 0xffn)); a >>= 8n; } return o; }
+function cord(s) { let a = 0n; const b = enc.encode(s); for (let i = b.length - 1; i >= 0; i--) a = (a << 8n) | BigInt(b[i]); return a; }
+function uncord(a) { return new TextDecoder().decode(new Uint8Array(atomBytes(a))); }
+const s2a = (x) => (x >= 0n ? x << 1n : ((-x) << 1n) - 1n);
+const a2s = (a) => ((a & 1n) === 0n ? a >> 1n : -((a + 1n) >> 1n));
+function tag(name, ...f) { if (!f.length) return cord(name); let n = f[f.length - 1]; for (let i = f.length - 2; i >= 0; i--) n = [f[i], n]; return [cord(name), n]; }
+const memo = new WeakMap();
+function merkle(n) {
+  if (isCell(n)) {
+    const hit = memo.get(n); if (hit) return hit;
+    const buf = new Uint8Array(65); buf[0] = 1; buf.set(merkle(n[0]), 1); buf.set(merkle(n[1]), 33);
+    const d = sha256(buf); memo.set(n, d); return d;
+  }
+  const b = atomBytes(n), v = []; let k = b.length;
+  do { let x = k & 0x7f; k >>= 7; v.push(k ? x | 0x80 : x); } while (k);
+  return sha256(new Uint8Array([0, ...v, ...b]));
+}
+const mug = (n) => hex(merkle(n));
+
+// ---------- fixed point ----------
+const F = 32n, ONE = 1n << F;
+const fdiv = (a, b) => { const q = a / b; return (a % b !== 0n && ((a < 0n) !== (b < 0n))) ? q - 1n : q; };
+function q(num, den) { const n = BigInt(num) << F, d = BigInt(den); return n >= 0n ? (n + d / 2n) / d : -((-n + d / 2n) / d); }
+const mul = (a, b) => (a * b) >> F;
+const div = (a, b) => fdiv(a << F, b);
+const LN2 = (() => { const P = 2n * F + 8n; let acc = 0n, k = 1n, term = (1n << P) / 2n; while (term) { acc += term / k; k++; term >>= 1n; } return acc >> (P - F); })();
+function exp(x) {
+  if (x < -q(22, 1)) return 0n;
+  const k = fdiv(x, LN2), r = x - k * LN2, P = 2n * F, R = r << (P - F), one = 1n << P;
+  let term = one, acc = one, n = 1n;
+  while (term) { term = ((term * R) >> P) / n; acc += term; n++; }
+  const out = acc >> (P - F);
+  return k >= 0n ? out << k : out >> (-k);
+}
+function ln(x) {
+  const k = BigInt(x.toString(2).length) - 1n - F, m = k >= 0n ? x >> k : x << (-k);
+  const P = 2n * F, M = m << (P - F), one = 1n << P, t = ((M - one) << P) / (M + one), t2 = (t * t) >> P;
+  let acc = 0n, term = t, n = 1n;
+  while (term) { acc += term / n; term = (term * t2) >> P; n += 2n; }
+  return ((2n * acc) >> (P - F)) + k * LN2;
+}
+const sigmoid = (x) => (x >= 0n ? div(ONE, ONE + exp(-x)) : div(exp(x), ONE + exp(x)));
+
+// ---------- signature ----------
+const FEATURES = [[['header'],1,1],[['nav'],1,1],[['main'],1,1],[['aside'],1,1],[['footer'],1,1],[['form'],1,1],
+  [['input','select','textarea'],1,2],[['table'],1,1],[['video','audio','iframe'],1,1],[['h1'],1,2],[['h2'],1,4],[['h3'],1,4],
+  [['img'],1,4],[['p'],1,8],[['li'],1,8],[['a'],1,8]];
+const VOID = new Set(['input','img','br','hr','meta','link','source','area','base','col','embed','wbr','track','param']);
+function counts(s) {
+  const tags = new Map(); let depth = 0, maxDepth = 0, cdata = null, i = 0; const n = s.length;
+  const start = (nm) => { tags.set(nm, (tags.get(nm) || 0) + 1); if (!VOID.has(nm)) { depth++; maxDepth = Math.max(maxDepth, depth); } };
+  const end = (nm) => { if (!VOID.has(nm)) depth = Math.max(0, depth - 1); };
+  const sep = (c) => c === '\t' || c === '\n' || c === '\r' || c === '\f' || c === ' ';
+  while (i < n) {
+    if (cdata) { const p = s.toLowerCase().indexOf('</' + cdata, i); if (p < 0) break; i = p; cdata = null; }
+    const lt = s.indexOf('<', i); if (lt < 0) break; i = lt;
+    const nx = s[i + 1] || '';
+    if (/[A-Za-z]/.test(nx)) {
+      let j = i + 1; while (j < n && !(sep(s[j]) || s[j] === '/' || s[j] === '>' || s[j] === '\0')) j++;
+      const name = s.slice(i + 1, j).toLowerCase();
+      let k = j, quote = '';
+      while (k < n) { const ch = s[k]; if (quote) { if (ch === quote) quote = ''; } else if (ch === '"' || ch === "'") quote = ch; else if (ch === '>') break; k++; }
+      if (k >= n) break;
+      const selfClosing = s.slice(j, k).trimEnd().endsWith('/');
+      start(name);
+      if (selfClosing) end(name); else if (name === 'script' || name === 'style') cdata = name;
+      i = k + 1;
+    } else if (nx === '/') {
+      let j = i + 2; while (j < n && !(sep(s[j]) || s[j] === '>')) j++;
+      const name = s.slice(i + 2, j).toLowerCase(), gt = s.indexOf('>', j); if (gt < 0) break;
+      if (name) end(name); i = gt + 1;
+    } else if (s.startsWith('<!--', i)) { const p = s.indexOf('-->', i + 4); if (p < 0) break; i = p + 3; }
+    else if (nx === '!' || nx === '?') { const p = s.indexOf('>', i); if (p < 0) break; i = p + 1; }
+    else i++;
+  }
+  return { tags, maxDepth };
+}
+const log2_1p = (n) => div(ln(q(1 + n, 1)), LN2);
+export function signature(html) {
+  const c = counts(html);
+  const out = FEATURES.map(([ts, wn, wd]) => mul(q(wn, wd), log2_1p(ts.reduce((s, t) => s + (c.tags.get(t) || 0), 0))));
+  out.push(mul(q(1, 8), log2_1p(c.maxDepth)));
+  return out;
+}
+export function pageRef(url) { const d = sha256(enc.encode(url)); let a = 0n; for (let i = 0; i < 16; i++) a = (a << 8n) | BigInt(d[i]); return a; }
+export function contentDigest(html) { const d = sha256(enc.encode(html)); let a = 0n; for (let i = 0; i < 16; i++) a = (a << 8n) | BigInt(d[i]); return a; }
+// [%page [ref [digest sig]]]; dg (hex) is given when html is a skeleton of the page
+const event = (url, html, dg) => tag('page', pageRef(url), dg ? BigInt('0x' + dg) : contentDigest(html), fromList(signature(html).map(s2a)));
+
+// ---------- runtime ----------
+const h = (...parts) => hex(sha256(enc.encode(parts.join('|'))));
+
+// ---------- page selector: two-pass k-center (protocol surface-core/select-1, identical to kcenter.py) ----------
+export const KC_PROTOCOL = 'surface-core/select-1';
+const KC_STOP = ['stop radius reached', 'budget spent', 'every page picked'];
+const kcConfig = (budget, stop) => fromList([s2a(BigInt(budget)), s2a(stop)]);
+const d2 = (a, b) => { let s = 0n; for (let i = 0; i < a.length; i++) { const d = a[i] - b[i]; s += mul(d, d); } return s; };
+function kcSelect(sigs, budget, stop) {
+  const n = sigs.length; if (!n || budget <= 0n) return [[], 0n, 1];
+  const picks = [0], d = sigs.map((s) => d2(s, sigs[0]));
+  for (;;) {
+    let i = 0; for (let j = 1; j < n; j++) if (d[j] > d[i]) i = j;
+    const r2 = d[i];
+    if (r2 <= stop) return [picks, r2, 0];
+    if (BigInt(picks.length) >= budget) return [picks, r2, 1];
+    if (r2 === 0n) return [picks, 0n, 2];
+    picks.push(i);
+    for (let j = 0; j < n; j++) { const dj = d2(sigs[j], sigs[i]); if (dj < d[j]) d[j] = dj; }
+  }
+}
+function isqrt(x) { if (x < 2n) return x; let r = 1n << BigInt(Math.ceil((x.toString(2).length + 1) / 2)); for (;;) { const y = (r + x / r) >> 1n; if (y >= r) return r; r = y; } }
+export function radiusText(r2) { const micro = (isqrt(r2 << F) * 1000000n) >> F; return `${micro / 1000000n}.${(micro % 1000000n).toString().padStart(6, '0')}`; }
+/** Collect every signature, then farthest-first selection. Returns { config, head, state, sample, coverage }. */
+export function sample(pages, budget = 40) {
+  const stop = q(1, 4), cfg = kcConfig(budget, stop);
+  let state = [0n, 0n], head = h('genesis', KC_PROTOCOL, mug(cfg), mug(state));
+  const evs = pages.map(([u, html, dg]) => event(u, html, dg));
+  for (const ev of evs) { state = [state[0] + 1n, 0n]; head = h(head, mug(ev), mug(state)); }
+  const sel = tag('select', fromList(evs.map((e) => e[1])));
+  const sigs = evs.map((e) => toList(e[1][1][1]).map(a2s));
+  const [picks, r2, st] = kcSelect(sigs, BigInt(budget), stop);
+  state = [state[0], [BigInt(picks.length), [s2a(r2), fromList(picks.map(BigInt))]]];
+  head = h(head, mug(sel), mug(state));
+  const coverage = { method: 'k-center greedy, farthest-first traversal from the first page (Gonzalez 1985)', picks: picks.length,
+    radius: radiusText(r2), stop: KC_STOP[st], stop_radius: radiusText(stop), optimal_radius_interval: [radiusText(r2 / 4n), radiusText(r2)] };
+  return { config: mug(cfg), head, state: mug(state), sample: picks.map((i) => pages[i][0]), coverage };
+}
+
+/** Replays pages against a receipt; the budget is read from the receipt. */
+export function verifyReceipt(pages, receipt) {
+  if (receipt.engine !== KC_PROTOCOL) return false;
+  const r = sample(pages, receipt.budget ?? 40);
+  return r.config === receipt.config && r.head === receipt.head && r.state === receipt.state;
+}
+
+// ---------- report bundle (WACZ): read, check hashes and signature, extract pages ----------
+const dec = new TextDecoder();
+function unzipStored(buf) {
+  // central directory: entries are STORED (the bundle writer never compresses)
+  const u8 = new Uint8Array(buf), dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+  let e = u8.length - 22; while (e >= 0 && dv.getUint32(e, true) !== 0x06054b50) e--;
+  if (e < 0) throw new Error('not a zip file');
+  const n = dv.getUint16(e + 10, true); let p = dv.getUint32(e + 16, true); const files = {};
+  for (let i = 0; i < n; i++) {
+    if (dv.getUint32(p, true) !== 0x02014b50) throw new Error('damaged zip directory');
+    const method = dv.getUint16(p + 10, true), size = dv.getUint32(p + 20, true);
+    const nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true);
+    const off = dv.getUint32(p + 42, true), name = dec.decode(u8.subarray(p + 46, p + 46 + nl));
+    if (method !== 0) throw new Error('compressed entry: ' + name);
+    const lnl = dv.getUint16(off + 26, true), lxl = dv.getUint16(off + 28, true);
+    files[name] = u8.subarray(off + 30 + lnl + lxl, off + 30 + lnl + lxl + size);
+    p += 46 + nl + xl + cl;
+  }
+  return files;
+}
+async function gunzip(u8) {
+  // one gzip member, read through DecompressionStream without Response/fetch machinery
+  const ds = new DecompressionStream('gzip'), w = ds.writable.getWriter(), r = ds.readable.getReader();
+  w.write(u8); w.close();
+  const parts = []; let n = 0;
+  for (;;) { const { done, value } = await r.read(); if (done) break; parts.push(value); n += value.length; }
+  const out = new Uint8Array(n); let o = 0; for (const p of parts) { out.set(p, o); o += p.length; }
+  return out;
+}
+function warcRecords(u8) {
+  const recs = []; let i = 0;
+  while (i < u8.length) {
+    let j = i; while (!(u8[j] === 13 && u8[j + 1] === 10 && u8[j + 2] === 13 && u8[j + 3] === 10)) j++;
+    const lines = dec.decode(u8.subarray(i, j)).split('\r\n'); const f = {};
+    for (const l of lines.slice(1)) { const k = l.indexOf(': '); f[l.slice(0, k)] = l.slice(k + 2); }
+    const len = parseInt(f['Content-Length'], 10);
+    recs.push([f, u8.subarray(j + 4, j + 4 + len)]); i = j + 4 + len + 4;
+  }
+  return recs;
+}
+function derToRaw(der) {
+  // ECDSA DER SEQUENCE{INTEGER r, INTEGER s} -> 64-byte r||s for WebCrypto
+  let p = 2; if (der[1] & 0x80) p = 2 + (der[1] & 0x7f);
+  const int = () => { const l = der[p + 1]; let v = der.subarray(p + 2, p + 2 + l); p += 2 + l; while (v.length > 32 && v[0] === 0) v = v.subarray(1); const o = new Uint8Array(32); o.set(v, 32 - v.length); return o; };
+  const r = int(), s_ = int(), out = new Uint8Array(64); out.set(r); out.set(s_, 32); return out;
+}
+const b64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+const shaHex = (u8) => 'sha256:' + hex(sha256(u8));
+/** Reads a .wacz bundle. Returns { pages, content, conditions, integrity, signature, key, problems }. */
+export async function readBundle(buf) {
+  const problems = []; let files;
+  try { files = unzipStored(buf); } catch (e) { return { pages: [], content: {}, conditions: {}, integrity: false, signature: false, key: null, problems: ['the bundle cannot be read: ' + e.message] }; }
+  const dpBytes = files['datapackage.json'], dp = JSON.parse(dec.decode(dpBytes)), dg = JSON.parse(dec.decode(files['datapackage-digest.json']));
+  let integrity = dp.resources.every((r) => files[r.path] && shaHex(files[r.path]) === r.hash) && dg.hash === shaHex(dpBytes);
+  if (!integrity) problems.push('a file differs from the hash listed for it');
+  let signature = false, key = null;
+  try {
+    const sd = dg.signedData, spki = b64(sd.publicKey);
+    const k = await crypto.subtle.importKey('spki', spki, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']);
+    signature = sd.hash === dg.hash && await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, k, derToRaw(b64(sd.signature)), enc.encode(sd.hash));
+    key = hex(sha256(spki)).slice(0, 16);
+  } catch (e) { signature = false; }
+  if (!signature) problems.push('the signature does not match the bundle');
+  if (!integrity) return { pages: [], content: {}, conditions: {}, integrity, signature, key, problems };
+  // each record is its own gzip member; the CDXJ index gives offset and length
+  const warcgz = files['archive/data.warc.gz'], recs = [];
+  for (const line of dec.decode(files['indexes/index.cdxj']).split('\n').filter((l) => l.trim())) {
+    const j = JSON.parse(line.slice(line.indexOf('{'))), off = +j.offset, len = +j.length;
+    recs.push(...warcRecords(await gunzip(warcgz.subarray(off, off + len))));
+  }
+  const byUrl = new Map(recs.filter(([f]) => f['WARC-Type'] === 'resource').map(([f, b]) => [f['WARC-Target-URI'], [f, b]]));
+  const order = dec.decode(files['pages/pages.jsonl']).split('\n').slice(1).filter((l) => l.trim()).map((l) => JSON.parse(l));
+  if (order.some((p) => !byUrl.has(p.url))) throw new Error('a page listed in the bundle has no record');
+  const pages = order.map((p) => { const [f, b] = byUrl.get(p.url); const html = dec.decode(b);
+    return f['Surface-Core-Content'] === 'full' ? [p.url, html] : [p.url, html, f['Surface-Core-Source-Digest']]; });
+  const content = Object.fromEntries(order.map((p) => [p.url, byUrl.get(p.url)[0]['Surface-Core-Content']]));
+  const conditions = files['conditions.json'] ? JSON.parse(dec.decode(files['conditions.json'])) : {};
+  return { pages, content, conditions, integrity, signature, key, problems };
+}

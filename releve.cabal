@@ -1,6 +1,6 @@
 cabal-version:      2.4
 name:               releve
-version:            0.9.7
+version:            0.10.0
 synopsis:           Judge observed web pages; keep every reading.
 description:
   The judging half of relevé. Reads observations of rendered web pages,

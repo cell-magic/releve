@@ -11,6 +11,7 @@ from urllib.request import Request, urlopen
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "serve"))
 import serve  # noqa: E402
 from authority import authority  # noqa: E402
+from receipt import bundle, sampler  # noqa: E402
 
 PAGE = "<!doctype html><html lang=en><title>{0}</title><main><h1>{0}</h1><p>Words of the page.</p><img src=/x.png></main></html>"
 hits, checks, shelf = [], [], {}  # requests seen; results; pages put up to be read
@@ -67,12 +68,38 @@ def asked(*urls):
                                     if not re.match(r"- \*\*REVIEW\*\* (review-[\w-]+|lang-code) · (page|\d+ pages( \([^)]*\))?) · ", l)]
 
 
+def served(text):
+    """The files a report hands over with the page as served: receipt, bundle, verifier."""
+    return {k: base64.b64decode(v) for k, v in
+            re.findall(r'<a download="[^"]*?(\.receipt\.json|\.wacz|verifier\.html)" href="data:[^;]+;base64,([^"]+)"', text)}
+
+
+def verified(verifier, receipt, wacz):
+    """What the verifier says, opened from its file in Chromium, of a receipt and a bundle; and what it asked of the network."""
+    from playwright.sync_api import sync_playwright
+    d = Path(tempfile.mkdtemp())
+    for name, data in (("verifier.html", verifier), ("receipt.json", json.dumps(receipt).encode()), ("bundle.wacz", wacz)):
+        (d / name).write_bytes(data)
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch()
+        page, asked = browser.new_page(), []
+        page.on("request", lambda r: asked.append(r.url))
+        page.goto((d / "verifier.html").as_uri())
+        page.set_input_files("#receipt", str(d / "receipt.json"))
+        page.set_input_files("#bundle", str(d / "bundle.wacz"))
+        page.click("#go")
+        page.wait_for_function("!document.getElementById('go').disabled")
+        said = page.inner_text("#result")
+        browser.close()
+    return said, [u for u in asked if not u.startswith("file:")]
+
+
 def kept(text):
     return base64.b64decode(re.search(r'href="data:application/gzip;base64,([^"]+)"', text).group(1))
 
 
 open_, closed = site("User-agent: *\nDisallow: /private/\n"), site("User-agent: *\nDisallow: /\n")
-serve.PAUSE = 1
+serve.PAUSE = 3  # longer than one answer takes, so that a second ask meets the pause
 here = sorted(os.listdir("."))
 counts = Path(tempfile.mkdtemp()) / "counts.json"
 counts.write_text(json.dumps({"2026-W01": {"reports": 12, "following": 3, "languages": {"en": 7, "fr": 5}, "regions": {"Europe": 9, "Asia": 2, "unknown": 1}}}))
@@ -104,6 +131,25 @@ threading.Event().wait(serve.PAUSE + 0.2)
 code, heads, text = ask(door, f"http://localhost:{open_}/one", "en", record, accept="en-GB,en;q=0.9")
 check("reads a record handed back, and says what stands", "Since " in text and re.search(r"\b\d+ unchanged\.", text) is not None)
 check("hands the record back longer by one observation", len(gzip.decompress(kept(text)).splitlines()) == 2)
+
+# With each report, the page as the robot was served it: whole, in a bundle signed when it was made, with the
+# receipt that replays it and the verifier that checks both offline. The record keeps the receipt's head.
+given, again = served(first), served(text)
+receipt = json.loads(given.get(".receipt.json", b"{}"))
+wacz, url = given.get(".wacz", b""), f"http://localhost:{open_}/one"
+held = bundle.read(wacz) if wacz else {}
+check("hands over the page as served, whole in a signed bundle, with its receipt and the verifier",
+      set(given) == {".receipt.json", ".wacz", "verifier.html"} and bundle.verify(wacz, receipt)["ok"]
+      and held["content"] == {url: "full"} and "Words of the page." in held["pages"][0][1]
+      and given["verifier.html"] == (Path(serve.ROOT) / "receipt" / "verifier.html").read_bytes())
+check("writes the receipt's head into the record it dates", f'"receipt":"{receipt.get("head")}"' in gzip.decompress(record).decode("utf-8"))
+check("gives the same receipt for the same page served the same way", json.loads(again[".receipt.json"])["head"] == receipt["head"])
+check("a receipt does not replay on a page altered after it was served",
+      sampler.verify(held["pages"], receipt) and not sampler.verify([(url, held["pages"][0][1].replace("Words of the page", "Words of another"))], receipt))
+said, network = verified(given["verifier.html"], receipt, wacz)
+forged_said, _ = verified(given["verifier.html"], {**receipt, "head": "0" * 64}, wacz)
+check("the verifier, opened from its file, holds the receipt and the bundle, refuses a forged receipt, and asks nothing of the network",
+      said.startswith("Valid") and forged_said.startswith("Invalid") and not network)
 
 forged = gzip.compress(gzip.decompress(record).replace(b"Words of the page", b"Words of another"))
 # About a megabyte that opens into a gigabyte: refused before it fills the memory it passes through.

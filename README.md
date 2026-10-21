@@ -214,6 +214,15 @@ without script.
   as a small file. Handed back with the next request, it lets the report
   say what was mended, what is new and what stands. The record is the
   sealed corpus: one whose seals do not hold is refused.
+- **The page goes back as it was served.** With each report comes the
+  page the robot was served, whole, in a bundle (WACZ) signed when it was
+  made; the receipt that replays it; and the verifier, one HTML file that
+  checks both in a browser, offline, asking nothing of the network. The
+  receipt is a SHA-256 chain over the page's address, its content and its
+  structure: an edited page no longer replays. The record keeps the
+  receipt's head, so the date of the record is the date of the page.
+  The page itself is kept nowhere. From the command line:
+  `python -m receipt verify page.receipt.json page.wacz`.
 - **It goes where a visitor could, and nowhere else.** Only public
   addresses on the web's own ports are requested, by the page or by
   anything the page loads. `robots.txt` is obeyed, and no mandate can be
@@ -488,7 +497,8 @@ configuration, and `tests/conduct.py` checks each of them:
   block of the page says is weighed, in words and in bits, and not kept.
 
 It keeps only what judgement needs: text excerpts of at most 80
-characters, and screenshots only when asked, stored locally. A corpus
+characters, and screenshots only when asked, stored locally. The service
+hands the page itself to whoever asked, and keeps none of it. A corpus
 still holds fragments of the pages observed; treat it as their data, not
 yours.
 

@@ -145,6 +145,7 @@ data Observation = Observation
   , requested :: Maybe Text  -- ^ the address asked for, which a redirect may have left behind
   , browser :: Maybe Text    -- ^ what rendered the page: rendering is part of the reading
   , from :: Maybe Text       -- ^ the country the page was seen from, as two letters: a site may answer by country
+  , receipt :: Maybe Text    -- ^ the head of the receipt of the page as served, handed to whoever asked: since 0.10
   } deriving (Show, Generic, FromJSON)
 
 instance ToJSON Observation where

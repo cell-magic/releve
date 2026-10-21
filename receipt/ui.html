@@ -1,0 +1,135 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr> -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verify a receipt</title>
+<style>
+  :root { --ink:#141414; --muted:#5a5a5a; --line:#d6d6d6; --bg:#ffffff; --ok:#1d5e2e; --bad:#9b1c1c; --focus:#1f4e8c; }
+  @media (prefers-color-scheme: dark) { :root { --ink:#ececec; --muted:#a8a8a8; --line:#3a3a3a; --bg:#121212; --ok:#7fd18f; --bad:#ff8a8a; --focus:#8db4ff; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 "Atkinson Hyperlegible Next", system-ui, sans-serif; }
+  main { max-width:640px; margin:0 auto; padding:48px 16px 64px; }
+  h1 { font-size:1.6rem; font-weight:600; margin:0 0 8px; }
+  p.lede { color:var(--muted); margin:0 0 32px; }
+  .field { margin:0 0 20px; }
+  label { display:block; font-weight:600; margin:0 0 6px; }
+  .hint { display:block; color:var(--muted); font-size:.9rem; margin:0 0 6px; }
+  input[type=file] { font:inherit; color:inherit; background:transparent; border:1px solid var(--line); padding:8px; width:100%; }
+  button { font:inherit; font-weight:600; color:var(--bg); background:var(--ink); border:0; padding:10px 20px; cursor:pointer; }
+  button:disabled { opacity:.5; cursor:default; }
+  :focus-visible { outline:3px solid var(--focus); outline-offset:2px; }
+  #result { margin-top:32px; border-top:1px solid var(--line); padding-top:20px; min-height:4rem; }
+  .verdict { font-size:1.3rem; font-weight:600; }
+  .ok { color:var(--ok); } .bad { color:var(--bad); }
+  dl { display:grid; grid-template-columns:max-content 1fr; gap:4px 16px; margin:12px 0 0; font-size:.95rem; }
+  dt { color:var(--muted); } dd { margin:0; overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+  .check { display:flex; gap:10px; align-items:center; } .check label { display:inline; font-weight:400; margin:0; }
+  .check input { width:1.1rem; height:1.1rem; margin:0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Verify a receipt</h1>
+  <p class="lede">Checks the bundle delivered with a report and replays its receipt on the pages it holds. Everything runs in this browser, from this one file; nothing is sent anywhere.</p>
+
+  <form id="f">
+    <div class="field">
+      <label for="receipt">Receipt</label>
+      <span class="hint" id="receipt-hint">receipt.json, delivered with the report.</span>
+      <input type="file" id="receipt" accept=".json,application/json" aria-describedby="receipt-hint" required>
+    </div>
+    <div class="field">
+      <label for="bundle">Bundle</label>
+      <span class="hint" id="bundle-hint">The .wacz file delivered with the report.</span>
+      <input type="file" id="bundle" accept=".wacz" aria-describedby="bundle-hint">
+    </div>
+    <div class="field">
+      <label for="pages">Or a folder of pages</label>
+      <span class="hint" id="pages-hint">Saved pages with manifest.txt listing them in crawl order, when there is no bundle.</span>
+      <input type="file" id="pages" webkitdirectory multiple aria-describedby="pages-hint">
+    </div>
+    <button type="submit" id="go">Verify</button>
+  </form>
+
+  <section id="result" aria-live="polite"></section>
+</main>
+<script type="module">
+/*__VERIFY_JS__*/
+const $ = (id) => document.getElementById(id);
+const out = $('result');
+function show(ok, rows, notes, withBundle = true) {
+  out.innerHTML = '';
+  const v = document.createElement('div'); v.className = 'verdict ' + (ok ? 'ok' : 'bad');
+  v.textContent = ok ? (withBundle ? 'Valid — the bundle is intact and the receipt replays exactly.' : 'Valid — the receipt replays exactly.') : 'Invalid — see below.';
+  out.append(v);
+  for (const n of notes) { const p = document.createElement('p'); p.textContent = n; out.append(p); }
+  const dl = document.createElement('dl');
+  for (const [k, val] of rows) { const dt = document.createElement('dt'); dt.textContent = k; const dd = document.createElement('dd'); dd.textContent = val; dl.append(dt, dd); }
+  out.append(dl);
+}
+async function folderPages() {
+  const files = new Map([...$('pages').files].map((f) => [f.name, f]));
+  const man = files.get('manifest.txt'); if (!man) throw new Error('manifest.txt not found in the folder.');
+  const pages = [];
+  for (const l of (await man.text()).split('\n').filter(Boolean)) {
+    const [url, path] = l.split('\t'); const name = path.split(/[\\/]/).pop();
+    const f = files.get(name); if (!f) throw new Error('Missing page file: ' + name);
+    pages.push([url, await f.text()]);
+  }
+  return pages;
+}
+$('f').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  $('go').disabled = true; out.textContent = 'Checking…';
+  try {
+    const receipt = JSON.parse(await $('receipt').files[0].text());
+    const notes = [], rows = [];
+    let pages, bundle = null, ok = true;
+    if ($('bundle').files[0]) {
+      bundle = await readBundle(await $('bundle').files[0].arrayBuffer());
+      notes.push(...bundle.problems);
+      if (!bundle.integrity) {
+        show(false, [['Bundle', 'ALTERED: its contents no longer match the hashes it lists'], ['Receipt head', receipt.head]], notes);
+        $('go').disabled = false; return;
+      }
+      pages = bundle.pages; ok = bundle.integrity && bundle.signature;
+      const missing = (receipt.sample || []).filter((u) => bundle.content[u] !== 'full');
+      if (missing.length) { ok = false; notes.push('A picked page is not held in full in the bundle.'); }
+    } else if ($('pages').files.length) { pages = await folderPages(); }
+    else throw new Error('Choose the bundle, or a folder of pages.');
+    await new Promise((r) => setTimeout(r, 20));
+    const budget = receipt.budget ?? 40;
+    const r = receipt.engine !== KC_PROTOCOL ? null : sample(pages, budget);
+    const replays = !!r && r.config === receipt.config && r.head === receipt.head && r.state === receipt.state;
+    if (!r) notes.push('This receipt was not issued by this selector (' + receipt.engine + ').');
+    else if (!replays) notes.push(r.config !== receipt.config ? 'The configuration differs from the receipt.' : 'The pages or their order differ from those the receipt was issued for.');
+    if (replays && r.coverage) {
+      const rc = receipt.coverage || {};
+      if (rc.radius !== r.coverage.radius || JSON.stringify(rc.optimal_radius_interval) !== JSON.stringify(r.coverage.optimal_radius_interval)) {
+        ok = false; notes.push('The chain replays, but the coverage printed on the receipt differs from the replayed one.');
+      }
+    }
+    ok = ok && replays;
+    rows.push(['Pages', String(pages.length)]);
+    if (bundle) {
+      const full = Object.values(bundle.content).filter((c) => c === 'full').length;
+      rows.push(['Bundle', (bundle.integrity ? 'intact' : 'ALTERED') + '; signature ' + (bundle.signature ? 'valid' : 'INVALID') + (bundle.key ? ' (key ' + bundle.key + ')' : '')],
+        ['Held in full', full + ' pages (the picks); ' + (pages.length - full) + ' as tag skeletons']);
+      const c = bundle.conditions; if (c && Object.keys(c).length) rows.push(['Capture conditions', Object.entries(c).map(([k, v]) => k + ': ' + v).join('; ')]);
+    }
+    if (r && replays) rows.push(['Picked', String(r.sample.length)],
+      ['Coverage radius', r.coverage.radius + ' (' + r.coverage.stop + ')'],
+      ['Best possible radius', 'between ' + r.coverage.optimal_radius_interval[0] + ' and ' + r.coverage.optimal_radius_interval[1]],
+      ['Method', r.coverage.method]);
+    rows.push(['Receipt head', receipt.head], ['Replayed head', r ? r.head : '—']);
+    if (bundle) notes.push('The bundle signature shows the bundle is unchanged since it was made. When the page was seen is said by the record delivered with it, dated by an outside authority.');
+    show(ok, rows, notes, !!bundle);
+  } catch (err) { out.textContent = 'Could not verify: ' + err.message; }
+  $('go').disabled = false;
+});
+</script>
+</body>
+</html>

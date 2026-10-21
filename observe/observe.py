@@ -256,9 +256,10 @@ def walk(page, unsettled=False):
 
 
 def observe(browser, url, agent, shots, closed, shut=None):
-    """One page, rendered and recorded. `closed` says why the page may not go to an address;
-    `shut`, when given, says why nothing at all may be requested from one, and every request
-    the page makes is put to it."""
+    """One page, rendered and recorded: its observation, and its HTML as the browser holds it once loaded,
+    before anything is measured. The HTML is not part of the observation; it goes to whoever asked, never
+    into a record. `closed` says why the page may not go to an address; `shut`, when given, says why
+    nothing at all may be requested from one, and every request the page makes is put to it."""
     ctx = browser.new_context(viewport=DESKTOP, user_agent=f"Mozilla/5.0 (compatible; {agent})",
                               accept_downloads=False, service_workers="block")
     try:
@@ -353,6 +354,7 @@ def observe(browser, url, agent, shots, closed, shut=None):
                 said = next((o for o in ORIGINS if o.encode("utf-8") in raw), None) or (b"tEXtparameters\x00" in raw and "Stable Diffusion") or None
                 origins[r["url"]] = (said, b"c2pa" in raw and (b"jumb" in raw or b"jumd" in raw))
 
+        html = page.content()
         data = page.evaluate(EXTRACT, {"limit": LIMIT, "phrases": DISCLOSURE})
         # A page that cannot be pictured in time, waiting on a font that never arrives or drawing no new
         # frame, is recorded without its picture, and the keyboard walk does not look at the focus.
@@ -431,7 +433,7 @@ def observe(browser, url, agent, shots, closed, shut=None):
         "network": {"requests": len(fetched), "transfer": sum(f["bytes"] for f in fetched),
                     "thirdParties": sorted(thirds), "resources": fetched},
         "surfaces": data["surfaces"] + widgets, "events": data["events"], "shot": digest,
-    }
+    }, html
 
 
 def main():
@@ -479,7 +481,7 @@ def main():
             wait = max(PAUSE, rules[origin].crawl_delay(AGENT) or 0)
             time.sleep(max(0, wait - (time.monotonic() - last.get(site, -1e9))))
             try:  # the mandate covers the site it was given for, wherever on that site the page leads
-                record = observe(browser, url, agent, args.shots,
+                record, _ = observe(browser, url, agent, args.shots,
                                  lambda to: refusal(to, args.mandate and (place(to) or (None, None))[1] == site))
             except Refused as r:
                 leave(url, str(r))
