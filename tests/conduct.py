@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: EUPL-1.2
 """The observer's conduct, checked against local sites that say no in every
 way a robot must hear; and its measure, against a page whose weight is known.
-Needs Python, Playwright and Chromium; no network."""
-import base64, json, subprocess, sys, threading
+Needs Python, Playwright and Chromium, and on Linux openssl and certutil; no network."""
+import base64, json, os, ssl, subprocess, sys, tempfile, threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from time import monotonic, sleep
@@ -113,9 +113,9 @@ def site(robots):
     return f"http://127.0.0.1:{s.server_port}", s.server_port
 
 
-def observe(*urls, mandate=None):
+def observe(*urls, mandate=None, env=None):
     cmd = [sys.executable, str(OBSERVE), *urls, "--contact", CONTACT] + (["--mandate", mandate] if mandate else [])
-    r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=300)
+    r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=300, env=env)
     return [json.loads(l) for l in r.stdout.splitlines() if l.strip()], r.stderr, r.returncode
 
 
@@ -203,6 +203,63 @@ check("observes a page that cannot be pictured in time, without its picture, and
 out, err, code = observe(f"{open_}/sans")
 check("reads a refusal worded as closing without accepting", len(out) == 1
       and [c[0] for c in out[0]["page"]["consent"]["choices"]] == ["reject", "accept"])
+
+def signed(dir, authorities):
+    """A root of the tests' own, an authority under it for each name, a certificate for 127.0.0.1 under each,
+    and a site served under each over TLS; and an environment in which the robot trusts that root alone:
+    robots.txt is read through OpenSSL (SSL_CERT_FILE), pages through Chromium's NSS store under HOME."""
+    (dir / "x.cnf").write_text("[req]\ndistinguished_name=dn\n[dn]\n[ca]\nbasicConstraints=critical,CA:true\n"
+                               "keyUsage=critical,keyCertSign\n[leaf]\nbasicConstraints=critical,CA:false\n"
+                               "extendedKeyUsage=serverAuth\nsubjectAltName=IP:127.0.0.1\n")
+    sh = lambda *a: subprocess.run(["openssl", *a], cwd=dir, capture_output=True, check=True)
+    key = lambda who: ("-newkey", "ec", "-pkeyopt", "ec_paramgen_curve:P-256", "-nodes", "-keyout", f"{who}.key", "-config", "x.cnf")
+    sh("req", "-x509", *key("root"), "-out", "root.crt", "-subj", "/CN=releve tests root", "-days", "2", "-extensions", "ca")
+    origins = []
+
+    class Signed(BaseHTTPRequestHandler):
+        def do_GET(self):
+            kind, body = (("text/plain", b"User-agent: *\nAllow: /\n") if self.path == "/robots.txt" else ("image/png", PIXEL)
+                          if self.path.endswith(".png") else ("text/html", PAGE.format("Signed", f"<img alt=mark src='{origins[0]}/mark.png'>"
+                                                                                    if self.path == "/marked" else "Signed").encode()))
+            self.send_response(200)
+            self.send_header("Content-Type", kind)
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, *_):
+            pass
+
+    for i, name in enumerate(authorities):
+        for who, over, subject, ext in ((f"ca{i}", "root", f"/CN={name}", "ca"), (f"leaf{i}", f"ca{i}", "/CN=127.0.0.1", "leaf")):
+            sh("req", *key(who), "-out", f"{who}.csr", "-subj", subject)
+            sh("x509", "-req", "-in", f"{who}.csr", "-CA", f"{over}.crt", "-CAkey", f"{over}.key", "-CAcreateserial",
+               "-days", "2", "-out", f"{who}.crt", "-extfile", "x.cnf", "-extensions", ext)
+        (dir / f"chain{i}.pem").write_bytes((dir / f"leaf{i}.crt").read_bytes() + (dir / f"ca{i}.crt").read_bytes())
+        s = ThreadingHTTPServer(("127.0.0.1", 0), Signed)
+        tls = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        tls.load_cert_chain(dir / f"chain{i}.pem", dir / f"leaf{i}.key")
+        s.socket = tls.wrap_socket(s.socket, server_side=True)
+        threading.Thread(target=s.serve_forever, daemon=True).start()
+        origins.append(f"https://127.0.0.1:{s.server_port}")
+    (dir / ".pki" / "nssdb").mkdir(parents=True)
+    subprocess.run(["certutil", "-N", "-d", f"sql:{dir}/.pki/nssdb", "--empty-password"], check=True)
+    subprocess.run(["certutil", "-A", "-d", f"sql:{dir}/.pki/nssdb", "-n", "root", "-t", "C,,", "-i", dir / "root.crt"], check=True)
+    browsers = os.environ.get("PLAYWRIGHT_BROWSERS_PATH") or str(Path.home() / ".cache" / "ms-playwright")
+    return origins, dict(os.environ, HOME=str(dir), SSL_CERT_FILE=str(dir / "root.crt"), PLAYWRIGHT_BROWSERS_PATH=browsers)
+
+
+# A browser is told whom to trust in its own way on each system; on Linux, by a file the tests can write.
+if sys.platform == "linux":
+    (forged, plain), env = signed(Path(tempfile.mkdtemp()), ["EM DV TLS CA - G3B", "releve tests CA"])
+    out, err, code = observe(f"{plain}/", env=env)
+    check("observes a page whose certificate an ordinary authority signed", len(out) == 1 and code == 0)
+    out, err, code = observe(f"{forged}/", env=env)
+    check("refuses a page whose certificate an authority with a published key signed, and names it",
+          not out and code == 3 and "signed by EM DV TLS CA - G3B, an eMudhra authority" in err)
+    out, err, code = observe(f"{plain}/marked", env=env)
+    check("refuses a page that loads anything such an authority signed", not out and code == 3 and f"{forged}/mark.png" in err)
+else:
+    print("skip  certificates under an authority with a published key: the tests can name a root to Chromium on Linux only")
 
 check("submits nothing", not posts)
 sys.exit(0 if all(checks) else 1)

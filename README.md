@@ -258,7 +258,7 @@ A service in Switzerland sees what a visitor there sees.
 ```sh
 python tests/run.py            # the kernel against recorded pages: no browser, no network
 python tests/run.py --record [PAGE ...]   # re-record the test pages, or those named, after changing the observer
-python tests/conduct.py        # the observer against local sites that say no
+python tests/conduct.py        # the observer against local sites that say no (on Linux, also openssl and certutil)
 python tests/service.py        # the service against local sites: a report out, nothing left behind
 ```
 
@@ -457,6 +457,11 @@ configuration, and `tests/conduct.py` checks each of them:
   its content, is left alone at once: no retry, no workaround. When the
   answer is the site pushing back (429, 503, a challenge), the whole site
   is left alone for the rest of the run.
+- A page whose address, a redirect on the way or anything it loads is
+  served under an authority whose signing key is public (the eight eMudhra
+  intermediates, October 2026) is left alone, with the site: what such an
+  address serves cannot be told from a forgery. The reason names the
+  authority.
 - Wherever a page leads the browser, by redirect, refresh or script, the
   address is requested only if `robots.txt` admits it. The leave of one
   site's owner never extends to another site.

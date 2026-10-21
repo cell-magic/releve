@@ -1,5 +1,22 @@
 # Changes
 
+## 0.9.7
+
+The robot stops at a certificate anyone could have signed.
+
+- **The observer** refuses a page when its address, a redirect on the way or
+  anything it loads is served under one of the eight eMudhra intermediates
+  whose private keys were found and published in October 2026; the reason
+  names the authority. The conduct checks now serve such a page, and an
+  ordinary one beside it, over TLS under a root of their own, and see the
+  first refused and the second observed (on Linux, where the tests can name a
+  root to Chromium).
+- **The browser** is Playwright 1.64.0 and the Chromium it brings, in place
+  of 1.56.0 of November 2025. It is part of the reading, so it is taken on
+  purpose, with the checks run. Criteria stay at v10.
+- **The build** runs on macOS 15 by name: the latest macOS image linked
+  nothing since 17 October.
+
 ## 0.9.6
 
 The security gate before the repository goes public.
