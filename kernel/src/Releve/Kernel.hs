@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 -- | The fold. State is a function of the corpus and nothing else:
 --   the same corpus always yields the same findings.
-module Releve.Kernel (Obs (..), State, Pool (..), Span (..), history, datedBy, build, observations, latest, resolve, assess, previous, declared, stamps, recordCount, builtOn, host, pools, governing) where
+module Releve.Kernel (Obs (..), State, Pool (..), Span (..), history, datedBy, build, observations, latest, resolve, assess, judged, previous, declared, stamps, recordCount, builtOn, host, pools, governing) where
 
 import Data.Aeson (Result (..), fromJSON)
 import Data.Char (toLower)

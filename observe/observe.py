@@ -34,6 +34,11 @@ Conduct, enforced here and nowhere else:
     where Tab holds, Shift+Tab and Escape. No other key is pressed: nothing is
     typed, chosen or activated.
   - The robot names itself and says where its operator can be reached.
+
+Each request is recorded with its HTTP status and whether it was sent before the
+robot's first gesture (the scroll to the page's end): the robot never answers a
+prompt for consent, so a request sent before it was sent before any interaction
+or consent. The accessibility tree the browser builds is counted, not kept.
 """
 import argparse, base64, hashlib, json, socket, sys, time, urllib.error, urllib.parse, urllib.request, urllib.robotparser
 from datetime import datetime, timezone
@@ -84,7 +89,24 @@ window.__asked = []; { const note = n => { if (!window.__asked.includes(n)) wind
   if (navigator.geolocation) { navigator.geolocation.getCurrentPosition = () => note("location"); navigator.geolocation.watchPosition = () => (note("location"), 0); }
   if (navigator.mediaDevices) navigator.mediaDevices.getUserMedia = () => (note("camera or microphone"), Promise.reject(new DOMException("denied", "NotAllowedError"))); }"""
 
+# The accessibility tree, as the browser exposes it (CDP Accessibility.getFullAXTree), counted against
+# WAI-ARIA 1.2: its roles, those a reader acts on, and those that stand only inside another.
+ARIA = "aria-1.2"
+ROLES = ("alert alertdialog application article banner blockquote button caption cell checkbox code columnheader combobox "
+         "complementary contentinfo definition deletion dialog directory document emphasis feed figure form generic grid gridcell "
+         "group heading img insertion link list listbox listitem log main marquee math menu menubar menuitem menuitemcheckbox "
+         "menuitemradio meter navigation none note option paragraph presentation progressbar radio radiogroup region row rowgroup "
+         "rowheader scrollbar search searchbox separator slider spinbutton status strong subscript superscript switch tab table "
+         "tablist tabpanel term textbox time timer toolbar tooltip tree treegrid treeitem").split()
+INTERACTIVE = set("button checkbox combobox link listbox menuitem menuitemcheckbox menuitemradio option radio searchbox slider "
+                  "spinbutton switch tab textbox treeitem".split())
+CONTEXT = {"listitem": {"list", "directory"}, "option": {"listbox", "group"}, "tab": {"tablist"},
+           **{r: {"menu", "menubar", "group"} for r in ("menuitem", "menuitemcheckbox", "menuitemradio")},
+           "row": {"table", "grid", "treegrid", "rowgroup"}, "rowgroup": {"table", "grid", "treegrid"},
+           **{r: {"row"} for r in ("cell", "gridcell", "columnheader", "rowheader")}, "treeitem": {"tree", "group"}}
+
 EXTRACT = Path(__file__).with_name("extract.js").read_text(encoding="utf-8")
+ARIA_JS = Path(__file__).with_name("aria.js").read_text(encoding="utf-8")
 KEYS = Path(__file__).with_name("keys.js").read_text(encoding="utf-8")
 SPACED = Path(__file__).with_name("spacing.js").read_text(encoding="utf-8")
 DEEPEST = "() => { let e = document.activeElement; while (e && e.shadowRoot && e.shadowRoot.activeElement) e = e.shadowRoot.activeElement; return e; }"
@@ -166,13 +188,34 @@ def started(i):
     return None
 
 
-def resource(r, kind, size):
-    """One response as the record keeps it: what it is, what it weighs, how it travelled, whether it may be kept."""
+def resource(r, kind, size, pre=None):
+    """One response as the record keeps it: what it is, what it weighs, how it travelled, whether it may be kept,
+    what the server answered, and whether it was asked for before the robot's first gesture."""
     h = {k.lower(): v for k, v in r.get("headers", {}).items()}
     control = h.get("cache-control", "").lower()
     return {"url": r["url"], "kind": kind, "mime": r.get("mimeType", ""), "bytes": size, "proto": r.get("protocol", ""),
+            "status": int(r.get("status", 0)), **({} if pre is None else {"pre": pre}),
             "encoded": h.get("content-encoding", ""),
             "cached": "no-store" not in control and ("max-age" in control or any(k in h for k in ("etag", "last-modified", "expires")))}
+
+
+def accessibility(cdp, page):
+    """The accessibility tree of the page as it arrived, counted: controls a reader acts on, with and without a
+    name, from the tree; from the markup, since a browser drops a role it finds out of context: roles no WAI-ARIA 1.2
+    role answers to, roles outside the context they require; controls a reader can reach that the page
+    hides from the tree. The main document only; frames are not entered."""
+    nodes = cdp.send("Accessibility.getFullAXTree")["nodes"]
+    role = lambda n: "ignored" if n.get("ignored") else (n.get("role") or {}).get("value", "")
+    named = unnamed = 0
+    for n in nodes:
+        if role(n) in INTERACTIVE:
+            if str((n.get("name") or {}).get("value", "")).strip():
+                named += 1
+            else:
+                unnamed += 1
+    marked = page.evaluate(ARIA_JS, [ROLES, {k: sorted(v) for k, v in CONTEXT.items()}])
+    return {"version": ARIA, "interactive": named + unnamed, "named": named, "unnamed": unnamed,
+            "invalid_roles": marked["invalid"], "context_violations": marked["misplaced"], "hidden_interactive": marked["hidden"]}
 
 
 def key(s):
@@ -268,12 +311,13 @@ def observe(browser, url, agent, shots, closed, shut=None):
         page = ctx.new_page()
         cdp = ctx.new_cdp_session(page)
         cdp.send("Network.enable")
-        responses, weights, hops, asked = {}, {}, [], {}
+        responses, weights, hops, asked, early, gesture = {}, {}, [], {}, {}, [False]
 
         def sent(e):
             if "redirectResponse" in e:
-                hops.append(e["redirectResponse"])
+                hops.append((e["redirectResponse"], not gesture[0]))
             asked.setdefault(e["requestId"], started(e.get("initiator", {})))
+            early.setdefault(e["requestId"], not gesture[0])
         cdp.on("Network.requestWillBeSent", sent)
         cdp.on("Network.responseReceived", lambda e: responses.__setitem__(e["requestId"], (e["response"], e.get("type", "Other"))))
         cdp.on("Network.loadingFinished", lambda e: weights.__setitem__(
@@ -310,7 +354,7 @@ def observe(browser, url, agent, shots, closed, shut=None):
             page.wait_for_load_state("networkidle", timeout=15000)
         except BrowserError:
             pass
-        why = forgeable([(h, "Redirect") for h in hops] + list(responses.values()))
+        why = forgeable([(h, "Redirect") for h, _ in hops] + list(responses.values()))
         if why:
             raise Refused(why, whole=True)
         frames = " ".join(f.url for f in page.frames[1:]).lower()
@@ -318,6 +362,11 @@ def observe(browser, url, agent, shots, closed, shut=None):
                 or any(g in frames for g in GATE_FRAMES)):
             raise Refused("a challenge stands before the content", whole=True)
 
+        # The page as it arrived, before the robot's first gesture: its accessibility tree, counted. Every
+        # request sent so far has been heard once this round trip returns; what is sent after is not early.
+        ax = accessibility(cdp, page)
+        page.evaluate("0")
+        gesture[0] = True
         # To its end, and once more if reaching the end made the page a screen longer.
         grows = [page.evaluate("document.documentElement.scrollHeight")]
         while len(grows) < 3 and (len(grows) < 2 or grows[-1] - grows[-2] >= DESKTOP["height"]):
@@ -337,9 +386,9 @@ def observe(browser, url, agent, shots, closed, shut=None):
         why = forgeable(list(responses.values()))  # and what the scroll brought in
         if why:
             raise Refused(why, whole=True)
-        fetched = [dict(resource(r, kind, weights.get(rid, 0)), **({"from": asked[rid]} if asked.get(rid) else {}))
+        fetched = [dict(resource(r, kind, weights.get(rid, 0), early.get(rid, False)), **({"from": asked[rid]} if asked.get(rid) else {}))
                    for rid, (r, kind) in responses.items()] \
-            + [resource(h, "Redirect", int(h.get("encodedDataLength", 0))) for h in hops]
+            + [resource(h, "Redirect", int(h.get("encodedDataLength", 0)), pre) for h, pre in hops]
         fetched = [f for f in fetched if f["url"].startswith(("http://", "https://"))]
         secured = next((r.get("securityDetails", {}).get("protocol") for r, kind in responses.values() if kind == "Document"), None)
         # What each image file says of its own making, read from the bytes already fetched.
@@ -402,7 +451,7 @@ def observe(browser, url, agent, shots, closed, shut=None):
         ipv6 = bool(socket.getaddrinfo(host, None, socket.AF_INET6))
     except OSError:
         ipv6 = False
-    data["page"].update(grows=grows, tls=secured, ipv6=ipv6)
+    data["page"].update(grows=grows, tls=secured, ipv6=ipv6, ax=ax)
 
     widgets = []
     for s in data["surfaces"]:

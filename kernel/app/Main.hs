@@ -37,6 +37,9 @@ usage = unlines
   , "                                        --ask: each point to decide with the controls to answer it"
   , "  releve statement en|fr CORPUS        draft accessibility statement and eco-design declaration,"
   , "                                        as HTML, for the owner to complete"
+  , "  releve rules -                        the rule results of each observation on stdin, as JSON lines:"
+  , "                                        per criterion, the WCAG success criteria it reads and how many"
+  , "                                        marks it gave, by machine label (fail, review, hint); nothing kept"
   , "  releve correct CORPUS < facts.md      record a person's edits to a report"
   , "  releve declarations CORPUS            the criteria no rule can see, with the owner's answers"
   , "  releve declare CORPUS < answers.md    record the owner's edits to the declarations"
@@ -73,6 +76,13 @@ main = plain >> getArgs >>= \args -> case args of
   ("report" : l : c : rest) | Just lang <- lookup l [("en", En), ("fr", Fr)], rest `elem` [[], ["--ask"]] ->
     (if c == "-" then passing else records c) >>= either die (TIO.putStr . report lang (rest == ["--ask"]) (T.pack release)) . build
   ["statement", l, c] | Just lang <- lookup l [("en", En), ("fr", Fr)] -> withState c (TIO.putStr . statements lang (T.pack release))
+  ["rules", "-"] -> do
+    ls <- filter (not . BC.null) . BC.lines <$> BC.getContents
+    os <- either (die . ("not an observation: " <>)) pure (mapM eitherDecodeStrict ls) :: IO [Observation]
+    forM_ os $ \o -> BL.putStrLn . encode $ object
+      [ "url" .= url o, "criteria" .= version, "release" .= release
+      , "rules" .= [ object ["criterion" .= cId c, "wcag" .= wcagOf c, "fail" .= n Fail ms, "review" .= n Review ms, "hint" .= n Hint ms]
+                   | (c, ms) <- markedBy o ] ]
   ["correct", c] -> correct c
   ["declarations", c] -> withState c (TIO.putStr . declarations)
   ["declare", c] -> declare c
@@ -116,6 +126,17 @@ main = plain >> getArgs >>= \args -> case args of
     , "open" .= [x | x <- fParts f, not (S.member x addressed)] ]
   ["--version"] -> putStrLn ("releve " <> release <> " · criteria v" <> T.unpack version)
   _ -> hPutStrLn stderr usage >> exitWith (ExitFailure 2)
+
+-- | Each criterion's marks on an observation, as the machine gave them: no person's reading enters.
+markedBy :: Observation -> [(Criterion, [Mark])]
+markedBy o = [ (c, [m | (_, c', m) <- js, cId c' == cId c]) | c <- criteria ] where js = judged o
+
+n :: Verdict -> [Mark] -> Int
+n v = length . filter ((== v) . mVerdict)
+
+-- | The WCAG success criteria a criterion reads: those it cites, and those its RGAA criteria answer to.
+wcagOf :: Criterion -> [T.Text]
+wcagOf c = S.toAscList (S.fromList (cites "WCAG" c <> concat [ws | r <- cites "RGAA" c, Just ws <- [lookup r crosswalk]]))
 
 phrase :: Phrase -> Value
 phrase x = object ["en" .= en x, "fr" .= fr x]
