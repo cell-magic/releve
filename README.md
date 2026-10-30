@@ -20,7 +20,7 @@ the same evidence, the same verdict, always. Remembering must be
 tamper-evident, because a report is a claim someone may rely on.
 
 ```
-page ──observe──▶ observation ──releve ingest──▶ corpus   (append-only, sealed)
+page ──observe──▶ observation ──releve ingest──▶ corpus   (append-only, chained)
                                                    │
                 ┌──────────────────────────────────┼──────────────────────────────────┐
               facts                              report                              atlas
@@ -42,8 +42,8 @@ page ──observe──▶ observation ──releve ingest──▶ corpus   (a
    report names the criteria version that judged it, and the tests refuse
    criteria that changed under an unchanged version. No model is trained
    or consulted: every verdict comes from a rule written in plain code.
-3. **Overwrite nothing.** The corpus only grows. Each record seals the one
-   before it (SHA-256), so any alteration is detectable (`releve verify`).
+3. **Overwrite nothing.** The corpus only grows. Each record is chained to the
+   one before it (SHA-256), so any alteration is detectable (`releve verify`).
    Reports are never stored; they are recomputed.
 4. **Every line carries its evidence.** A finding names the element, the
    value observed and the rule applied. Checking a claim takes a glance,
@@ -213,7 +213,7 @@ without script.
 - **The record belongs to whoever asked.** Each report offers its record
   as a small file. Handed back with the next request, it lets the report
   say what was mended, what is new and what stands. The record is the
-  sealed corpus: one whose seals do not hold is refused.
+  chained corpus: one whose chain does not hold is refused.
 - **The page goes back as it was served.** With each report comes the
   page the robot was served, whole, in a bundle (WACZ) signed when it was
   made; the receipt that replays it; and the verifier, one HTML file that
@@ -354,8 +354,8 @@ reviewer's answer, a declaration by the owner's.
 
 ### Dated from outside
 
-A corpus seals each record to the one before it, so a record changed,
-removed or put out of order breaks the chain. Seals say nothing of when.
+A corpus chains each record to the one before it, so a record changed,
+removed or put out of order breaks the chain. A chain says nothing of when.
 `releve stamp` sends the hash of the latest record, and nothing else, to a
 time-stamping authority under RFC 3161, DigiCert's free one unless another is
 named, and keeps its signed reply as the next record. `releve verify` checks

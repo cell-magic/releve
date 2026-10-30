@@ -1,0 +1,41 @@
+-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
+-- SPDX-License-Identifier: EUPL-1.2
+-- A site's records, one after another. A record's hash is SHA-256 of its canonical bytes
+-- (RFC 8785). Each record names the hash of the one before it for the same site (`prev`,
+-- null for the first), the date of the site's first record (`baseline`), and whether the
+-- chain runs unbroken from that baseline or was begun again (`chain_status`: unbroken,
+-- reset). A reset is said, never hidden: it starts a new baseline.
+module Chain where
+
+import Json
+
+recordHash : Json -> Text
+recordHash r = digest r
+
+-- Whether a record follows from the one before it for the same site (JNull: none was given,
+-- or there is none). A record that names no predecessor begins a chain: the first one is
+-- unbroken, a later one says reset. A record that names one names it by its hash, keeps
+-- its site and its baseline, and is unbroken.
+linked : Json -> Json -> Bool
+linked previous r =
+  let prev = field "prev" r in
+  let status = asText (field "chain_status" r) in
+  if isNull prev then status == "reset" || (status == "unbroken" && isNull previous)
+  else status == "unbroken" && not (isNull previous) && asText prev == recordHash previous
+       && asText (field "site" previous) == asText (field "site" r)
+       && asText (field "baseline" previous) == asText (field "baseline" r)
+
+-- The fields a record takes from what is kept of the site's last record, its hash and its
+-- baseline, and nothing more (the Bureau keeps no record): {"last": {"hash", "baseline"} or
+-- null, "date": "YYYY-MM-DD", "reset": bool}.
+chainNext : Json -> Json
+chainNext input =
+  let last = field "last" input in
+  let reset = asBool (field "reset" input) in
+  let date = asText (field "date" input) in
+  if isNull last || reset then
+    object [ entry "prev" JNull, entry "baseline" (JText date), entry "chain_status" (JText (if isNull last then "unbroken" else "reset")) ]
+  else object [ entry "prev" (field "hash" last), entry "baseline" (field "baseline" last), entry "chain_status" (JText "unbroken") ]
+
+canonicalOf : Json -> Json
+canonicalOf j = object [entry "canonical" (JText (canonical j)), entry "hash" (JText (digest j))]

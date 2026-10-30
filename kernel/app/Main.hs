@@ -50,7 +50,7 @@ usage = unlines
   , "  releve atlas CORPUS                   every observation as study data (JSON lines)"
   , "  releve history CORPUS                 every point that stood open on each page, when it opened and"
   , "                                        when it was seen closed (JSON lines)"
-  , "  releve verify CORPUS [--export DIR]   check the corpus seals and each time stamp; with --export,"
+  , "  releve verify CORPUS [--export DIR]   check the corpus chain and each time stamp; with --export,"
   , "                                        write each stamp's reply to DIR and the OpenSSL command that checks it"
   , "  releve stamp CORPUS [AUTHORITY]       have a time-stamping authority (RFC 3161) date the latest record;"
   , "                                        needs openssl and curl"
@@ -103,7 +103,7 @@ main = plain >> getArgs >>= \args -> case args of
   ("verify" : c : rest) | rest == [] || take 1 rest == ["--export"] && length rest == 2 -> records c >>= \rs -> case verify rs of
     Left n -> die ("broken at record " <> show n)
     Right n -> do
-      putStrLn ("sealed · " <> show n <> (if n == 1 then " record" else " records")
+      putStrLn ("chained · " <> show n <> (if n == 1 then " record" else " records")
                   <> concat [" · head " <> T.unpack (T.take 8 (rHash (last rs))) | not (null rs)])
       st <- either die pure (build rs)
       checked <- check [ (k, rPrev (rs !! k), x) | (k, x) <- stamps st ]
@@ -152,7 +152,7 @@ die m = hPutStrLn stderr ("releve: " <> m) >> exitWith (ExitFailure 1)
 records :: FilePath -> IO [Record]
 records c = load c >>= either (die . (<> "; the corpus is damaged there, restore it from a copy")) pure
 
--- | Observations read from stdin and sealed in memory: a corpus that is never written.
+-- | Observations read from stdin and chained in memory: a corpus that is never written.
 passing :: IO [Record]
 passing = do
   ls <- filter (not . BC.null) . BC.lines <$> BC.getContents

@@ -122,7 +122,7 @@ code, heads, first = ask(door, f"http://localhost:{open_}/one", "fr")
 check("answers an address with its report, in the language asked for",
       code == 200 and '<html lang="fr">' in first and "Méthode" in first and "pas d'attribut alt" in first and "set-cookie" not in heads)
 record = kept(first)
-check("offers the record, sealed, to be kept by whoever asked", gzip.decompress(record).startswith(b'{"hash"'))
+check("offers the record, chained, to be kept by whoever asked", gzip.decompress(record).startswith(b'{"hash"'))
 
 code, heads, text = ask(door, f"http://localhost:{open_}/one", "en")
 check("leaves a site alone that it has just visited", "observed a moment ago" in text)
@@ -157,7 +157,7 @@ squeeze, chunk = zlib.compressobj(9, zlib.DEFLATED, 16 + zlib.MAX_WBITS), bytes(
 swollen = b"".join([squeeze.compress(chunk) for _ in range(64)] + [squeeze.flush()])
 for name, bad in (("forged", forged), ("damaged", b"not a record"), ("swollen", swollen)):
     code, heads, text = ask(door, f"http://127.0.0.1:{open_}/two", "en", bad)
-    check(f"believes no {name} record", "its seals do not hold" in text and "Method" not in text)
+    check(f"believes no {name} record", "its chain does not hold" in text and "Method" not in text)
     threading.Event().wait(serve.PAUSE + 0.2)
 
 code, heads, text = ask(door, f"http://127.0.0.1:{closed}/page", "en")
@@ -220,7 +220,7 @@ check("records a person's answer in the record, beside the rule's, and visits no
       "1 answer recorded." in answered and "Confirmed by the reviewer (1)" in answered and "the harbour, as the caption says second line {x}" in answered
       and f'name="{asking[0]}"' not in answered and len(hits) == before and counts.read_text() == tallied)
 grown = gzip.decompress(kept(answered))
-check("hands back the record longer by the answer, sealed as before", len(grown.splitlines()) == 2 and b'"corrected"' in grown
+check("hands back the record longer by the answer, chained as before", len(grown.splitlines()) == 2 and b'"corrected"' in grown
       and grown.startswith(gzip.decompress(kept(questions))))
 corpus = Path(tempfile.mkdtemp()) / "c"
 corpus.write_bytes(gzip.decompress(record))
@@ -231,7 +231,7 @@ refused = send({"lang": "en", "kept": base64.b64encode(record).decode(), f"a-{fi
 check("does not let an answer argue away a failure the rule can show", "No answers submitted." in refused
       and len(gzip.decompress(kept(refused)).splitlines()) == len(gzip.decompress(record).splitlines()))
 forgery = send({"lang": "en", "kept": base64.b64encode(forged).decode(), asking[0]: "pass"})
-check("takes answers only with a record whose seals hold", "its seals do not hold" in forgery)
+check("takes answers only with a record whose seals hold", "its chain does not hold" in forgery)
 
 declared = send({"lang": "en", "kept": base64.b64encode(kept(answered)).decode(), "d-rgesn-1-3": "yes", "dn-rgesn-1-3": "Anna", "d-rgesn-9-1": "n/a", "dn-rgesn-9-1": "",
                  "d-bitv-2-0-4": "n/a", "dn-bitv-2-0-4": "not a German public body"})

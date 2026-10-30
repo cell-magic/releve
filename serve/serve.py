@@ -18,7 +18,7 @@ the report is the answer. What holds, here and nowhere else:
     back, and the broad region a browser's language setting points to.
     Nothing in a count belongs to one request; no time finer than the week.
     No page shows them; serve/counts.py reads them where they are kept.
-  - A record handed back is believed only if its seals hold.
+  - A record handed back is believed only if its chain holds.
   - The page observed goes back to whoever asked, whole, in a signed bundle with
     the receipt that replays it, and the verifier that checks both offline. The
     record keeps the receipt's head, dated with the rest; the page itself is
@@ -98,7 +98,7 @@ WORDS = {
                                   "User-agent: releve-observe, then Allow: /",
             "robots.txt unreachable": "This site did not answer for its robots.txt, so the robot stayed out.",
             "recently": "This site was observed a moment ago. Ask again in a few seconds.",
-            "record": "This record cannot be read, or its seals do not hold. Send the file as it was downloaded.",
+            "record": "This record cannot be read, or its chain does not hold. Send the file as it was downloaded.",
             "full": "This record holds as much as it may.",
             "slow": "The page took too long to answer.",
         },
@@ -137,7 +137,7 @@ WORDS = {
                                   "ajouter à robots.txt : User-agent: releve-observe, puis Allow: /",
             "robots.txt unreachable": "Ce site n’a pas répondu pour son robots.txt ; le robot est resté dehors.",
             "recently": "Ce site vient d’être observé. Réessayez dans quelques secondes.",
-            "record": "Ce relevé ne peut pas être lu, ou ses scellés ne tiennent pas. Envoyez le fichier tel qu’il a été téléchargé.",
+            "record": "Ce relevé ne peut pas être lu, ou sa chaîne ne tient pas. Envoyez le fichier tel qu’il a été téléchargé.",
             "full": "Ce relevé contient déjà tout ce qu’il peut contenir.",
             "slow": "La page a mis trop de temps à répondre.",
         },
@@ -343,12 +343,12 @@ def unpacked(record):
 
 
 def opened(record, d):
-    """A record handed back, written where it passes through memory, believed only if its seals hold."""
+    """A record handed back, written where it passes through memory, believed only if its chain holds."""
     corpus = Path(d, "c")
     if record:
         corpus.write_bytes(unpacked(record))
         code, said, _ = releve("verify", corpus)
-        if code != 0 or not said.startswith(b"sealed"):
+        if code != 0 or not said.startswith(b"chained"):
             raise Refused("record")
         if int(said.split()[2]) >= RECORDS:
             raise Refused("full")
@@ -357,7 +357,7 @@ def opened(record, d):
 
 def read(observation, record, lang):
     """The report on a record with this observation added, and the record as it now stands.
-    The record is a sealed corpus, compressed; it exists here in memory only."""
+    The record is a chained corpus, compressed; it exists here in memory only."""
     with tempfile.TemporaryDirectory(dir=MEMORY, prefix="releve-") as d:
         corpus = opened(record, d)
         if releve("ingest", corpus, feed=json.dumps(observation, ensure_ascii=False).encode("utf-8"))[0] != 0:

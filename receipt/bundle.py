@@ -22,7 +22,8 @@ Signature. ECDSA P-256 with SHA-256 over the ASCII string "sha256:<hex>" of data
 base64 DER, public key as base64 SubjectPublicKeyInfo DER (the encodings of the WACZ
 reference signer). In open-source use the key is ephemeral: generated for the bundle and
 discarded, so the signature proves the bundle is unchanged since it was made, not who made
-it. Identity and qualified time come from the Bureau Seal, a separate act.
+it. No Bureau key signs anything (the Seal is retired, D-034): time comes from the RFC 3161
+token over the record, identity from nothing but the chain.
 
 The machine receipt (receipt.json) stays outside the bundle; a verifier takes both.
 """

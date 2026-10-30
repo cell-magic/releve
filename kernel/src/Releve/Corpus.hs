@@ -2,10 +2,10 @@
 -- SPDX-License-Identifier: EUPL-1.2
 {-# LANGUAGE OverloadedStrings #-}
 -- | The corpus: an append-only file of events, one JSON record per line,
---   each record sealing the one before it. Nothing in it is ever rewritten;
+--   each record chained to the one before it. Nothing in it is ever rewritten;
 --   every report is recomputed from it.
 --
---   A seal covers the event's bytes exactly as they stand in the file, so
+--   A link covers the event's bytes exactly as they stand in the file, so
 --   verification never depends on how a JSON library re-encodes them.
 module Releve.Corpus (Record (..), sha, next, verify, load, append) where
 

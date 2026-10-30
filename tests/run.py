@@ -86,12 +86,12 @@ def main():
                   (r"^- \*\*REVIEW\*\* text-contrast(.*Half faded.*)$", r"- **PASS** text-contrast\1"))
     check("combined corrections", releve("correct", m, feed=edit)[2] == "2 corrections recorded")
 
-    # Seals: intact, tampered, and with Windows line endings.
-    check("seal intact", releve("verify", c)[0] == 0)
+    # The chain: intact, tampered, and with Windows line endings.
+    check("chain intact", releve("verify", c)[0] == 0)
     (tmp / "tampered").write_bytes(c.read_bytes().replace(b"Relev", b"Relev_", 1))
-    check("seal tamper detected", releve("verify", tmp / "tampered")[0] != 0)
+    check("chain tamper detected", releve("verify", tmp / "tampered")[0] != 0)
     (tmp / "crlf").write_bytes(c.read_bytes().replace(b"\n", b"\r\n"))
-    check("seal CRLF", releve("verify", tmp / "crlf")[0] == 0)
+    check("chain CRLF", releve("verify", tmp / "crlf")[0] == 0)
     report = releve("facts", c)[1].replace(b"\n", b"\r\n")
     check("report read back with Windows line endings", releve("correct", c, feed=report)[2] == "0 corrections recorded")
 

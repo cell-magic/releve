@@ -1,0 +1,38 @@
+-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
+-- SPDX-License-Identifier: EUPL-1.2
+-- The published roots: one entry a month, {cycle, root, token_hash, prev_entry_hash}, each
+-- naming the hash of the entry before it (null for the first), so that the list can only
+-- grow at its end. token_hash is SHA-256 of the time-stamp token over the root. The shape
+-- leaves room for RFC 4998 renewal: a later entry may carry a new token over an earlier
+-- entry's hash (`renews`), when the algorithm of the first token weakens. Renewal itself is
+-- not done here (record/roots.py says so).
+module Roots where
+
+import Json
+
+entryHash : Json -> Text
+entryHash e = digest e
+
+-- Each entry names the one before it; cycles strictly increase.
+chained : Json -> List Json -> Bool
+chained before es = case es of
+  | [] -> True
+  | e :: rest -> (if isNull before then isNull (field "prev_entry_hash" e)
+                  else asText (field "prev_entry_hash" e) == entryHash before
+                       && asText (field "cycle" before) < asText (field "cycle" e))
+                 && chained e rest
+
+listed : Text -> Text -> List Json -> Bool
+listed cycle rootHex es = any (\e -> asText (field "cycle" e) == cycle && asText (field "root" e) == rootHex) es
+
+lastOf : List Json -> Json
+lastOf es = foldl (\acc e -> e) JNull es
+
+-- {"roots": [entry], "cycle", "root", "token_hash"} gives the list with the month's entry at its end.
+rootsAppend : Json -> Json
+rootsAppend input =
+  let es = asList (field "roots" input) in
+  let before = lastOf es in
+  let e = object [ entry "cycle" (field "cycle" input), entry "root" (field "root" input), entry "token_hash" (field "token_hash" input)
+                 , entry "prev_entry_hash" (if isNull before then JNull else JText (entryHash before)) ] in
+  object [ entry "format" (JText "releve-roots/1"), entry "entries" (JList (es ++ [e])) ]
