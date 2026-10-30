@@ -16,6 +16,7 @@ from pathlib import Path
 ROOT = Path(sys.argv[1] if len(sys.argv) > 1 else Path(__file__).resolve().parent.parent).resolve()
 SOURCE = {".py", ".hs", ".js", ".mjs", ".sh", ".html", ".css", ".yml", ".yaml", ".json", ".plie", ".lean"}
 MARK = "LicenseRef-Bureau-Closed"
+CLOSED = re.compile(r"SPDX-" r"License-Identifier:\s*" + MARK)  # a file under the closed licence, not one that names it
 TAG = "SPDX-" "License-Identifier: EUPL-1.2"  # split, so that REUSE does not read it as this file's own
 
 
@@ -85,7 +86,7 @@ def main():
             text = f.read_text(encoding="utf-8")
         except UnicodeDecodeError:
             continue  # images and other binary files are named in REUSE.toml
-        if MARK in text and rel.name != "BOUNDARY.md" and rel.as_posix() != "tests/boundary.py":
+        if CLOSED.search(text):
             problems.append(f"{rel}: carries the closed licence ({MARK})")
         if f.suffix in SOURCE:
             head = "\n".join(text.splitlines()[:12])
