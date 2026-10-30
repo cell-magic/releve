@@ -1,0 +1,25 @@
+ok    the store keeps per site only address, last hash and date, baseline, mandate
+ok    a field beyond those is refused
+ok    the chain id is opaque and carries nothing of the site
+ok    sign-up keeps the mandate with its date, apart from the voice
+ok    no mandate unless the box is ticked
+ok    the stamp has one accessible name (fr)
+ok    the stamp fetches nothing: no image, font, style sheet or script (fr)
+ok    the stamp's link sends no referrer (fr)
+ok    the stamp has one accessible name (en)
+ok    the stamp fetches nothing: no image, font, style sheet or script (en)
+ok    the stamp's link sends no referrer (en)
+ok    a stamp is 16 to 32 px high
+ok    no energy on the stamp
+ok    status: active with a record this cycle or the last
+ok    status: lapsed with none since
+ok    status: reset when the chain began again after the stamp
+ok    the status page answers, in the language asked
+ok    the status page sets no cookie, runs no script, is not stored
+ok    the mirror's bucket is never narrower than its sensitivity
+ok    the mirror is the same for the same members
+ok    the mirror is off below 20 members
+ok    at 20 or more it publishes each measure, naming no site
+ok    the word check catches each word it must
+ok    no member-facing text claims conformity, certification, accessibility, a label, validation or approval (33 texts)
+24 of 24 hold

@@ -1,0 +1,45 @@
+=== one byte of the record
+ok    schema           the record holds to releve-record/2
+FAIL  record-hash      the record does not hash to the hash it is delivered with: it is not the record that was chained
+ok    prev-link        the record follows from the one before it
+ok    inclusion-path   the path leads from the record's hash to the root
+ok    root             the root is the root of the record's own cycle
+ok    published        the root and its token stand in the published list, and the list runs unbroken
+ok    tsa-token        the time-stamp token covers the root, under the authority's signature
+ok    beacon-round     the round is of drand quicknet, and its randomness is the hash of its signature
+ok    beacon-signature the round is signed by the League of Entropy's quicknet key
+ok    order            the order is the one the round gives, the pages read follow it, the first pick heads them, and the page is among the picks
+ok    committed        the candidates were committed to, and the commitment dated by the authority
+ok    before-beacon    the candidates were dated before the round, and the round is the first one after: the round chose, not the Bureau
+NOT VERIFIED
+exit 1
+=== one byte of the path
+ok    schema           the record holds to releve-record/2
+ok    record-hash      the record's canonical bytes hash to the hash it is delivered with
+ok    prev-link        the record follows from the one before it
+FAIL  inclusion-path   the path does not lead from the record's hash to the root
+ok    root             the root is the root of the record's own cycle
+ok    published        the root and its token stand in the published list, and the list runs unbroken
+ok    tsa-token        the time-stamp token covers the root, under the authority's signature
+ok    beacon-round     the round is of drand quicknet, and its randomness is the hash of its signature
+ok    beacon-signature the round is signed by the League of Entropy's quicknet key
+ok    order            the order is the one the round gives, the pages read follow it, the first pick heads them, and the page is among the picks
+ok    committed        the candidates were committed to, and the commitment dated by the authority
+ok    before-beacon    the candidates were dated before the round, and the round is the first one after: the round chose, not the Bureau
+NOT VERIFIED
+exit 1
+=== one byte of the roots list
+ok    schema           the record holds to releve-record/2
+ok    record-hash      the record's canonical bytes hash to the hash it is delivered with
+ok    prev-link        the record follows from the one before it
+ok    inclusion-path   the path leads from the record's hash to the root
+ok    root             the root is the root of the record's own cycle
+FAIL  published        the root, or its token, is not in the published list, or the list does not run unbroken
+ok    tsa-token        the time-stamp token covers the root, under the authority's signature
+ok    beacon-round     the round is of drand quicknet, and its randomness is the hash of its signature
+ok    beacon-signature the round is signed by the League of Entropy's quicknet key
+ok    order            the order is the one the round gives, the pages read follow it, the first pick heads them, and the page is among the picks
+ok    committed        the candidates were committed to, and the commitment dated by the authority
+ok    before-beacon    the candidates were dated before the round, and the round is the first one after: the round chose, not the Bureau
+NOT VERIFIED
+exit 1

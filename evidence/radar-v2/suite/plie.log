@@ -1,0 +1,18 @@
+ok    Haskell and JavaScript give the same bytes (1)
+ok    Haskell and JavaScript give the same bytes (2)
+ok    Haskell and JavaScript give the same bytes (3)
+ok    division and remainder round toward minus infinity
+ok    text is counted by code point
+ok    an emoji sorts by code point, keys by UTF-16 unit
+ok    SHA-256 of the empty text is the known one
+ok    a canonical object orders its keys and escapes as RFC 8785 says
+ok    unhex refuses an odd length and a stray digit
+ok    a float is refused at the door
+ok    refuses a definition without a signature
+ok    refuses a prelude name redefined
+ok    refuses a name reserved by Lean
+ok    refuses a comparison chained
+ok    the hs fold of record/ is the one its sources give
+ok    the lean fold of record/ is the one its sources give
+ok    the js fold of record/ is the one its sources give
+17 of 17 hold

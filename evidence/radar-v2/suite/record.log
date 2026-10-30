@@ -1,0 +1,45 @@
+ok    canonical keys in RFC 8785's order (its 3.2.3 example)
+ok    canonical text has no whitespace, and the same value gives the same bytes
+ok    the month's root is RFC 6962's over the sorted leaves, and every path leads to it (0 to 31 leaves)
+ok    the round taken is the first after the commitment's date
+ok    its BLS signature holds under quicknet's key
+ok    a signature moved to another round does not
+ok    the order is the round's, whatever order the candidates came in
+ok    another cycle draws another seed
+ok    an observation keeps scheme and host of each request, never its path or query
+ok    the rule results carry machine labels only
+ok    the WCAG reading labels criteria fail, review or hint, and gives no share
+ok    the record holds to its schema
+ok    a field the schema does not name is refused
+ok    a request with a path is refused by the schema
+ok    recompute rebuilds the readings byte for byte (3786 bytes)
+ok    recompute sees a reading that no longer follows from its observation
+ok    schema           the record holds to releve-record/2
+ok    record-hash      the record's canonical bytes hash to the hash it is delivered with
+ok    prev-link        the record follows from the one before it
+ok    inclusion-path   the path leads from the record's hash to the root
+ok    root             the root is the root of the record's own cycle
+ok    published        the root and its token stand in the published list, and the list runs unbroken
+ok    tsa-token        the time-stamp token covers the root, under the authority's signature
+ok    beacon-round     the round is of drand quicknet, and its randomness is the hash of its signature
+ok    beacon-signature the round is signed by the League of Entropy's quicknet key
+ok    order            the order is the one the round gives, the pages read follow it, the first pick heads them, and the page is among the picks
+ok    committed        the candidates were committed to, and the commitment dated by the authority
+ok    before-beacon    the candidates were dated before the round, and the round is the first one after: the round chose, not the Bureau
+ok    the verifier passes a record whole, every check named
+ok    the first record of a chain passes without a previous one
+ok    a record that names a previous one, given none, says the link is not checked
+ok    tampered record (one value): fails at record-hash
+ok    tampered path (one digit): fails at inclusion-path
+ok    tampered roots list (an earlier entry): fails at published
+ok    tampered roots list (the month's root): fails at published
+ok    tampered root token: fails at published
+ok    tampered previous record: fails at prev-link
+ok    tampered order, rehashed: fails at order
+ok    tampered beacon randomness, rehashed: fails at beacon-round
+ok    tampered beacon round, rehashed (a later round chosen): fails at beacon-signature
+ok    tampered candidates, rehashed (a page added after the round): fails at order
+ok    tampered commitment time, rehashed: fails at before-beacon
+ok    a record whose beacon could not be reached says so, and is not taken as seeded
+ok    a relevé 0.10 record reads, saying what it did not record
+32 of 32 hold

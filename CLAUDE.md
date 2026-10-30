@@ -29,10 +29,12 @@ python tests/run.py        # the kernel, against recorded pages
 python tests/conduct.py    # the observer, against local sites that say no
 python tests/service.py    # the service: a report out, nothing left behind
 python tests/boundary.py   # open code reaches nothing closed (BOUNDARY.md)
+python tests/plie.py       # plié: its folds agree, and those kept are those their sources give
+python tests/record.py     # the RADAR record, its verifier, and tampering caught
 reuse lint
 ```
 
-All five pass. A change of judgement shows as a diff in `tests/expected/`
+All seven pass. A change of judgement shows as a diff in `tests/expected/`
 and is accepted on purpose (`--accept`), never in passing.
 
 ## Each commit says how it was made

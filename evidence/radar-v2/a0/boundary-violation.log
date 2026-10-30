@@ -1,0 +1,8 @@
+FAIL  observe/bare.py: no SPDX header naming EUPL-1.2
+FAIL  observe/leak.py: reaches for closed code (radar)
+FAIL  radar/store.py: in a closed directory (radar/)
+FAIL  radar/store.py: carries the closed licence (LicenseRef-Bureau-Closed)
+FAIL  radar/store.py: no SPDX header naming EUPL-1.2
+FAIL  receipt/lab.js: reaches for closed code (../surface-core-lab/guard.js)
+boundary: 132 files, 6 problems
+exit 1

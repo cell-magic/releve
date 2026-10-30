@@ -1,0 +1,6 @@
+127.0.0.1-0.json: readings recomputed: byte-equal (3397 bytes, canonical)
+127.0.0.1-1.json: readings recomputed: byte-equal (3608 bytes, canonical)
+127.0.0.2-0.json: readings recomputed: byte-equal (3426 bytes, canonical)
+127.0.0.2-1.json: readings recomputed: byte-equal (3413 bytes, canonical)
+127.0.0.3-0.json: readings recomputed: byte-equal (3410 bytes, canonical)
+127.0.0.3-1.json: readings recomputed: byte-equal (3413 bytes, canonical)

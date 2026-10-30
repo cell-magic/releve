@@ -1,0 +1,47 @@
+ok    asks for an address, in en
+ok    sets no cookie, runs no script, and asks not to be stored (en)
+ok    asks for an address, in fr
+ok    sets no cookie, runs no script, and asks not to be stored (fr)
+ok    answers a request for the headers alone with the headers alone
+ok    answers an address with its report, in the language asked for
+ok    offers the record, chained, to be kept by whoever asked
+ok    leaves a site alone that it has just visited
+ok    reads a record handed back, and says what stands
+ok    hands the record back longer by one observation
+ok    hands over the page as served, whole in a signed bundle, with its receipt and the verifier
+ok    writes the receipt's head into the record it dates
+ok    gives the same receipt for the same page served the same way
+ok    a receipt does not replay on a page altered after it was served
+ok    the verifier, opened from its file, holds the receipt and the bundle, refuses a forged receipt, and asks nothing of the network
+ok    believes no forged record
+ok    believes no damaged record
+ok    believes no swollen record
+ok    obeys robots.txt, and says how to be let in
+ok    takes web addresses only
+ok    in the open, http://127.0.0.1/ is never requested
+ok    in the open, http://10.1.2.3/x is never requested
+ok    in the open, http://169.254.169.254/latest/ is never requested
+ok    in the open, http://[::1]/ is never requested
+ok    in the open, https://93.184.216.34:8443/ is never requested
+ok    in the open, https://93.184.216.34/ is requested
+ok    in the open, http://no-such-host.invalid/ is never requested
+ok    in the open, data:text/html,x is requested
+ok    counts each report given by week, language, record and region, and nothing else
+ok    reads a region from the language setting alone
+ok    reads its counts where they are kept: the weeks that have ended, a small region as fewer than 5
+ok    shows its counts on no page
+ok    puts what only a person can decide as a question, in a form that carries the record back
+ok    records a person's answer in the record, beside the rule's, and visits no page for it
+ok    hands back the record longer by the answer, chained as before
+ok    does not let an answer argue away a failure the rule can show
+ok    takes answers only with a record whose seals hold
+ok    records the owner's declarations with the record, and only what changed
+ok    asks what the pages' template decides once for the pages that share it, not on each page
+ok    records one answer for every page that shares the template, and asks it no more
+ok    its own pages, read by its own rules, are found wanting in nothing a rule decides
+ok    its recipe keeps no output and no log of requests, and tells the service nothing of who asked
+ok    dates the record by the authority named, and sets its sky above the date
+ok    hands over the draft statements of the record, dated as the record is
+ok    says the country it sees the page from
+ok    ends when its browser cannot start
+ok    leaves nothing behind

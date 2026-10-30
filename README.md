@@ -270,6 +270,8 @@ python tests/run.py --record [PAGE ...]   # re-record the test pages, or those n
 python tests/conduct.py        # the observer against local sites that say no (on Linux, also openssl and certutil)
 python tests/service.py        # the service against local sites: a report out, nothing left behind
 python tests/boundary.py       # open code imports nothing closed; every source file names its licence (BOUNDARY.md)
+python tests/plie.py           # plié: the Haskell and JavaScript folds give the same bytes
+python tests/record.py         # the RADAR record: schema, readings, chain, tree, beacon, verifier, tampering
 ```
 
 `tests/pages/` holds pages with known defects and edge cases, each
@@ -373,6 +375,21 @@ The service dates each record it makes or answers. With `--sky`, it sets
 above the date an illustration whose cloud dots are moved by the signed
 reply, as `serve/sky.py` writes: a record changed, or dated otherwise, has
 another sky.
+
+### The RADAR record
+
+A member site is observed each month and its records handed to its owner. A record
+(`releve-record/2`, `record/schema/`) holds what was observed, frozen in shape, apart from
+what it reads as: each reading is a function of the observation and of the rules' results,
+and `python -m record recompute` rebuilds it byte for byte. Records chain per site, each
+month's records are gathered under one Merkle root (RFC 6962) dated by a time-stamping
+authority (RFC 3161) and published in an append-only list, and the pages observed are drawn
+in an order given by a public beacon (drand) whose round is fixed after the candidates
+were dated. `python -m record verify BUNDLE --roots roots.json` checks all of it, each check
+named; `record/verifier.html` does the same in a browser, offline, and says which checks
+only the command line makes. What judges and checks is written once, in plié (`plie/`,
+`record/*.plie`), and runs the same in Haskell and in JavaScript. BOUNDARY.md says what of
+RADAR is open, here, and what the Bureau keeps closed.
 
 ### Frameworks
 

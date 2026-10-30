@@ -1,0 +1,31 @@
+ok    observes what it may
+ok    pauses at least 1 s between pages
+ok    names itself and its operator
+ok    leaves /locked alone, once
+ok    leaves /busy alone, once
+ok    leaves /gone alone, once
+ok    leaves /gate alone, once
+ok    obeys robots.txt
+ok    stays out when robots.txt is unreachable
+ok    a written mandate overrides robots.txt, on the record
+ok    follows a redirect within the site, and keeps the address asked for
+ok    never requests a closed address a redirect leads to
+ok    a mandate for one site does not open another
+ok    never requests a closed address /script leads to
+ok    never requests a closed address /refresh leads to
+ok    leaves the whole site alone once it pushes back
+ok    observes web addresses only
+ok    takes neither an ordinary title nor a widget in a form for a challenge
+ok    records no page that leaves for, or renames itself to, a closed address
+ok    opens no other window
+ok    lets no script submit a form
+ok    weighs the page as a reader's browser loads it, not what its own measuring adds
+ok    says of each request its status, and whether it was sent before the robot's first gesture
+ok    counts the accessibility tree: controls named and not, roles invalid or out of context, controls hidden
+ok    keeps extracts of 80 characters at most of what a page says
+ok    observes a page that cannot be pictured in time, without its picture, and walks it by keyboard
+ok    reads a refusal worded as closing without accepting
+ok    observes a page whose certificate an ordinary authority signed
+ok    refuses a page whose certificate an authority with a published key signed, and names it
+ok    refuses a page that loads anything such an authority signed
+ok    submits nothing

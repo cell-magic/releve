@@ -1,0 +1,14 @@
+Every check this browser can make holds
+
+holds · record-hash — the record's canonical bytes hash to the hash it is delivered with
+holds · prev-link — the record follows from the one before it
+holds · inclusion-path — the path leads from the record's hash to the root
+holds · root — the root is the root of the record's own cycle
+holds · published — the root and its token stand in the published list, and the list runs unbroken
+not checked here · tsa-token — the token's signature is not checked in a browser; python -m record verify checks it with OpenSSL
+holds · beacon-round — the round is of drand quicknet, and its randomness is the hash of its signature
+not checked here · beacon-signature — the round's BLS signature is not checked in a browser; the command line checks it
+holds · order — the order is the one the round gives, the pages read follow it, the first pick heads them, and the page is among the picks
+not checked here · committed — the commitment token's signature is not checked in a browser; the command line checks it
+holds · before-beacon — the candidates were dated before the round, and the round is the first one after: the round chose, not the Bureau
+requests beyond the file itself: []

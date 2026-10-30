@@ -1,0 +1,52 @@
+{
+ "requests_on_load": [
+  {
+   "phase": "load",
+   "url": "http://127.0.0.4/",
+   "type": "document"
+  }
+ ],
+ "requests_to_bureau_on_load": [],
+ "requests_on_click": [
+  {
+   "phase": "click",
+   "url": "http://127.0.0.9:8100/s/1d2119c30ec9e452b41c97f0?since=2024-10&lang=fr",
+   "type": "document"
+  }
+ ],
+ "accessible_names": [
+  "RADAR — Bureau des Surfaces, observé depuis octobre 2024",
+  "RADAR — Bureau des Surfaces, observé depuis octobre 2024",
+  "RADAR — Bureau des Surfaces, observed since October 2024",
+  "RADAR — Bureau des Surfaces, observed since October 2024"
+ ],
+ "axe": {
+  "violations": [],
+  "passes": [
+   "aria-allowed-attr",
+   "aria-conditional-attr",
+   "aria-hidden-body",
+   "aria-hidden-focus",
+   "aria-prohibited-attr",
+   "aria-valid-attr-value",
+   "aria-valid-attr",
+   "bypass",
+   "color-contrast",
+   "document-title",
+   "empty-heading",
+   "heading-order",
+   "html-has-lang",
+   "html-lang-valid",
+   "landmark-main-is-top-level",
+   "landmark-no-duplicate-main",
+   "landmark-one-main",
+   "landmark-unique",
+   "link-name",
+   "page-has-heading-one",
+   "region",
+   "target-size"
+  ],
+  "version": "4.10.3"
+ },
+ "status_page": "RADAR — Bureau des Surfaces\n\nSuivi actif\n\nObservé depuis le 14 octobre 2024.\n\nDernière observation le 14 octobre 2024.\n\nCe timbre dit qu’un site est observé par le Bureau des Surfaces, chaque mois, selon des règles publiques."
+}

@@ -1,0 +1,98 @@
+ok    report chain
+ok    untouched chain
+ok    report consent
+ok    untouched consent
+ok    report edge
+ok    untouched edge
+ok    report endless
+ok    untouched endless
+ok    report fixture
+ok    untouched fixture
+ok    report forms
+ok    untouched forms
+ok    report hostile
+ok    untouched hostile
+ok    report keyboard
+ok    untouched keyboard
+ok    report names
+ok    untouched names
+ok    report page
+ok    untouched page
+ok    report provenance
+ok    untouched provenance
+ok    report quirks
+ok    untouched quirks
+ok    report reading
+ok    untouched reading
+ok    report structure
+ok    untouched structure
+ok    report tables
+ok    untouched tables
+ok    report targets
+ok    untouched targets
+ok    correction recorded
+ok    correction idempotent
+ok    correction shown
+ok    combined report
+ok    combined corrections
+ok    chain intact
+ok    chain tamper detected
+ok    chain CRLF
+ok    report read back with Windows line endings
+ok    a note typed after the id is refused, and nothing is recorded
+ok    an unknown verdict word is refused, and nothing is recorded
+ok    a note keeps all of its text
+ok    a person's reading carries while what is seen is unchanged
+ok    when it changes, the finding returns to review, not to the machine's verdict
+ok    an untouched report of it records nothing
+ok    the new reading then stands, and carries in its turn
+ok    report in en
+ok    the same report in en with nothing kept
+ok    report in fr
+ok    the same report in fr with nothing kept
+ok    the guide names every criterion, in each language
+ok    the French report is in French
+ok    a hostile page's words stay words in the en report
+ok    a hostile page's words stay words in the fr report
+ok    a report claims nothing for the page
+ok    twelve events in series take twelve steps
+ok    twelve independent events take three
+ok    a series beside the rest costs nothing until it is the longer
+ok    a page that travels heavily is told how, line by line
+ok    a page that travels lightly passes each of them
+ok    on two hundred nestings, the steps stay between the bounds the depth and the size set
+ok    the order of mending ends at the page with nothing failing, each line leaving no more steps than the one before
+ok    failures never shorten a reading, and failing everywhere makes it serial
+ok    asking, each point to decide comes with yes, no and a note, and no failure does
+ok    not asking, the report puts the same questions in words, with nothing to fill in
+ok    an image put to a person is shown with its file and the words around it
+ok    an answer stands as a person's, beside what the rule said, and is no longer asked
+ok    the longest chain of requests is named, first request first
+ok    every RGESN criterion is covered once, by a rule or by a declaration
+ok    every RGAA criterion is covered once, by a rule, by a question or by a declaration
+ok    a declaration shows what the observation saw
+ok    an owner's declarations are recorded, and an untouched document records nothing
+ok    an answer that cannot be read is refused, with everything else
+ok    the report says what is declared, and asking, the answer in force is already chosen
+ok    a declaration withdrawn is open again
+ok    every paragraph of article 50 is read by a rule, declared, or said to bind no site
+ok    each framework counts its provisions, and every one is addressed
+ok    a provision of another law is declared like any other
+ok    a prompt for consent: refusing smaller than accepting is asked, accepting alone fails, alike holds
+ok    a prompt for consent: refusing behind a subscription is asked; the most visible accept is weighed; a tab is no choice; the country seen from is said
+ok    WCAG 2.2: target size, focus not obscured, accessible authentication
+ok    a record is dated by an outside authority, and checked again by relevé and by OpenSSL alone
+ok    what came after a stamp is said; a wrong root or a silent authority is refused
+ok    a page's history: what the page mended and what the reviewer answered, each with its dates, the closing reading dated
+ok    draft statements: failures by criterion with their pages, every RGESN criterion read or declared, the owner's part marked, no conformity stated
+ok    a page without script is not asked about scripts, shortcuts, gestures or motion
+ok    a form is asked about legends and option groups only when it has them
+ok    a link that names its language in that language needs no question
+ok    a question about the page as a whole is asked once for the pages that share a template
+ok    one answer stands for every page counted with it
+ok    a page that changes its template is asked again, and so is a page first seen later; the others keep the answer
+ok    the keyboard walk and the spacing pass name an element as the record does
+ok    a damaged corpus is refused, with its line
+ok    the criteria are those of their version
+ok    the program and the package state the same release
+ok    requested address and browser kept

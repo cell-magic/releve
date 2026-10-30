@@ -1,5 +1,35 @@
 # Changes
 
+## 0.11.0
+
+The RADAR record (D-033): what was observed apart from what it reads as, chained, gathered
+each month under a dated root, drawn from a public beacon, and checked by anyone.
+Criteria stay at v10.
+
+- **plié** (`plie/`): a small pure language, the common ground of Haskell and Lean 4, in
+  which the record's core is written once (`record/*.plie`) and folded into Haskell
+  (`releve core`), JavaScript (`record/verifier.html`) and Lean (`record/gen/lean`, not yet
+  checked). `tests/plie.py` holds the Haskell and JavaScript folds to the same bytes.
+- **The record** (`releve-record/2`, `record/schema/`): an `observation` frozen in shape
+  (bytes in all and by request; each request's origin, type, bytes, status and whether it
+  came before any interaction; the accessibility tree counted), the rule results
+  (`releve rules -`), and `readings`, each a function of those: WCAG by success criterion
+  (fail, review, hint; no percentage), dependencies by registrable domain (public suffix
+  list pinned), legibility, energy (coefficient named, never on a stamp).
+  `python -m record recompute` rebuilds them and compares bytes; records of 0.10 are read.
+- **The chain and the month**: canonical bytes under RFC 8785, SHA-256; `prev`, `baseline`,
+  `chain_status`; the month's Merkle tree under RFC 6962; its root dated under RFC 3161, the
+  authority a setting; the published roots, an append-only list (RFC 4998 renewal left room
+  for, not done); a bundle per record. `python -m record verify` names each check.
+- **The selection**: the candidates are committed to and the commitment dated before the
+  beacon; the round taken is drand quicknet's first after that date, its BLS signature
+  checked; the order it gives is the one the selector reads. Without a round, the record
+  says "selection not beacon-seeded".
+- **The owner's mandate**: a record observed under it says so, and so does the report.
+- **The observer** keeps each request's status and moment and counts the accessibility tree.
+- **"Sealed" is "chained"**: `releve verify` and the service say what the free chain is.
+- **BOUNDARY.md** and `tests/boundary.py`: what is open, what is closed, kept apart.
+
 ## 0.10.0
 
 Each report comes with the page as it was served, and a way to check it.

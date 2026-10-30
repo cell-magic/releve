@@ -203,13 +203,27 @@ criterion, and how "fixed before the beacon" enters the record and the proofs.
 
 ## Where the code stands
 
-- **plié:** `plie/plie.py` is the compiler. The library exists in all three
-  targets. `record/Json.plie` (JSON and its RFC 8785 canonical text) is written
-  and compiled.
-- **Checked:** the Haskell and JavaScript outputs agree on every test input.
-- **Not checked:** the Lean output has never been compiled. Installing Lean
-  was not possible where this was written.
-- **To write next in plié:** the Merkle tree, the record chain, the list of
-  published roots, the page order derived from the beacon, the mirror, and the
-  checker. `PLAN.md` holds the plan; `BOUNDARY.md` says what is open and what
-  is closed.
+All of it is now written in plié, and the Haskell and JavaScript versions
+agree on every test input:
+
+- `record/Merkle.plie`: the tree, built level by level as in question 2;
+- `record/Chain.plie` and `record/Roots.plie`: the hash-linked structures of
+  question 3;
+- `record/Verify.plie`: the six checks of question 5, then the selection
+  checks;
+- `radar/mirror.py`: the mirror of question 4, in Python on the closed side,
+  with what it does not promise written in its docstring.
+
+The "fixed before the beacon" fact of question 5 is now enforced:
+
+- the candidate list is committed to and time-stamped first;
+- the round must be the first one after that time;
+- the verifier checks both (check `before-beacon`).
+
+What I would like proved first, in `record/gen/lean/`:
+
+- completeness of `rootFrom`/`pathOf` (question 2);
+- the collision extraction for `Merkle`, `Chain` and `Roots` (question 3).
+
+The Lean output is written but has never been compiled: no Lean was
+installed where this was made. Its first job is to compile.

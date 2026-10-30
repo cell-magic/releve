@@ -1,0 +1,1168 @@
+{
+ "format": "releve-bundle/1",
+ "record": {
+  "schema": "releve-record/2",
+  "site": "http://127.0.0.2",
+  "cycle": "2024-10",
+  "url": "http://127.0.0.2/team",
+  "requested": "http://127.0.0.2/team",
+  "at": "2026-10-30T21:59:46+00:00",
+  "agent": "releve-observe/0.5",
+  "browser": "Chromium 153.0.8010.12",
+  "release": "0.10.0",
+  "criteria": "10",
+  "from": "CH",
+  "observation": {
+   "bytes": {
+    "total": 414
+   },
+   "requests": [
+    {
+     "origin": "http://127.0.0.2",
+     "type": "Document",
+     "bytes": 414,
+     "status": 200,
+     "pre_interaction": true
+    }
+   ],
+   "ax": {
+    "version": "aria-1.2",
+    "interactive": 0,
+    "named": 0,
+    "unnamed": 0,
+    "invalid_roles": 0,
+    "context_violations": 1,
+    "hidden_interactive": 1
+   }
+  },
+  "rules": [
+   {
+    "criterion": "page-title",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "2.4.2"
+    ]
+   },
+   {
+    "criterion": "page-lang",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "3.1.1"
+    ]
+   },
+   {
+    "criterion": "doctype",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "4.1.1"
+    ]
+   },
+   {
+    "criterion": "zoom",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.4.4"
+    ]
+   },
+   {
+    "criterion": "reflow",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.4.10"
+    ]
+   },
+   {
+    "criterion": "main-region",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.3.1",
+     "2.4.1",
+     "4.1.2"
+    ]
+   },
+   {
+    "criterion": "skip-link",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "2.4.1",
+     "2.4.3",
+     "3.2.3"
+    ]
+   },
+   {
+    "criterion": "heading-order",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.3.1",
+     "2.4.1",
+     "2.4.6",
+     "4.1.2"
+    ]
+   },
+   {
+    "criterion": "heading-look",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.3.1",
+     "2.4.1",
+     "2.4.6",
+     "4.1.2"
+    ]
+   },
+   {
+    "criterion": "list-look",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.3.1"
+    ]
+   },
+   {
+    "criterion": "empty-blocks",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.3.1"
+    ]
+   },
+   {
+    "criterion": "presentation",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.3.1",
+     "1.3.2"
+    ]
+   },
+   {
+    "criterion": "image-alt",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.1.1",
+     "4.1.2"
+    ]
+   },
+   {
+    "criterion": "text-contrast",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.4.3"
+    ]
+   },
+   {
+    "criterion": "link-name",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.1.1",
+     "2.4.4",
+     "2.5.3"
+    ]
+   },
+   {
+    "criterion": "link-distinct",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.1.1",
+     "2.4.4",
+     "2.5.3"
+    ]
+   },
+   {
+    "criterion": "button-name",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "2.5.3",
+     "4.1.2"
+    ]
+   },
+   {
+    "criterion": "label-in-name",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.1.1",
+     "2.4.4",
+     "2.4.6",
+     "2.5.3",
+     "3.3.2",
+     "4.1.2"
+    ]
+   },
+   {
+    "criterion": "control-label",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.3.1",
+     "2.4.6",
+     "3.3.2",
+     "4.1.2"
+    ]
+   },
+   {
+    "criterion": "group-legend",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.3.1",
+     "3.3.2"
+    ]
+   },
+   {
+    "criterion": "field-group",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.3.1",
+     "3.3.2"
+    ]
+   },
+   {
+    "criterion": "autocomplete",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.3.5"
+    ]
+   },
+   {
+    "criterion": "table-headers",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.3.1",
+     "1.3.2",
+     "4.1.2"
+    ]
+   },
+   {
+    "criterion": "frame-title",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "4.1.2"
+    ]
+   },
+   {
+    "criterion": "autoplay",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.4.2"
+    ]
+   },
+   {
+    "criterion": "media-captions",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.2.2"
+    ]
+   },
+   {
+    "criterion": "unique-ids",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "4.1.1",
+     "4.1.2"
+    ]
+   },
+   {
+    "criterion": "tab-order",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "2.4.3"
+    ]
+   },
+   {
+    "criterion": "hidden-focus",
+    "fail": 1,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.3.2",
+     "4.1.2"
+    ]
+   },
+   {
+    "criterion": "focus-visible",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.4.1",
+     "2.4.7"
+    ]
+   },
+   {
+    "criterion": "focus-obscured",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "2.4.11"
+    ]
+   },
+   {
+    "criterion": "target-size",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "2.5.8"
+    ]
+   },
+   {
+    "criterion": "authentication",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "3.3.8"
+    ]
+   },
+   {
+    "criterion": "keyboard-trap",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "2.1.1",
+     "2.1.2"
+    ]
+   },
+   {
+    "criterion": "lang-code",
+    "fail": 0,
+    "hint": 0,
+    "review": 2,
+    "wcag": [
+     "3.1.1",
+     "3.1.2"
+    ]
+   },
+   {
+    "criterion": "direction",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.3.2"
+    ]
+   },
+   {
+    "criterion": "text-spacing",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.4.12"
+    ]
+   },
+   {
+    "criterion": "motion",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "2.2.1",
+     "2.2.2"
+    ]
+   },
+   {
+    "criterion": "clickable",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.3.1",
+     "2.1.1",
+     "2.4.7"
+    ]
+   },
+   {
+    "criterion": "generated-text",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.1.1",
+     "1.3.1"
+    ]
+   },
+   {
+    "criterion": "paired-colours",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.4.3"
+    ]
+   },
+   {
+    "criterion": "link-visible",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.4.1"
+    ]
+   },
+   {
+    "criterion": "cryptic",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.1.1"
+    ]
+   },
+   {
+    "criterion": "captcha",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.1.1"
+    ]
+   },
+   {
+    "criterion": "documents",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.1.1",
+     "1.3.1",
+     "1.3.2",
+     "2.4.1",
+     "2.4.3",
+     "3.1.1",
+     "4.1.2"
+    ]
+   },
+   {
+    "criterion": "no-popup",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "3.2.1"
+    ]
+   },
+   {
+    "criterion": "refresh",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "2.2.1",
+     "2.2.2"
+    ]
+   },
+   {
+    "criterion": "ai-disclosure",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": []
+   },
+   {
+    "criterion": "ai-image",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": []
+   },
+   {
+    "criterion": "asks-on-arrival",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": []
+   },
+   {
+    "criterion": "consent-choice",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": []
+   },
+   {
+    "criterion": "third-parties",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": []
+   },
+   {
+    "criterion": "media-autoplay",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": []
+   },
+   {
+    "criterion": "endless",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": []
+   },
+   {
+    "criterion": "fonts",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": []
+   },
+   {
+    "criterion": "compression",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": []
+   },
+   {
+    "criterion": "caching",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": []
+   },
+   {
+    "criterion": "protocol",
+    "fail": 0,
+    "hint": 3,
+    "review": 0,
+    "wcag": []
+   },
+   {
+    "criterion": "lazy-images",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": []
+   },
+   {
+    "criterion": "image-weight",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": []
+   },
+   {
+    "criterion": "image-format",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": []
+   },
+   {
+    "criterion": "review-images",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.1.1",
+     "1.4.5",
+     "4.1.2"
+    ]
+   },
+   {
+    "criterion": "review-frames",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "4.1.2"
+    ]
+   },
+   {
+    "criterion": "review-colours",
+    "fail": 0,
+    "hint": 0,
+    "review": 2,
+    "wcag": [
+     "1.3.1",
+     "1.4.1",
+     "1.4.11"
+    ]
+   },
+   {
+    "criterion": "review-media",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.1.1",
+     "1.2.1",
+     "1.2.2",
+     "1.2.3",
+     "1.2.5",
+     "2.1.1",
+     "2.1.2",
+     "4.1.2"
+    ]
+   },
+   {
+    "criterion": "review-tables",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.3.1"
+    ]
+   },
+   {
+    "criterion": "review-scripts",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.1.1",
+     "2.5.3",
+     "3.2.1",
+     "3.2.2",
+     "4.1.2",
+     "4.1.3"
+    ]
+   },
+   {
+    "criterion": "review-title",
+    "fail": 0,
+    "hint": 0,
+    "review": 1,
+    "wcag": [
+     "2.4.2"
+    ]
+   },
+   {
+    "criterion": "review-structure",
+    "fail": 0,
+    "hint": 0,
+    "review": 1,
+    "wcag": [
+     "1.3.1"
+    ]
+   },
+   {
+    "criterion": "review-presentation",
+    "fail": 0,
+    "hint": 0,
+    "review": 5,
+    "wcag": [
+     "1.3.2",
+     "1.3.3",
+     "1.4.1",
+     "1.4.13",
+     "2.1.1",
+     "2.4.3"
+    ]
+   },
+   {
+    "criterion": "review-forms",
+    "fail": 0,
+    "hint": 0,
+    "review": 0,
+    "wcag": [
+     "1.3.1",
+     "3.2.4",
+     "3.3.1",
+     "3.3.2",
+     "3.3.3",
+     "3.3.4",
+     "3.3.7"
+    ]
+   },
+   {
+    "criterion": "review-navigation",
+    "fail": 0,
+    "hint": 0,
+    "review": 1,
+    "wcag": [
+     "2.1.1",
+     "2.1.4"
+    ]
+   },
+   {
+    "criterion": "review-consultation",
+    "fail": 0,
+    "hint": 0,
+    "review": 2,
+    "wcag": [
+     "1.3.4",
+     "2.3.1",
+     "2.5.1",
+     "2.5.2",
+     "2.5.4",
+     "2.5.7"
+    ]
+   }
+  ],
+  "readings": [
+   {
+    "name": "wcag",
+    "value": [
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "1.1.1"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "1.2.1"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "1.2.2"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "1.2.3"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "1.2.5"
+     },
+     {
+      "criteria": [
+       "review-colours",
+       "review-structure"
+      ],
+      "label": "review",
+      "sc": "1.3.1"
+     },
+     {
+      "criteria": [
+       "hidden-focus",
+       "review-presentation"
+      ],
+      "label": "fail",
+      "sc": "1.3.2"
+     },
+     {
+      "criteria": [
+       "review-presentation"
+      ],
+      "label": "review",
+      "sc": "1.3.3"
+     },
+     {
+      "criteria": [
+       "review-consultation"
+      ],
+      "label": "review",
+      "sc": "1.3.4"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "1.3.5"
+     },
+     {
+      "criteria": [
+       "review-colours",
+       "review-presentation"
+      ],
+      "label": "review",
+      "sc": "1.4.1"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "1.4.2"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "1.4.3"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "1.4.4"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "1.4.5"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "1.4.10"
+     },
+     {
+      "criteria": [
+       "review-colours"
+      ],
+      "label": "review",
+      "sc": "1.4.11"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "1.4.12"
+     },
+     {
+      "criteria": [
+       "review-presentation"
+      ],
+      "label": "review",
+      "sc": "1.4.13"
+     },
+     {
+      "criteria": [
+       "review-presentation",
+       "review-navigation"
+      ],
+      "label": "review",
+      "sc": "2.1.1"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "2.1.2"
+     },
+     {
+      "criteria": [
+       "review-navigation"
+      ],
+      "label": "review",
+      "sc": "2.1.4"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "2.2.1"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "2.2.2"
+     },
+     {
+      "criteria": [
+       "review-consultation"
+      ],
+      "label": "review",
+      "sc": "2.3.1"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "2.4.1"
+     },
+     {
+      "criteria": [
+       "review-title"
+      ],
+      "label": "review",
+      "sc": "2.4.2"
+     },
+     {
+      "criteria": [
+       "review-presentation"
+      ],
+      "label": "review",
+      "sc": "2.4.3"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "2.4.4"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "2.4.6"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "2.4.7"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "2.4.11"
+     },
+     {
+      "criteria": [
+       "review-consultation"
+      ],
+      "label": "review",
+      "sc": "2.5.1"
+     },
+     {
+      "criteria": [
+       "review-consultation"
+      ],
+      "label": "review",
+      "sc": "2.5.2"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "2.5.3"
+     },
+     {
+      "criteria": [
+       "review-consultation"
+      ],
+      "label": "review",
+      "sc": "2.5.4"
+     },
+     {
+      "criteria": [
+       "review-consultation"
+      ],
+      "label": "review",
+      "sc": "2.5.7"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "2.5.8"
+     },
+     {
+      "criteria": [
+       "lang-code"
+      ],
+      "label": "review",
+      "sc": "3.1.1"
+     },
+     {
+      "criteria": [
+       "lang-code"
+      ],
+      "label": "review",
+      "sc": "3.1.2"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "3.2.1"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "3.2.2"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "3.2.3"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "3.2.4"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "3.3.1"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "3.3.2"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "3.3.3"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "3.3.4"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "3.3.7"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "3.3.8"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "4.1.1"
+     },
+     {
+      "criteria": [
+       "hidden-focus"
+      ],
+      "label": "fail",
+      "sc": "4.1.2"
+     },
+     {
+      "criteria": [],
+      "label": null,
+      "sc": "4.1.3"
+     }
+    ],
+    "version": 1
+   },
+   {
+    "name": "dependencies",
+    "value": {
+     "domains": [
+      {
+       "bytes": 414,
+       "domain": "127.0.0.2",
+       "party": "first",
+       "pre_interaction": 1,
+       "requests": 1
+      }
+     ],
+     "psl": "2026-10-28_13-15-55_UTC 9dfbe81",
+     "site": "127.0.0.2"
+    },
+    "version": 1
+   },
+   {
+    "name": "legibility",
+    "value": {
+     "context_violations": 1,
+     "hidden_interactive": 1,
+     "interactive": 0,
+     "invalid_roles": 0,
+     "named": 0,
+     "obstacles": 2,
+     "unnamed": 0
+    },
+    "version": 1
+   },
+   {
+    "name": "energy",
+    "value": {
+     "bytes": 414,
+     "coefficient": {
+      "kwh_per_gb": {
+       "den": 100,
+       "num": 81
+      },
+      "source": "Sustainable Web Design model, version 3 (2022), sustainablewebdesign.org: energy per gigabyte transferred, data centre, network and device together",
+      "version": "swd-3"
+     },
+     "kwh": "0.000000335"
+    },
+    "version": 1
+   }
+  ],
+  "selection": {
+   "protocol": "surface-core/select-1",
+   "order_rule": "releve-order/1",
+   "candidates": [
+    "http://127.0.0.2/",
+    "http://127.0.0.2/news",
+    "http://127.0.0.2/team"
+   ],
+   "commitment": {
+    "hash": "8db53330a8e955582184d593e688c7380a999695e947864a23afa45a0772e265",
+    "time": 1728926010,
+    "tsa": "http://127.0.0.1:8769",
+    "token": "308203a606092a864886f70d010702a082039730820393020103310f300d060960864801650304020105003073060b2a864886f70d0109100104a0640462306002010106042a0304013031300d0609608648016503040201050004208db53330a8e955582184d593e688c7380a999695e947864a23afa45a0772e265020103180f32303234313031343137313333305a3003020101020900c68dbf56e6478e00a08201b9308201b53082015ba00302010202145a88026e35e9c292f19a65e1297ac395b8a8d8b2300a06082a8648ce3d040302301d311b301906035504030c1272656c6576c383c2a9207465737473206361301e170d3234313031343137313333305a170d3238313132323137313333305a301e311c301a06035504030c1372656c6576c383c2a9207465737473207473613059301306072a8648ce3d020106082a8648ce3d03010703420004451a7d19d2a9439aad81ae8cb470c207e3af4eb758fb019f9264b1c4a307fe6ec6038b290aebc9bb5d2bf60feb738c1051e414c56806150d52e32143e95f1edca3783076300c0603551d130101ff04023000300e0603551d0f0101ff04040302078030160603551d250101ff040c300a06082b06010505070308301d0603551d0e04160414b2627de0a0edc57d4d5c6290c793686ab92e2e85301f0603551d230418301680148a917d3a48bea7b0e856bf31fe1117675b7b8e9d300a06082a8648ce3d04030203480030450221009549d5605e5ecbb417fc28c9e0680101f484625513a9e781ead190ee6bd269be02202b6d02c3fbfb568ef1c9c3a32ca02efec853356514a95bb003d7cb6aaf30da5b31820149308201450201013035301d311b301906035504030c1272656c6576c383c2a920746573747320636102145a88026e35e9c292f19a65e1297ac395b8a8d8b2300d06096086480165030402010500a081a4301a06092a864886f70d010903310d060b2a864886f70d0109100104301c06092a864886f70d010905310f170d3234313031343137313333305a302f06092a864886f70d01090431220420411a82e11ecbd2edc2cb80df1f474d071ccafae85e7bf28c7117be148129b5003037060b2a864886f70d010910022f31283026302430220420b10ad43f463436d1f1ea9780536ba9671398619124cc8fe59982fc5e47e5c580300a06082a8648ce3d04030204473045022030efadca67369a43f558cf4094b5a37f11e732f57e8192d8fe5118f58d408b8d022100cf0240077334f45bd1e4d258eecf2beccf9f9ae7577aac576f022a7e38663657"
+   },
+   "budget": 2,
+   "seed": "187348a62f6aa05ef1663962ec78906c1556c4919cc896e24177ab2653088845",
+   "order": [
+    "http://127.0.0.2/team",
+    "http://127.0.0.2/news",
+    "http://127.0.0.2/"
+   ],
+   "read": [
+    "http://127.0.0.2/team",
+    "http://127.0.0.2/news",
+    "http://127.0.0.2/"
+   ],
+   "picks": [
+    "http://127.0.0.2/team",
+    "http://127.0.0.2/"
+   ],
+   "receipt": "07c1709709c5b797ceeb77e13d229536259e82e559494b460d530e58708430ed"
+  },
+  "beacon": {
+   "chain": "52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971",
+   "round": 12040883,
+   "randomness": "173df1f57805453a8d2015268205d68147de12cafc2f451f7bc6adadca3571b3",
+   "signature": "929906c959032ab363c9f26570d215d66f5c06cb0c44fe508c12bb5839f04ec895bb6868e5b9ff13ab289bdb5266b394"
+  },
+  "mandate": {
+   "granted": false
+  },
+  "baseline": "2024-10-14",
+  "chain_status": "unbroken",
+  "prev": null
+ },
+ "record_hash": "0eaf9457824148d1054d91296ba3df95bb15173ef15ed757ef70f232fddf64ef",
+ "cycle": "2024-10",
+ "root": "76adb68e090d80d19b69086f7d130fb8be49b9b91c96ba07dd4225f0bbe84550",
+ "path": [
+  {
+   "right": "1818897bad99af17218863d9a1c5d76d18a1bbf69d2bd17406ebc1774bebcd5b"
+  },
+  {
+   "right": "57b1d15c768cdcf7f984175a2950b233f54c7f39b35e0982a55285d408f8b8a4"
+  },
+  {
+   "right": "534579bccb4ef3589240273846532ac6b308726728c152c68b641c68875b2cd7"
+  }
+ ],
+ "token": "308203a506092a864886f70d010702a082039630820392020103310f300d060960864801650304020105003072060b2a864886f70d0109100104a0630461305f02010106042a0304013031300d06096086480165030402010500042076adb68e090d80d19b69086f7d130fb8be49b9b91c96ba07dd4225f0bbe84550020105180f32303234313031343137313333305a300302010102084270a108dd6461b1a08201b9308201b53082015ba00302010202145a88026e35e9c292f19a65e1297ac395b8a8d8b2300a06082a8648ce3d040302301d311b301906035504030c1272656c6576c383c2a9207465737473206361301e170d3234313031343137313333305a170d3238313132323137313333305a301e311c301a06035504030c1372656c6576c383c2a9207465737473207473613059301306072a8648ce3d020106082a8648ce3d03010703420004451a7d19d2a9439aad81ae8cb470c207e3af4eb758fb019f9264b1c4a307fe6ec6038b290aebc9bb5d2bf60feb738c1051e414c56806150d52e32143e95f1edca3783076300c0603551d130101ff04023000300e0603551d0f0101ff04040302078030160603551d250101ff040c300a06082b06010505070308301d0603551d0e04160414b2627de0a0edc57d4d5c6290c793686ab92e2e85301f0603551d230418301680148a917d3a48bea7b0e856bf31fe1117675b7b8e9d300a06082a8648ce3d04030203480030450221009549d5605e5ecbb417fc28c9e0680101f484625513a9e781ead190ee6bd269be02202b6d02c3fbfb568ef1c9c3a32ca02efec853356514a95bb003d7cb6aaf30da5b31820149308201450201013035301d311b301906035504030c1272656c6576c383c2a920746573747320636102145a88026e35e9c292f19a65e1297ac395b8a8d8b2300d06096086480165030402010500a081a4301a06092a864886f70d010903310d060b2a864886f70d0109100104301c06092a864886f70d010905310f170d3234313031343137313333305a302f06092a864886f70d01090431220420a59d4f11b5d9a473da7869d6c49bce5104459798d18385b6aa340a5d252979e33037060b2a864886f70d010910022f31283026302430220420b10ad43f463436d1f1ea9780536ba9671398619124cc8fe59982fc5e47e5c580300a06082a8648ce3d04030204473045022100dfcf97fdfe0c0e5024d816bd7ddae254bc32c449faf0027898eddf4a80e3851502203a22260d6fb3ca80e95ca11eefcb9358fbf8d4f54eff3d8c50bea9c29781f610"
+}

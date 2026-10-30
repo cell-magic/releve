@@ -1,0 +1,11 @@
+{
+ "entries": [
+  {
+   "cycle": "2024-10",
+   "prev_entry_hash": null,
+   "root": "76adb68e090d80d19b69086f7d130fb8be49b9b91c96ba07dd4225f0bbe84550",
+   "token_hash": "5ef53af31ea48e9040d8c9bb4ea04ee33e92699864bdb7b8259859e1c3a97240"
+  }
+ ],
+ "format": "releve-roots/1"
+}

@@ -1,0 +1,451 @@
+{
+ "record_hash": "eeb893186854d16e4d489f41cfe4124a696ea2b7bb58278fbca5844b26593fd5",
+ "site": "http://127.0.0.3",
+ "cycle": "2024-10",
+ "url": "http://127.0.0.3/actes",
+ "from": "CH",
+ "observation": {
+  "bytes": {
+   "total": 388
+  },
+  "requests": [
+   {
+    "origin": "http://127.0.0.3",
+    "type": "Document",
+    "bytes": 388,
+    "status": 200,
+    "pre_interaction": true
+   }
+  ],
+  "ax": {
+   "version": "aria-1.2",
+   "interactive": 0,
+   "named": 0,
+   "unnamed": 0,
+   "invalid_roles": 0,
+   "context_violations": 0,
+   "hidden_interactive": 0
+  }
+ },
+ "readings": [
+  {
+   "name": "wcag",
+   "value": [
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "1.1.1"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "1.2.1"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "1.2.2"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "1.2.3"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "1.2.5"
+    },
+    {
+     "criteria": [
+      "review-colours",
+      "review-tables",
+      "review-structure"
+     ],
+     "label": "review",
+     "sc": "1.3.1"
+    },
+    {
+     "criteria": [
+      "review-presentation"
+     ],
+     "label": "review",
+     "sc": "1.3.2"
+    },
+    {
+     "criteria": [
+      "review-presentation"
+     ],
+     "label": "review",
+     "sc": "1.3.3"
+    },
+    {
+     "criteria": [
+      "review-consultation"
+     ],
+     "label": "review",
+     "sc": "1.3.4"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "1.3.5"
+    },
+    {
+     "criteria": [
+      "review-colours",
+      "review-presentation"
+     ],
+     "label": "review",
+     "sc": "1.4.1"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "1.4.2"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "1.4.3"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "1.4.4"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "1.4.5"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "1.4.10"
+    },
+    {
+     "criteria": [
+      "review-colours"
+     ],
+     "label": "review",
+     "sc": "1.4.11"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "1.4.12"
+    },
+    {
+     "criteria": [
+      "review-presentation"
+     ],
+     "label": "review",
+     "sc": "1.4.13"
+    },
+    {
+     "criteria": [
+      "review-presentation",
+      "review-navigation"
+     ],
+     "label": "review",
+     "sc": "2.1.1"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "2.1.2"
+    },
+    {
+     "criteria": [
+      "review-navigation"
+     ],
+     "label": "review",
+     "sc": "2.1.4"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "2.2.1"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "2.2.2"
+    },
+    {
+     "criteria": [
+      "review-consultation"
+     ],
+     "label": "review",
+     "sc": "2.3.1"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "2.4.1"
+    },
+    {
+     "criteria": [
+      "review-title"
+     ],
+     "label": "review",
+     "sc": "2.4.2"
+    },
+    {
+     "criteria": [
+      "review-presentation"
+     ],
+     "label": "review",
+     "sc": "2.4.3"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "2.4.4"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "2.4.6"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "2.4.7"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "2.4.11"
+    },
+    {
+     "criteria": [
+      "review-consultation"
+     ],
+     "label": "review",
+     "sc": "2.5.1"
+    },
+    {
+     "criteria": [
+      "review-consultation"
+     ],
+     "label": "review",
+     "sc": "2.5.2"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "2.5.3"
+    },
+    {
+     "criteria": [
+      "review-consultation"
+     ],
+     "label": "review",
+     "sc": "2.5.4"
+    },
+    {
+     "criteria": [
+      "review-consultation"
+     ],
+     "label": "review",
+     "sc": "2.5.7"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "2.5.8"
+    },
+    {
+     "criteria": [
+      "lang-code"
+     ],
+     "label": "review",
+     "sc": "3.1.1"
+    },
+    {
+     "criteria": [
+      "lang-code"
+     ],
+     "label": "review",
+     "sc": "3.1.2"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "3.2.1"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "3.2.2"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "3.2.3"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "3.2.4"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "3.3.1"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "3.3.2"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "3.3.3"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "3.3.4"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "3.3.7"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "3.3.8"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "4.1.1"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "4.1.2"
+    },
+    {
+     "criteria": [],
+     "label": null,
+     "sc": "4.1.3"
+    }
+   ],
+   "version": 1
+  },
+  {
+   "name": "dependencies",
+   "value": {
+    "domains": [
+     {
+      "bytes": 388,
+      "domain": "127.0.0.3",
+      "party": "first",
+      "pre_interaction": 1,
+      "requests": 1
+     }
+    ],
+    "psl": "2026-10-28_13-15-55_UTC 9dfbe81",
+    "site": "127.0.0.3"
+   },
+   "version": 1
+  },
+  {
+   "name": "legibility",
+   "value": {
+    "context_violations": 0,
+    "hidden_interactive": 0,
+    "interactive": 0,
+    "invalid_roles": 0,
+    "named": 0,
+    "obstacles": 0,
+    "unnamed": 0
+   },
+   "version": 1
+  },
+  {
+   "name": "energy",
+   "value": {
+    "bytes": 388,
+    "coefficient": {
+     "kwh_per_gb": {
+      "den": 100,
+      "num": 81
+     },
+     "source": "Sustainable Web Design model, version 3 (2022), sustainablewebdesign.org: energy per gigabyte transferred, data centre, network and device together",
+     "version": "swd-3"
+    },
+    "kwh": "0.000000314"
+   },
+   "version": 1
+  }
+ ],
+ "chain": {
+  "prev": "cee3554bf64d1180b3fda873d2fa10648879136bf3e42c348d1a92bd5d983127",
+  "baseline": "2024-10-14",
+  "chain_status": "unbroken"
+ },
+ "beacon": {
+  "chain": "52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971",
+  "round": 12040883,
+  "randomness": "173df1f57805453a8d2015268205d68147de12cafc2f451f7bc6adadca3571b3",
+  "signature": "929906c959032ab363c9f26570d215d66f5c06cb0c44fe508c12bb5839f04ec895bb6868e5b9ff13ab289bdb5266b394"
+ },
+ "selection": {
+  "protocol": "surface-core/select-1",
+  "order_rule": "releve-order/1",
+  "candidates": [
+   "http://127.0.0.3/",
+   "http://127.0.0.3/actes",
+   "http://127.0.0.3/agenda"
+  ],
+  "commitment": {
+   "hash": "477a28a7aef34db15a0514f16fb7d7ec79022258da0f66c1981cbd37faf48bf0",
+   "time": 1728926010,
+   "tsa": "http://127.0.0.1:8769",
+   "token": "308203a606092a864886f70d010702a082039730820393020103310f300d0609…"
+  },
+  "budget": 2,
+  "seed": "dbc4f424bec79be2d0f56645a6789277ec7ff0200389c0dcc9ba648fa89bbb25",
+  "order": [
+   "http://127.0.0.3/",
+   "http://127.0.0.3/agenda",
+   "http://127.0.0.3/actes"
+  ],
+  "read": [
+   "http://127.0.0.3/",
+   "http://127.0.0.3/agenda",
+   "http://127.0.0.3/actes"
+  ],
+  "picks": [
+   "http://127.0.0.3/",
+   "http://127.0.0.3/actes"
+  ],
+  "receipt": "35dd5e995ecc10cb1e80150206e6b89998109b123dc9d634fffe6f877fc45ebc"
+ },
+ "mandate": {
+  "granted": true,
+  "date": "2024-10-01",
+  "statement": {
+   "en": "observed under the owner's mandate",
+   "fr": "observé sous mandat du propriétaire"
+  }
+ },
+ "inclusion": {
+  "root": "76adb68e090d80d19b69086f7d130fb8be49b9b91c96ba07dd4225f0bbe84550",
+  "path": [
+   {
+    "left": "f81df46a23a265c977db55ea051f921701784adc654841f3142f89ce5ba1b574"
+   },
+   {
+    "left": "8e949ba6d75c53d29b810fd9c25dda8557b43276a3f1d7949c0558503f58ea98"
+   }
+  ]
+ }
+}
