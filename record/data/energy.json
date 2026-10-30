@@ -1,0 +1,7 @@
+{
+  "$comment": "The coefficient by which the energy reading turns bytes into kWh; its source and version go into every reading.",
+  "source": "Sustainable Web Design model, version 3 (2022), sustainablewebdesign.org: energy per gigabyte transferred, data centre, network and device together",
+  "version": "swd-3",
+  "kwh_per_gb": {"num": 81, "den": 100},
+  "gb": "10^9 bytes"
+}

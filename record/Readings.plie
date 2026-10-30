@@ -1,0 +1,138 @@
+-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
+-- SPDX-License-Identifier: EUPL-1.2
+-- The readings of a record: each {name, version, value}, a function of the record's
+-- observation and of the rule results the kernel gave (releve rules), and of nothing else
+-- but the data named in the reading itself (the public suffix list, the energy
+-- coefficient). `python -m record recompute` rebuilds them from a record and compares bytes.
+module Readings where
+
+import Json
+
+-- ---- WCAG: each success criterion the rules read, and the strongest mark given on it.
+-- Machine labels only: fail, review, hint; a criterion read with no mark has none. No share,
+-- no percentage: what the rules read is not what a person would find.
+
+scParts : Text -> List Int
+scParts sc = map (\p -> fromMaybe 0 (readInt p)) (split "." sc)
+
+scBefore : Text -> Text -> Bool
+scBefore a b = lexLess (scParts a) (scParts b)
+
+lexLess : List Int -> List Int -> Bool
+lexLess xs ys = case xs of
+  | [] -> case ys of
+    | [] -> False
+    | _ -> True
+  | x :: xr -> case ys of
+    | [] -> False
+    | y :: yr -> if x < y then True else if y < x then False else lexLess xr yr
+
+marked : Text -> Json -> Int
+marked label rule = asInt (field label rule)
+
+labelOf : List Json -> Json
+labelOf rules =
+  if any (\r -> marked "fail" r > 0) rules then JText "fail"
+  else if any (\r -> marked "review" r > 0) rules then JText "review"
+  else if any (\r -> marked "hint" r > 0) rules then JText "hint" else JNull
+
+wcag : List Json -> Json
+wcag rules =
+  let scs = uniqueTexts (concat (map (\r -> map asText (asList (field "wcag" r))) rules)) in
+  JList (map (\sc -> let on = filter (\r -> elem (JText sc) (asList (field "wcag" r))) rules in
+                     object [ entry "sc" (JText sc), entry "label" (labelOf on)
+                            , entry "criteria" (texts (map (\r -> asText (field "criterion" r))
+                                                (filter (\r -> marked "fail" r + marked "review" r + marked "hint" r > 0) on))) ])
+             (sortBy scBefore scs))
+
+uniqueTexts : List Text -> List Text
+uniqueTexts ts = foldl (\acc t -> if elem t acc then acc else acc ++ [t]) [] ts
+
+-- ---- Dependencies: who serves the page, by registrable domain under the public suffix list.
+
+hostOf : Text -> Text
+hostOf origin =
+  let rest = fromMaybe origin (nth 1 (split "://" origin)) in
+  if startsWith "[" rest then fromMaybe rest (nth 0 (split "]" rest)) ++ "]"
+  else asciiLower (fromMaybe rest (nth 0 (split ":" rest)))
+
+isAddress : Text -> Bool
+isAddress host = startsWith "[" host || all (\l -> textLength l > 0 && readInt l /= Nothing) (split "." host)
+
+lastLabels : Int -> List Text -> Text
+lastLabels k labels = joinText "." (drop (length labels - k) labels)
+
+-- How many labels the public suffix of a host has, by the list's own rules: an exception
+-- prevails; else the longest rule matching, a wildcard matching one label more; else one.
+suffixLength : List Text -> List Text -> Int
+suffixLength rules labels =
+  let n = length labels in
+  let ks = range 1 (n + 1) in
+  let excepted = filter (\k -> elem ("!" ++ lastLabels k labels) rules) ks in
+  if length excepted > 0 then foldl max 0 excepted - 1
+  else foldl max 1 (filter (\k -> elem (lastLabels k labels) rules || (k > 1 && elem ("*." ++ lastLabels (k - 1) labels) rules)) ks)
+
+registrable : List Text -> Text -> Text
+registrable rules host =
+  if isAddress host then host else
+  let labels = split "." host in
+  let s = suffixLength rules labels in
+  if length labels > s then lastLabels (s + 1) labels else host
+
+dependencies : List Text -> Text -> Text -> List Json -> Json
+dependencies rules version site requests =
+  let mine = registrable rules (hostOf site) in
+  let domainOf = \q -> registrable rules (hostOf (asText (field "origin" q))) in
+  let domains = sortBy (\a b -> a < b) (uniqueTexts (map domainOf requests)) in
+  object [ entry "psl" (JText version), entry "site" (JText mine)
+         , entry "domains" (JList (map (\d -> let qs = filter (\q -> domainOf q == d) requests in
+             object [ entry "domain" (JText d), entry "party" (JText (if d == mine then "first" else "third"))
+                    , entry "requests" (JInt (length qs)), entry "bytes" (JInt (sum (map (\q -> asInt (field "bytes" q)) qs)))
+                    , entry "pre_interaction" (JInt (length (filter (\q -> asBool (field "pre_interaction" q)) qs))) ]) domains)) ]
+
+-- ---- Legibility: what the accessibility tree lets a reader name, from its counts.
+
+legibility : Json -> Json
+legibility ax =
+  let n = asInt (field "interactive" ax) in
+  let named = asInt (field "named" ax) in
+  object [ entry "interactive" (JInt n), entry "named" (JInt named), entry "unnamed" (JInt (n - named))
+         , entry "invalid_roles" (field "invalid_roles" ax), entry "context_violations" (field "context_violations" ax)
+         , entry "hidden_interactive" (field "hidden_interactive" ax)
+         , entry "obstacles" (JInt (n - named + asInt (field "invalid_roles" ax) + asInt (field "context_violations" ax)
+                                    + asInt (field "hidden_interactive" ax))) ]
+
+-- ---- Energy: kWh from bytes, by a coefficient that names its source. Never on a stamp.
+-- kwh_per_gb is a fraction {num, den}; the result is in kWh, nine decimals, rounded half up.
+
+decimal9 : Int -> Text
+decimal9 nano = showInt (div nano 1000000000) ++ "." ++ pad9 (showInt (mod nano 1000000000))
+
+pad9 : Text -> Text
+pad9 t = joinText "" (map (\k -> "0") (range (textLength t) 9)) ++ t
+
+energy : Json -> Int -> Json
+energy coefficient bytes =
+  let num = asInt (path ["kwh_per_gb", "num"] coefficient) in
+  let den = asInt (path ["kwh_per_gb", "den"] coefficient) in
+  let d = den * 1000000000 in
+  let nano = if d > 0 then div (bytes * num * 1000000000 * 2 + d) (2 * d) else 0 in
+  object [ entry "bytes" (JInt bytes), entry "kwh" (JText (decimal9 nano))
+         , entry "coefficient" (object [ entry "source" (field "source" coefficient), entry "version" (field "version" coefficient)
+                                       , entry "kwh_per_gb" (field "kwh_per_gb" coefficient) ]) ]
+
+-- ---- All of them.
+
+reading : Text -> Int -> Json -> Json
+reading name version value = object [entry "name" (JText name), entry "version" (JInt version), entry "value" value]
+
+-- {"observation", "rules": [..], "site": origin, "psl": {"version", "rules": [..]}, "energy": coefficient}
+readingsOf : Json -> Json
+readingsOf input =
+  let o = field "observation" input in
+  let psl = field "psl" input in
+  JList [ reading "wcag" 1 (wcag (asList (field "rules" input)))
+        , reading "dependencies" 1 (dependencies (map asText (asList (field "rules" psl))) (asText (field "version" psl))
+                                                 (asText (field "site" input)) (asList (field "requests" o)))
+        , reading "legibility" 1 (legibility (field "ax" o))
+        , reading "energy" 1 (energy (field "energy" input) (asInt (path ["bytes", "total"] o))) ]

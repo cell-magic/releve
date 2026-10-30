@@ -24,6 +24,8 @@ import Releve.Statement
 import Releve.Types
 import Releve.Views
 import Stamp
+import qualified Plie.Bridge
+import qualified Plie.Entries
 import Data.Maybe (listToMaybe)
 
 usage :: String
@@ -40,6 +42,8 @@ usage = unlines
   , "  releve rules -                        the rule results of each observation on stdin, as JSON lines:"
   , "                                        per criterion, the WCAG success criteria it reads and how many"
   , "                                        marks it gave, by machine label (fail, review, hint); nothing kept"
+  , "  releve core FUNCTION < input.json      a function of the record's core (written in plié, record/*.plie)"
+  , "                                        on JSON, its answer as canonical JSON (RFC 8785)"
   , "  releve correct CORPUS < facts.md      record a person's edits to a report"
   , "  releve declarations CORPUS            the criteria no rule can see, with the owner's answers"
   , "  releve declare CORPUS < answers.md    record the owner's edits to the declarations"
@@ -83,6 +87,7 @@ main = plain >> getArgs >>= \args -> case args of
       [ "url" .= url o, "criteria" .= version, "release" .= release
       , "rules" .= [ object ["criterion" .= cId c, "wcag" .= wcagOf c, "fail" .= n Fail ms, "review" .= n Review ms, "hint" .= n Hint ms]
                    | (c, ms) <- markedBy o ] ]
+  ["core", f] -> BC.getContents >>= either die TIO.putStrLn . Plie.Bridge.call Plie.Entries.entries (T.pack f)
   ["correct", c] -> correct c
   ["declarations", c] -> withState c (TIO.putStr . declarations)
   ["declare", c] -> declare c

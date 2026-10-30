@@ -674,8 +674,13 @@ def structural_names(m):
     for n, params, body in m["defs"]:
         if ("var", n) not in walk(body):
             continue
-        tails = {p[2][1]: params.index(x[1][1]) for x in walk(body) if x[0] == "case" and x[1][0] == "var" and x[1][1] in params
-                 for p, _ in x[2] if p[0] == "pcons" and p[2][0] == "pvar"}
+        def tail_vars(p):  # the variables a cons pattern binds below its head, at any depth: a :: b :: rest
+            while p[0] == "pcons":
+                p = p[2]
+                if p[0] == "pvar":
+                    yield p[1]
+        tails = {v: params.index(x[1][1]) for x in walk(body) if x[0] == "case" and x[1][0] == "var" and x[1][1] in params
+                 for p, _ in x[2] for v in tail_vars(p)}
         selfcalls = [x for x in walk(body) if x[0] == "app" and x[1] == ("var", n)]
         bare = sum(1 for x in walk(body) if x == ("var", n)) != len(selfcalls)
         if tails and not bare and all(any(a[0] == "var" and tails.get(a[1]) == i for i, a in enumerate(x[2])) for x in selfcalls):

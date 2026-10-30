@@ -32,6 +32,11 @@ WORDY = f"""<!doctype html><html lang=en><title>{LONG}</title><main><h1>{LONG}</
 UNSETTLED = """<!doctype html><html lang=en><title>Unsettled</title><style>@font-face{font-family:Late;src:url(/font.woff2)}</style>
 <main><h1>Unsettled</h1><p><a href="/one">One</a> <a href="/two">Two</a></p></main>
 <script>addEventListener("load", () => setTimeout(() => { const s = document.createElement("span"); s.style.fontFamily = "Late"; s.textContent = "late"; document.body.append(s) }, 50))</script>"""
+# A page whose accessibility tree is known: 4 controls, 2 named; 1 role no ARIA role answers to,
+# 1 role out of its context, 1 link reachable while hidden.
+ARIA = """<!doctype html><html lang=en><title>Aria</title><main><h1>Aria</h1><button>Go</button> <button></button>
+<a href="/one">One</a> <input><div role="buton">bad</div><div role="listitem">lost</div><ul><li>fine</li></ul>
+<div aria-hidden="true"><a href="/two">hidden</a></div></main></html>"""
 # A prompt whose way to refuse is worded as closing without accepting.
 SANS = """<!doctype html><html lang=fr><title>Sans</title><main><h1>Sans</h1></main>
 <div id=axeptio_overlay style="position:fixed;bottom:0;left:0;right:0;background:#fff"><p>Ce site utilise des cookies.</p>
@@ -67,6 +72,8 @@ def site(robots):
                 body, code = robots, 200
             elif self.path == "/weighed":
                 body, code = WEIGHED, 200
+            elif self.path == "/aria":
+                body, code = ARIA, 200
             elif self.path == "/wordy":
                 body, code = WORDY, 200
             elif self.path == "/unsettled":
@@ -190,6 +197,16 @@ check("lets no script submit a form", not out and "submits a form" in err)
 out, err, code = observe(f"{open_}/weighed")
 check("weighs the page as a reader's browser loads it, not what its own measuring adds",
       len(out) == 1 and out[0]["network"]["requests"] == 5 and out[0]["network"]["transfer"] > 5 * len(PIXEL))
+
+res = {r["url"].rsplit("/", 1)[-1]: r for r in out[0]["network"]["resources"]} if out else {}
+check("says of each request its status, and whether it was sent before the robot's first gesture",
+      res.get("weighed", {}).get("status") == 200 and res.get("weighed", {}).get("pre") is True and res.get("wide.png", {}).get("pre") is True
+      and res.get("lazy.png", {}).get("pre") is False and res.get("hop.png", {}).get("status") == 302)
+
+out, err, code = observe(f"{open_}/aria")
+check("counts the accessibility tree: controls named and not, roles invalid or out of context, controls hidden",
+      len(out) == 1 and {k: v for k, v in out[0]["page"]["ax"].items() if k != "version"} ==
+      {"interactive": 4, "named": 2, "unnamed": 2, "invalid_roles": 1, "context_violations": 1, "hidden_interactive": 1})
 
 out, err, code = observe(f"{open_}/wordy")
 kept = [v for o in out for part in [o["page"]] + o["surfaces"] + o["events"] for k, v in part.items()

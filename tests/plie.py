@@ -84,7 +84,8 @@ def main():
     # the folds kept in the repository are those their sources give
     for target, out in [("hs", ROOT / "record" / "gen" / "hs" / "Plie"), ("lean", ROOT / "record" / "gen" / "lean" / "Plie"),
                         ("js", ROOT / "record" / "gen" / "record.js")]:
-        sources = sorted((ROOT / "record").glob("*.plie"))
+        import re
+        sources = [ROOT / x for x in re.search(r'^src="([^"]+)"', (ROOT / "record" / "build.sh").read_text(), re.M).group(1).split()]
         if not out.exists():
             check(f"the {target} fold of record/ is kept", False, f"{out} missing")
             continue

@@ -1,0 +1,442 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://bureaudessurfaces.fr/schema/releve-record/2",
+ "title": "releve-record/2",
+ "$comment": "A RADAR record, version 2: what was observed (observation, frozen), what it reads as (readings, each a function of the observation and the rule results), how it was chosen (selection, beacon) and where it stands in its site's chain (prev, baseline, chain_status). Its hash is SHA-256 of its RFC 8785 bytes.",
+ "type": "object",
+ "additionalProperties": false,
+ "required": [
+  "schema",
+  "site",
+  "cycle",
+  "url",
+  "at",
+  "agent",
+  "browser",
+  "release",
+  "criteria",
+  "observation",
+  "rules",
+  "readings",
+  "selection",
+  "beacon",
+  "mandate",
+  "prev",
+  "baseline",
+  "chain_status"
+ ],
+ "properties": {
+  "schema": {
+   "const": "releve-record/2"
+  },
+  "site": {
+   "type": "string",
+   "pattern": "^https?://[^/?#]+$"
+  },
+  "cycle": {
+   "type": "string",
+   "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+  },
+  "url": {
+   "type": "string"
+  },
+  "requested": {
+   "type": "string"
+  },
+  "at": {
+   "type": "string"
+  },
+  "agent": {
+   "type": "string"
+  },
+  "browser": {
+   "type": "string"
+  },
+  "release": {
+   "type": "string"
+  },
+  "criteria": {
+   "type": "string"
+  },
+  "from": {
+   "type": "string",
+   "pattern": "^[A-Z]{2}$"
+  },
+  "observation": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "bytes",
+    "requests",
+    "ax"
+   ],
+   "properties": {
+    "bytes": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "total"
+     ],
+     "properties": {
+      "total": {
+       "type": "integer",
+       "minimum": 0
+      }
+     }
+    },
+    "requests": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "origin",
+       "type",
+       "bytes",
+       "status",
+       "pre_interaction"
+      ],
+      "properties": {
+       "origin": {
+        "type": "string",
+        "pattern": "^https?://([^/?#:@\\[\\]]+|\\[[0-9A-Fa-f:.]+\\])$"
+       },
+       "type": {
+        "type": "string"
+       },
+       "bytes": {
+        "type": "integer",
+        "minimum": 0
+       },
+       "status": {
+        "type": "integer",
+        "minimum": 0
+       },
+       "pre_interaction": {
+        "type": "boolean"
+       }
+      }
+     }
+    },
+    "ax": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "version",
+      "interactive",
+      "named",
+      "unnamed",
+      "invalid_roles",
+      "context_violations",
+      "hidden_interactive"
+     ],
+     "properties": {
+      "version": {
+       "type": "string"
+      },
+      "interactive": {
+       "type": "integer",
+       "minimum": 0
+      },
+      "named": {
+       "type": "integer",
+       "minimum": 0
+      },
+      "unnamed": {
+       "type": "integer",
+       "minimum": 0
+      },
+      "invalid_roles": {
+       "type": "integer",
+       "minimum": 0
+      },
+      "context_violations": {
+       "type": "integer",
+       "minimum": 0
+      },
+      "hidden_interactive": {
+       "type": "integer",
+       "minimum": 0
+      }
+     }
+    }
+   }
+  },
+  "rules": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "criterion",
+     "wcag",
+     "fail",
+     "review",
+     "hint"
+    ],
+    "properties": {
+     "criterion": {
+      "type": "string"
+     },
+     "wcag": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "fail": {
+      "type": "integer",
+      "minimum": 0
+     },
+     "review": {
+      "type": "integer",
+      "minimum": 0
+     },
+     "hint": {
+      "type": "integer",
+      "minimum": 0
+     }
+    }
+   }
+  },
+  "readings": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "name",
+     "version",
+     "value"
+    ],
+    "properties": {
+     "name": {
+      "enum": [
+       "wcag",
+       "dependencies",
+       "legibility",
+       "energy"
+      ]
+     },
+     "version": {
+      "type": "integer",
+      "minimum": 0
+     },
+     "value": {}
+    }
+   }
+  },
+  "selection": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "protocol",
+    "order_rule",
+    "candidates",
+    "commitment",
+    "budget",
+    "seed",
+    "order",
+    "read",
+    "picks",
+    "receipt"
+   ],
+   "properties": {
+    "protocol": {
+     "const": "surface-core/select-1"
+    },
+    "order_rule": {
+     "const": "releve-order/1"
+    },
+    "candidates": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "commitment": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "hash",
+      "time",
+      "tsa",
+      "token"
+     ],
+     "properties": {
+      "hash": {
+       "type": "string",
+       "pattern": "^[0-9a-f]{64}$"
+      },
+      "time": {
+       "type": "integer",
+       "minimum": 0
+      },
+      "tsa": {
+       "type": "string"
+      },
+      "token": {
+       "type": "string",
+       "pattern": "^([0-9a-f]{2})*$"
+      }
+     }
+    },
+    "budget": {
+     "type": "integer",
+     "minimum": 0
+    },
+    "seed": {
+     "oneOf": [
+      {
+       "type": "string",
+       "pattern": "^[0-9a-f]{64}$"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "order": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "picks": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "receipt": {
+     "type": "string"
+    },
+    "read": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    }
+   }
+  },
+  "beacon": {
+   "oneOf": [
+    {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "chain",
+      "round",
+      "randomness",
+      "signature"
+     ],
+     "properties": {
+      "chain": {
+       "type": "string",
+       "pattern": "^[0-9a-f]{64}$"
+      },
+      "round": {
+       "type": "integer",
+       "minimum": 0
+      },
+      "randomness": {
+       "type": "string",
+       "pattern": "^[0-9a-f]{64}$"
+      },
+      "signature": {
+       "type": "string",
+       "pattern": "^[0-9a-f]{96}$"
+      }
+     }
+    },
+    {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "status",
+      "statement",
+      "tried"
+     ],
+     "properties": {
+      "status": {
+       "const": "unavailable"
+      },
+      "statement": {
+       "type": "object",
+       "required": [
+        "en",
+        "fr"
+       ],
+       "additionalProperties": false,
+       "properties": {
+        "en": {
+         "type": "string"
+        },
+        "fr": {
+         "type": "string"
+        }
+       }
+      },
+      "tried": {
+       "type": "integer",
+       "minimum": 0
+      }
+     }
+    }
+   ]
+  },
+  "mandate": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "granted"
+   ],
+   "properties": {
+    "granted": {
+     "type": "boolean"
+    },
+    "date": {
+     "type": "string",
+     "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "statement": {
+     "type": "object",
+     "required": [
+      "en",
+      "fr"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "en": {
+       "type": "string"
+      },
+      "fr": {
+       "type": "string"
+      }
+     }
+    }
+   }
+  },
+  "prev": {
+   "oneOf": [
+    {
+     "type": "string",
+     "pattern": "^[0-9a-f]{64}$"
+    },
+    {
+     "type": "null"
+    }
+   ]
+  },
+  "baseline": {
+   "type": "string",
+   "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+  },
+  "chain_status": {
+   "enum": [
+    "unbroken",
+    "reset"
+   ]
+  }
+ }
+}
