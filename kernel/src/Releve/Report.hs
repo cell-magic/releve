@@ -48,7 +48,11 @@ report l asking release st = T.unlines $
           // "La page a ensuite été parcourue au clavier seul. ")
        <> esc (num (length criteria)) <> t (" criteria then read the record. Each is a rule in plain code. No trained model is involved: the same record gives the same report."
           // " critères ont ensuite lu le relevé. Chacun est une règle en code clair. Aucun modèle entraîné n'intervient : le même relevé donne le même rapport."))
-  , "<dl>"
+  ]
+  ++ [ p (t ("Observed under the owner's mandate (" // "Observé sous mandat du propriétaire (") <> esc (T.intercalate ", " ms) <> ").")
+     | let ms = nub [m | o <- pages, Just m <- [mandate (oBody o)]], not (null ms) ]
+  ++
+  [ "<dl>"
   , dt ("Fixes" // "Corrections") <> dd ("A stated rule is broken. The remedy is given." // "Une règle énoncée n'est pas respectée. Le remède est indiqué.")
   , dt ("Open questions" // "Questions ouvertes") <> dd ("Beyond what a rule can decide. Answers are recorded as the reviewer's, beside the rule's reading, and lapse when the element changes."
                                                        // "Au-delà de ce qu'une règle peut trancher. Les réponses sont consignées comme celles du relecteur, à côté de la lecture de la règle, et tombent quand l'élément change.")
