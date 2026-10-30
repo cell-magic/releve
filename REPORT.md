@@ -2,10 +2,13 @@
 
 All six amendments are built, after A0, in two repositories:
 
-- **relevé** (open, EUPL-1.2), branch `radar-v2`;
-- **radar** (closed, beside relevé, no remote), branch `radar-v2`.
+- **relevé** (open, EUPL-1.2), branch `radar-v2`, pushed to GitHub as
+  `claude/eloquent-dijkstra-fj4uo3`;
+- **radar** (closed, beside relevé), branch `radar-v2`. It has no remote and
+  is never pushed to the public relevé repository; it is handed over as a git
+  bundle.
 
-Nothing is pushed, deployed or published.
+Nothing is deployed or published.
 
 The checks pass on the final tree (`evidence/radar-v2/suite/summary.txt`):
 
@@ -14,11 +17,12 @@ The checks pass on the final tree (`evidence/radar-v2/suite/summary.txt`):
 | `tests/run.py` | 98 ok |
 | `tests/conduct.py` | 31 ok |
 | `tests/service.py` | 47 ok |
-| `tests/boundary.py` | 214 files, 0 problems |
+| `tests/boundary.py` | 217 files, 0 problems |
 | `tests/plie.py` | 17 of 17 |
 | `tests/record.py` | 44 ok |
 | `reuse lint` | compliant |
 | `radar/tests/run.py` | 24 of 24 |
+| `radar/tests/test_disclosure_chain.py` | 8 of 8 |
 
 ## The environment, and what it changes
 
@@ -169,6 +173,17 @@ scratchpad.
   - the network log of the page load: **one request, the member's own page,
     none to the Bureau**; the click then opens the status page, and only it.
     `status-page.png` shows that page.
+
+**After D-033: the disclosure chain** (radar, `radar/disclosure_chain.py`,
+EUPL-1.2 by request; its tests pass, 8 of 8).
+- For a product behaviour it keeps four links: the behaviour; the policies
+  that should disclose it, fetched and kept under their SHA-256; the vendor's
+  own lookup; dated exhibits.
+- Its verdict (disclosed, undisclosed, partially disclosed) is a written rule,
+  and every input is logged so it can be derived again.
+- `python -m radar chain add | verify | export`. `verify` refetches each
+  policy and records whether it was amended after the observation; `export`
+  writes a one-page summary with French and English headers.
 
 ## What the web server logs
 
