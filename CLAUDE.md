@@ -15,6 +15,8 @@ may read it too: it is the house rule, written down.
 - The service keeps nothing of a request: no account, no cookie, no script,
   no log of who asked or of what. It counts reports by week, in aggregate,
   on the server, and no page shows them. `tests/service.py` checks it.
+- Open and closed stay apart (BOUNDARY.md): open code never imports closed
+  code, and no closed code is kept here. `tests/boundary.py` checks it.
 - Every file states its licence, in an SPDX header or in `REUSE.toml`.
   EUPL-1.2 throughout; dependencies under free licences only; nothing taken
   from other software.
@@ -26,10 +28,11 @@ may read it too: it is the house rule, written down.
 python tests/run.py        # the kernel, against recorded pages
 python tests/conduct.py    # the observer, against local sites that say no
 python tests/service.py    # the service: a report out, nothing left behind
+python tests/boundary.py   # open code reaches nothing closed (BOUNDARY.md)
 reuse lint
 ```
 
-All four pass. A change of judgement shows as a diff in `tests/expected/`
+All five pass. A change of judgement shows as a diff in `tests/expected/`
 and is accepted on purpose (`--accept`), never in passing.
 
 ## Each commit says how it was made

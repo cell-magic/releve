@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
 # SPDX-License-Identifier: EUPL-1.2
 # Builds releve on Linux, macOS and Windows, runs the kernel tests, checks the
-# licence headers, the observer's conduct and the service, and attaches the
+# licence headers, the boundary between open and closed code, the observer's conduct and the service, and attaches the
 # binaries to every published release, one file per system: releve-linux,
 # releve-macos, releve-windows.exe.
 name: build
@@ -50,6 +50,14 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: dist/releve-*
+  boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python tests/boundary.py
   conduct:
     runs-on: ubuntu-latest
     steps:

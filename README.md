@@ -269,6 +269,7 @@ python tests/run.py            # the kernel against recorded pages: no browser, 
 python tests/run.py --record [PAGE ...]   # re-record the test pages, or those named, after changing the observer
 python tests/conduct.py        # the observer against local sites that say no (on Linux, also openssl and certutil)
 python tests/service.py        # the service against local sites: a report out, nothing left behind
+python tests/boundary.py       # open code imports nothing closed; every source file names its licence (BOUNDARY.md)
 ```
 
 `tests/pages/` holds pages with known defects and edge cases, each
