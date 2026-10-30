@@ -4,9 +4,8 @@ All six amendments are built, after A0, in two repositories:
 
 - **relevé** (open, EUPL-1.2), branch `radar-v2`, pushed to GitHub as
   `claude/eloquent-dijkstra-fj4uo3`;
-- **radar** (closed, beside relevé), branch `radar-v2`. It has no remote and
-  is never pushed to the public relevé repository; it is handed over as a git
-  bundle.
+- **radar** (closed, beside relevé), branch `radar-v2`, pushed to a private
+  repository of its own; never to this public one.
 
 Nothing is deployed or published.
 
