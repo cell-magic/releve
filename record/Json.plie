@@ -1,0 +1,87 @@
+-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
+-- SPDX-License-Identifier: EUPL-1.2
+-- JSON as plié holds it, and its canonical text under RFC 8785 (JCS). What comes in
+-- or goes out of a plié program is Json; numbers are integers, so no float is ever
+-- written, and the canonical text of a value is one string in every fold.
+module Json where
+
+data Json = JNull | JBool Bool | JInt Int | JText Text | JList (List Json) | JObj (List (Pair Text Json))
+
+-- What an object holds under a name; JNull where it holds nothing.
+field : Text -> Json -> Json
+field k j = case j of
+  | JObj fs -> fieldIn k fs
+  | _ -> JNull
+
+fieldIn : Text -> List (Pair Text Json) -> Json
+fieldIn k fs = case fs of
+  | [] -> JNull
+  | f :: rest -> if fst f == k then snd f else fieldIn k rest
+
+has : Text -> Json -> Bool
+has k j = case j of
+  | JObj fs -> any (\f -> fst f == k) fs
+  | _ -> False
+
+-- A path of names into nested objects.
+path : List Text -> Json -> Json
+path ks j = foldl (\x k -> field k x) j ks
+
+asInt : Json -> Int
+asInt j = case j of
+  | JInt n -> n
+  | _ -> 0
+
+asText : Json -> Text
+asText j = case j of
+  | JText t -> t
+  | _ -> ""
+
+asBool : Json -> Bool
+asBool j = case j of
+  | JBool b -> b
+  | _ -> False
+
+asList : Json -> List Json
+asList j = case j of
+  | JList xs -> xs
+  | _ -> []
+
+isNull : Json -> Bool
+isNull j = case j of
+  | JNull -> True
+  | _ -> False
+
+entry : Text -> Json -> Pair Text Json
+entry k v = Pair k v
+
+-- An object built from its entries, as given.
+object : List (Pair Text Json) -> Json
+object fs = JObj fs
+
+texts : List Text -> Json
+texts ts = JList (map JText ts)
+
+ints : List Int -> Json
+ints ns = JList (map JInt ns)
+
+-- The canonical text (RFC 8785): no whitespace, object members by their names' UTF-16
+-- code units, strings escaped as the RFC says, integers in decimal.
+canonical : Json -> Text
+canonical j = case j of
+  | JNull -> "null"
+  | JBool b -> if b then "true" else "false"
+  | JInt n -> showInt n
+  | JText t -> jsonQuote t
+  | JList xs -> "[" ++ joinText "," (map canonical xs) ++ "]"
+  | JObj fs -> "{" ++ joinText "," (map member (sortBy (\a b -> ltUtf16 (fst a) (fst b)) fs)) ++ "}"
+
+member : Pair Text Json -> Text
+member f = jsonQuote (fst f) ++ ":" ++ canonical (snd f)
+
+-- The canonical bytes, and their SHA-256 in hex.
+canonicalBytes : Json -> Bytes
+canonicalBytes j = utf8 (canonical j)
+
+digest : Json -> Text
+digest j = hex (sha256 (canonicalBytes j))

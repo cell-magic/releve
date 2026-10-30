@@ -1,0 +1,72 @@
+-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
+-- SPDX-License-Identifier: EUPL-1.2
+-- Every prelude name, on the values given: tests/plie.py runs this in each fold that runs
+-- (Haskell, JavaScript) and holds their answers to the same bytes.
+module Conformance where
+
+import Json
+
+data Shape = Dot | Line Int | Box Int Int
+
+conformance : Json -> Json
+conformance input =
+  let ns = map asInt (asList (field "ints" input)) in
+  let ts = map asText (asList (field "texts" input)) in
+  let hs = map asText (asList (field "hexes" input)) in
+  object
+    [ entry "div" (ints (map (\n -> div n 7) ns))
+    , entry "mod" (ints (map (\n -> mod n 7) ns))
+    , entry "abs" (ints (map abs ns))
+    , entry "minmax" (ints [foldl min 0 ns, foldl max 0 ns])
+    , entry "not" (JList (map (\n -> JBool (not (n < 0))) ns))
+    , entry "showInt" (texts (map showInt ns))
+    , entry "readInt" (JList (map (\t -> maybeInt (readInt t)) ts))
+    , entry "length" (ints [length ns, length ts])
+    , entry "filter" (ints (filter (\n -> n > 0) ns))
+    , entry "reverse" (ints (reverse ns))
+    , entry "takeDrop" (ints (take 2 ns ++ drop 3 ns ++ take (0 - 1) ns))
+    , entry "sum" (JInt (sum ns))
+    , entry "allAny" (JList [JBool (all (\n -> n > 0) ns), JBool (any (\n -> n > 0) ns)])
+    , entry "elem" (JBool (elem 7 ns))
+    , entry "concat" (ints (concat [ns, ns]))
+    , entry "range" (ints (range (0 - 2) 3))
+    , entry "zip" (texts (map (\p -> showInt (fst p) ++ snd p) (zip ns ts)))
+    , entry "nth" (JList [maybeInt (nth 1 ns), maybeInt (nth 99 ns), maybeInt (nth (0 - 1) ns)])
+    , entry "sortInts" (ints (sortBy (\a b -> a < b) ns))
+    , entry "sortTexts" (texts (sortBy (\a b -> a < b) ts))
+    , entry "sortUtf16" (texts (sortBy ltUtf16 ts))
+    , entry "stable" (ints (map fst (sortBy (\a b -> snd a < snd b) (zip ns (map (\n -> mod n 2) ns)))))
+    , entry "textLength" (ints (map textLength ts))
+    , entry "utf8" (texts (map (\t -> hex (utf8 t)) ts))
+    , entry "split" (JList (map (\t -> texts (split "a" t)) ts))
+    , entry "startsEnds" (JList (map (\t -> JList [JBool (startsWith "ab" t), JBool (endsWith "é" t)]) ts))
+    , entry "asciiLower" (texts (map asciiLower ts))
+    , entry "joinText" (JText (joinText "|" ts))
+    , entry "trim" (texts (map trim ts))
+    , entry "jsonQuote" (texts (map jsonQuote ts))
+    , entry "sha256" (texts (map (\t -> hex (sha256 (utf8 t))) ts))
+    , entry "byte" (texts (map (\n -> hex (byte n)) ns))
+    , entry "be64" (texts (map (\n -> hex (be64 n)) ns))
+    , entry "unhex" (JList (map (\h -> maybeHex (unhex h)) hs))
+    , entry "bytesLength" (ints (map (\h -> bytesLength (fromMaybe (utf8 "") (unhex h))) hs))
+    , entry "compareBytes" (JList (map (\h -> JBool (fromMaybe (utf8 "") (unhex h) < utf8 "é")) hs))
+    , entry "shapes" (ints (map area [Dot, Line 3, Box 2 5]))
+    , entry "canonical" (JText (canonical input))
+    , entry "digest" (JText (digest input))
+    ]
+
+maybeInt : Maybe Int -> Json
+maybeInt m = case m of
+  | Just n -> JInt n
+  | Nothing -> JNull
+
+maybeHex : Maybe Bytes -> Json
+maybeHex m = case m of
+  | Just b -> JText (hex b)
+  | Nothing -> JNull
+
+area : Shape -> Int
+area s = case s of
+  | Dot -> 0
+  | Line n -> n
+  | Box w h -> w * h

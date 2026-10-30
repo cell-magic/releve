@@ -14,7 +14,7 @@ import ast, re, subprocess, sys, tomllib
 from pathlib import Path
 
 ROOT = Path(sys.argv[1] if len(sys.argv) > 1 else Path(__file__).resolve().parent.parent).resolve()
-SOURCE = {".py", ".hs", ".js", ".sh", ".html", ".css", ".yml", ".yaml", ".json"}
+SOURCE = {".py", ".hs", ".js", ".mjs", ".sh", ".html", ".css", ".yml", ".yaml", ".json", ".plie", ".lean"}
 MARK = "LicenseRef-Bureau-Closed"
 TAG = "SPDX-" "License-Identifier: EUPL-1.2"  # split, so that REUSE does not read it as this file's own
 
@@ -59,9 +59,9 @@ def imported(path, text):
                     and "path" in ast.unparse(n.func.value):  # sys.path.insert(0, ...)
                 out += [c.value for c in ast.walk(n) if isinstance(c, ast.Constant) and isinstance(c.value, str)]
         return out
-    if path.suffix == ".hs":
+    if path.suffix in (".hs", ".plie", ".lean"):
         return re.findall(r"^import\s+(?:qualified\s+)?([\w.]+)", text, re.M)
-    if path.suffix in (".js", ".html"):
+    if path.suffix in (".js", ".mjs", ".html"):
         return re.findall(r"""(?:\bimport\b[^'"\n]*?|\brequire\s*\(\s*|\bimport\s*\(\s*)['"]([^'"]+)['"]""", text)
     if path.suffix == ".sh":
         return re.findall(r"^\s*(?:source|\.)\s+(\S+)", text, re.M)
