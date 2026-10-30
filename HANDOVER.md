@@ -1,72 +1,215 @@
-# Handover: plié, the language RADAR's logic is to be written in
+# Handover: five questions for a logician
 
-## What it is
+**The setting, once.** relevé observes public web pages and judges them by fixed
+rules. Each month it issues every subscribing site a *record*: a JSON document
+saying what was measured. Anyone must be able to check that record later
+without trusting the issuer. The checker runs in two places: on a command line,
+and in a web page opened offline. The issuer keeps nothing.
 
-A small pure language, the common syntactic fragment of Haskell and Lean 4. Each
-source is translated ("folded") three ways:
+The logic that builds and checks records is written once, in **plié**, a small
+pure functional language. It is translated mechanically into three languages:
 
-- into **Haskell**, which runs it (the `releve` binary);
-- into **JavaScript**, which runs it in the offline verifier page;
-- into **Lean 4**, where its properties are to be proved.
+- Haskell, to run on the command line;
+- JavaScript, to run in the offline page;
+- Lean 4, to prove things about it.
 
-The language:
-- **Terms:** data types; typed top-level definitions; application, λ, `let`,
-  `if`, `case` over constructors and lists; unbounded integers, no floats.
-- **No type checker of its own:** GHC types the Haskell fold and Lean types
-  the Lean fold. The JavaScript fold is untyped.
-- **Recursion:** structural recursion is recognised syntactically (a call on
-  the tail bound by a cons pattern). Anything else becomes `partial def` in
-  Lean, where nothing can be proved of it.
-- **Primitives:** a fixed prelude, defined three times (`plie/prelude/`).
-  SHA-256 is the one cryptographic primitive, opaque in Lean.
-- **Entry points:** every function the world may call has type `Json → Json`;
-  input and output are JSON text, canonical under RFC 8785.
+The language is:
 
-| file | role |
-|---|---|
-| `plie/plie.py` | parser and the three translators (stdlib Python) |
-| `plie/prelude/` | the prelude in Haskell, Lean and JS; the JSON bridges |
-| `record/Json.plie` | JSON values, field access, canonical text |
-| `record/gen/` | the three folds, kept and checked against their sources |
-| `tests/plie.py` | runs both executable folds on edge cases and compares bytes |
+- data types (sums of products), typed top-level definitions, λ, `let`, `if`,
+  `case` on constructors and lists;
+- unbounded integers, text, bytes, lists; no floats, no effects;
+- a fixed library whose meaning is defined three times by hand, once per target
+  (`plie/prelude/`). Its one cryptographic primitive is SHA-256.
 
-## Where it stands
+A small example:
 
-- **Checked:** the Haskell and JavaScript folds give the same bytes on every
-  conformance input (17 of 17 checks, last full run). That covers floor
-  division, code-point text, UTF-16 key order, escaping and SHA-256.
-- **Not checked:** the Lean fold has never been compiled. Installing Lean was
-  refused in this session, so nothing in it is proved.
-- **Planned but not yet written in plié:** Merkle tree and inclusion paths
-  (RFC 6962), the record chain, the published-roots list, beacon seed and page
-  order, the readings, the mirror (median with leave-one-out bound), and the
-  status decision. The plan is in `PLAN.md`; the boundary rules are in
-  `BOUNDARY.md`.
+```
+leafHash : Bytes -> Bytes
+leafHash d = sha256 (byte 0 ++ d)
+```
 
-## Five questions
+Each question below stands alone.
 
-1. **A language of its own, or a shared fragment?** Today plié has no
-   semantics of its own; it borrows two type checkers. Should it get its own
-   typing and evaluation rules, against which each translation is shown
-   adequate? And what is the least system that serves: simply typed with
-   datatypes, or polymorphic?
-2. **Totality.** Should general recursion go, leaving folds and structural
-   recursion only, so every program is total and the Lean fold never needs
-   `partial`? Is a syntactic criterion enough, or should it be a type
-   discipline (sized types, or a primitive-recursive core)?
-3. **Faithful translations.** The folds are held together by testing. Is the
-   right next step translation validation per program, a proof that each
-   translation preserves one operational semantics, or a single fold (Lean)
-   from which the other two are extracted?
-4. **What to prove first, and from what.** Which comes first: completeness
-   (the verifier accepts a path the builder made), soundness (an accepted path
-   proves inclusion), the mirror's published bucket being at least as wide as
-   the sensitivity, or the roots list being append-only? Soundness needs
-   collision resistance, but SHA-256 is opaque. How should that hypothesis be
-   stated so it is honest and still usable?
-5. **Verification as interaction.** The verifier checks a record against a
-   path, a root, a list and a token, one check after another. Is there a
-   better presentation, for instance verification as the interaction of two
-   objects in the spirit of transcendental syntax, where a check is a
-   successful encounter rather than a computed boolean? Would it change what
-   needs proving?
+---
+
+## 1. One meaning, three translations
+
+**Context.** plié has no semantics of its own. Each translation is
+syntax-directed. The Haskell output is type-checked by GHC, the Lean output by
+Lean, and the JavaScript output not at all. That the three agree is checked
+only by running Haskell and JavaScript on the same inputs and comparing bytes
+(17 checks pass). Equal outputs on tested inputs say nothing about untested
+ones.
+
+**My default without you:** take the Lean output as the reference, and keep
+testing the other two against it.
+
+**Question.** What is the least formal apparatus that makes "the three
+translations compute the same function" a theorem rather than a test? The
+candidates I see:
+
+- (a) one big-step semantics for plié, with an adequacy proof per translation;
+- (b) per-program translation validation, a certificate checked for each
+  compiled program;
+- (c) dropping two translations and extracting Haskell and JavaScript from Lean.
+
+Which costs least for a language of this size, and which typing discipline
+should that semantics assume: simple types with datatypes, or prenex
+polymorphism?
+
+**What your answer changes:** whether I write a semantics, a validator or an
+extractor next, and whether plié gets a type checker of its own.
+
+---
+
+## 2. Recursion that halves
+
+**Context.** The monthly records are combined into one Merkle tree (RFC 6962),
+whose root is published. The tree over a list of n leaves is built by
+splitting at the largest power of two below n, then recursing on the two
+parts:
+
+```
+root hs = node (root (take k hs)) (root (drop k hs))   -- k = largest power of 2 < n
+```
+
+This terminates, but not by structural recursion, so Lean receives it as
+`partial def` and nothing can then be proved about it. The workaround is fuel:
+an extra argument that decreases by one each step and is set to n. It is
+total, but every proof must then show the fuel never runs out.
+
+**My default without you:** fuel, with a lemma that n steps are enough.
+
+**Question.** For a language that must translate into Haskell, JavaScript and
+Lean alike, how should recursion on a measure, rather than on structure,
+appear in the source?
+
+- (a) fuel;
+- (b) well-founded recursion with the measure written in the source, which
+  Lean checks and the other two ignore;
+- (c) sized types;
+- (d) forbid it, and rewrite the tree as a fold over levels, pairing adjacent
+  nodes.
+
+For (d): is pairing level by level, carrying an odd node up unchanged,
+provably the same tree as splitting at the largest power of two? It is for
+every n up to 2048, checked by brute force, but I have no proof.
+
+**What your answer changes:** which recursion forms plié admits, and whether
+the Merkle code is a fold.
+
+---
+
+## 3. A hash that cannot be injective
+
+**Context.** In the proofs, SHA-256 is an opaque function from bytes to bytes.
+Two properties of the checker matter:
+
+- **Completeness:** the checker accepts every inclusion path the builder
+  produces. This holds for any function whatsoever.
+- **Soundness:** an accepted path proves that the record is in the tree. This
+  needs collision resistance. Assuming "SHA-256 is injective" as an axiom would
+  be inconsistent, since 2^256 outputs cannot cover unboundedly many inputs.
+
+**My default without you:** state soundness as an extraction. If the checker
+accepts a record that is not among the leaves, then two distinct byte strings
+with the same hash can be computed from what it was given.
+
+**Question.** Is that extraction the right way to state soundness in a proof
+assistant, given that it says nothing about probability or efficiency? Is it
+enough to state it constructively, as a total function from a forged proof to
+a collision? The same question arises twice more:
+
+- the chain of records, each naming its predecessor by hash;
+- the list of published roots, each entry naming the previous one.
+
+Is there one general lemma ("any hash-linked structure that verifies but
+differs yields a collision") that all three instantiate?
+
+**What your answer changes:** the shape of every security theorem, and
+whether I prove three instances or one schema.
+
+---
+
+## 4. What the mirror can honestly promise
+
+**Context.** Once at least 20 sites subscribe, a statistic is published for
+each measure, such as total bytes per page:
+
+- the median over sites;
+- its *leave-one-out sensitivity*: the largest change in the median when any
+  one site is removed;
+- the published value is the median rounded to a bucket at least as wide as
+  that sensitivity.
+
+There is no noise; it is deterministic. The intent is that no single site
+noticeably moves what is published. But a median near a bucket edge can still
+cross the edge when one site leaves, so "removing one site never changes the
+published bucket" is false as stated.
+
+**My default without you:** prove only the arithmetic, namely that the bucket
+is never narrower than the sensitivity, and describe the intent in words.
+
+**Question.** What true, non-trivial statement relates the published bucket to
+any single site's value? Some forms I can see:
+
+- the published bucket changes by at most one step when one site leaves;
+- a site's value can be recovered only to within the bucket width;
+- the median is a Lipschitz function of the data in a suitable order.
+
+Which can be proved, and which is worth publishing? If none holds without
+noise, I would rather know and say so.
+
+**What your answer changes:** the theorem attached to the mirror and the
+sentence printed beside it, or a decision that the design needs changing.
+
+---
+
+## 5. Checking as an encounter
+
+**Context.** A recipient holds:
+
+- a record;
+- an inclusion path;
+- the month's root;
+- the public list of past roots;
+- a time-stamp token over the root, issued by a third party;
+- the public random value (a drand beacon round) that chose which pages were
+  observed.
+
+The checker runs six tests in order: record hash, link to the previous record,
+inclusion path, root, root present in the list, token. Each returns pass or
+fail, and the first failure is named. Records also form a chain across months.
+
+**My default without you:** a sequence of boolean checks, with a soundness
+theorem per check (question 3).
+
+**Question.** In the spirit of transcendental syntax, can this be presented as
+the interaction of two objects, the record and the evidence around it? It
+would count as genuine exactly when the interaction succeeds, with each of the
+six tests a local part of one encounter. If so:
+
+- does that give one correctness criterion in place of six;
+- does it compose along the chain, so that checking month n+1 against month n
+  is the same kind of encounter;
+- does it express the one temporal fact the booleans miss: the list of
+  candidate pages must be fixed *before* the random value is known, or the
+  random choice proves nothing?
+
+**What your answer changes:** whether the checker is restructured around one
+criterion, and how "fixed before the beacon" enters the record and the proofs.
+
+---
+
+## Where the code stands
+
+- **plié:** `plie/plie.py` is the compiler. The library exists in all three
+  targets. `record/Json.plie` (JSON and its RFC 8785 canonical text) is written
+  and compiled.
+- **Checked:** the Haskell and JavaScript outputs agree on every test input.
+- **Not checked:** the Lean output has never been compiled. Installing Lean
+  was not possible where this was written.
+- **To write next in plié:** the Merkle tree, the record chain, the list of
+  published roots, the page order derived from the beacon, the mirror, and the
+  checker. `PLAN.md` holds the plan; `BOUNDARY.md` says what is open and what
+  is closed.
