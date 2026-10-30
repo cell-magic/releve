@@ -1,0 +1,353 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr> -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verify a record</title>
+<style>
+  :root { --ink:#141414; --muted:#5a5a5a; --line:#d6d6d6; --bg:#ffffff; --ok:#1d5e2e; --bad:#9b1c1c; --focus:#1f4e8c; }
+  @media (prefers-color-scheme: dark) { :root { --ink:#ececec; --muted:#a8a8a8; --line:#3a3a3a; --bg:#121212; --ok:#7fd18f; --bad:#ff8a8a; --focus:#8db4ff; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, sans-serif; }
+  main { max-width:680px; margin:0 auto; padding:48px 16px 64px; }
+  h1 { font-size:1.6rem; font-weight:600; margin:0 0 8px; }
+  p.lede { color:var(--muted); margin:0 0 32px; }
+  .field { margin:0 0 20px; }
+  label { display:block; font-weight:600; margin:0 0 6px; }
+  .hint { display:block; color:var(--muted); font-size:.9rem; margin:0 0 6px; }
+  input[type=file] { font:inherit; color:inherit; background:transparent; border:1px solid var(--line); padding:8px; width:100%; }
+  button { font:inherit; font-weight:600; color:var(--bg); background:var(--ink); border:0; padding:10px 20px; cursor:pointer; }
+  :focus-visible { outline:3px solid var(--focus); outline-offset:2px; }
+  #result { margin-top:32px; border-top:1px solid var(--line); padding-top:20px; min-height:4rem; }
+  .verdict { font-size:1.3rem; font-weight:600; }
+  .ok { color:var(--ok); } .bad { color:var(--bad); } .open { color:var(--muted); }
+  ol { padding-left:1.2rem; } li { margin:0 0 8px; overflow-wrap:anywhere; } li b { font-variant-numeric:tabular-nums; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Verify a record</h1>
+  <p class="lede">Checks a RADAR record against its path, its month's root and the published roots, and its selection against its beacon round. Everything runs in this browser, from this one file; nothing is sent anywhere. Two checks need more than a browser holds, the time-stamp tokens' signatures and the round's BLS signature: this page says so, and <code>python -m record verify</code> makes them.</p>
+  <form id="f">
+    <div class="field">
+      <label for="bundle">Record bundle</label>
+      <span class="hint" id="bundle-hint">The .json bundle delivered with the record.</span>
+      <input type="file" id="bundle" accept=".json,application/json" aria-describedby="bundle-hint" required>
+    </div>
+    <div class="field">
+      <label for="roots">Published roots</label>
+      <span class="hint" id="roots-hint">roots.json, as the Bureau publishes it.</span>
+      <input type="file" id="roots" accept=".json,application/json" aria-describedby="roots-hint" required>
+    </div>
+    <div class="field">
+      <label for="previous">Previous bundle</label>
+      <span class="hint" id="previous-hint">Optional: the site's bundle before this one, to check the link between them.</span>
+      <input type="file" id="previous" accept=".json,application/json" aria-describedby="previous-hint">
+    </div>
+    <button type="submit">Verify</button>
+  </form>
+  <section id="result" aria-live="polite"></section>
+</main>
+<script type="module">
+// ---------- SHA-256 (synchronous) ----------
+const K256 = new Uint32Array([
+  0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,
+  0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+  0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,
+  0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+  0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,
+  0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2]);
+function digest(bytes) {
+  const l = bytes.length, bl = ((l + 9 + 63) >> 6) << 6, m = new Uint8Array(bl);
+  m.set(bytes); m[l] = 0x80;
+  const dv = new DataView(m.buffer); dv.setUint32(bl - 4, (l * 8) >>> 0); dv.setUint32(bl - 8, Math.floor(l / 0x20000000));
+  const H = new Uint32Array([0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19]);
+  const W = new Uint32Array(64);
+  const rotr = (x, n) => (x >>> n) | (x << (32 - n));
+  for (let o = 0; o < bl; o += 64) {
+    for (let i = 0; i < 16; i++) W[i] = dv.getUint32(o + i * 4);
+    for (let i = 16; i < 64; i++) {
+      const s0 = rotr(W[i-15],7) ^ rotr(W[i-15],18) ^ (W[i-15] >>> 3), s1 = rotr(W[i-2],17) ^ rotr(W[i-2],19) ^ (W[i-2] >>> 10);
+      W[i] = (W[i-16] + s0 + W[i-7] + s1) >>> 0;
+    }
+    let [a,b,c,d,e,f,g,h] = H;
+    for (let i = 0; i < 64; i++) {
+      const t1 = (h + (rotr(e,6) ^ rotr(e,11) ^ rotr(e,25)) + ((e & f) ^ (~e & g)) + K256[i] + W[i]) >>> 0;
+      const t2 = ((rotr(a,2) ^ rotr(a,13) ^ rotr(a,22)) + ((a & b) ^ (a & c) ^ (b & c))) >>> 0;
+      h = g; g = f; f = e; e = (d + t1) >>> 0; d = c; c = b; b = a; a = (t1 + t2) >>> 0;
+    }
+    H[0]+=a; H[1]+=b; H[2]+=c; H[3]+=d; H[4]+=e; H[5]+=f; H[6]+=g; H[7]+=h;
+  }
+  const out = new Uint8Array(32); const ov = new DataView(out.buffer);
+  for (let i = 0; i < 8; i++) ov.setUint32(i * 4, H[i]);
+  return out;
+}
+
+// SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
+// SPDX-License-Identifier: EUPL-1.2
+// The plié prelude, in JavaScript: what each of its names means, as Plie/Prelude.hs and
+// Plie/Prelude.lean say it. Int is a BigInt, Text a string read by code point, Bytes a
+// Uint8Array, a list an array, any other value {t: constructor, f: [fields]}. Curried.
+
+const fail = (m) => { throw new Error("plié: " + m); };
+const points = (s) => Array.from(s);  // code points, as Haskell's Text and Lean's String count them
+const $Nothing = { t: "Nothing", f: [] };
+const $Just = (x) => ({ t: "Just", f: [x] });
+const $Pair = (a) => (b) => ({ t: "Pair", f: [a, b] });
+
+// equality and order: the same on every value of a type, structural
+function $equal(a, b) {
+  if (typeof a === "bigint" || typeof a === "string" || typeof a === "boolean") return a === b;
+  if (a instanceof Uint8Array) return b instanceof Uint8Array && a.length === b.length && a.every((x, i) => x === b[i]);
+  if (Array.isArray(a)) return Array.isArray(b) && a.length === b.length && a.every((x, i) => $equal(x, b[i]));
+  return a.t === b.t && a.f.length === b.f.length && a.f.every((x, i) => $equal(x, b.f[i]));
+}
+function compare(a, b) {  // Int, Text by code point, Bytes by byte
+  if (typeof a === "bigint") return a < b ? -1 : a > b ? 1 : 0;
+  const x = typeof a === "string" ? points(a).map((c) => c.codePointAt(0)) : a;
+  const y = typeof b === "string" ? points(b).map((c) => c.codePointAt(0)) : b;
+  for (let i = 0; i < Math.min(x.length, y.length); i++) if (x[i] !== y[i]) return x[i] < y[i] ? -1 : 1;
+  return x.length - y.length < 0 ? -1 : x.length > y.length ? 1 : 0;
+}
+const $eq = (a) => (b) => $equal(a, b);
+const $ne = (a) => (b) => !$equal(a, b);
+const $lt = (a) => (b) => compare(a, b) < 0;
+const $le = (a) => (b) => compare(a, b) <= 0;
+const $gt = (a) => (b) => compare(a, b) > 0;
+const $ge = (a) => (b) => compare(a, b) >= 0;
+const $add = (a) => (b) => a + b;
+const $sub = (a) => (b) => a - b;
+const $mul = (a) => (b) => a * b;
+const $cons = (x) => (xs) => [x, ...xs];
+const $append = (a) => (b) => {
+  if (typeof a === "string") return a + b;
+  if (a instanceof Uint8Array) { const o = new Uint8Array(a.length + b.length); o.set(a); o.set(b, a.length); return o; }
+  return a.concat(b);
+};
+
+// Int
+const $div = (a) => (b) => { if (b === 0n) fail("division by zero"); const q = a / b; return (a % b !== 0n && (a < 0n) !== (b < 0n)) ? q - 1n : q; };
+const $mod = (a) => (b) => a - b * $div(a)(b);
+const $abs = (a) => (a < 0n ? -a : a);
+const $min = (a) => (b) => (a < b ? a : b);
+const $max = (a) => (b) => (a > b ? a : b);
+const $not = (a) => !a;
+const $showInt = (a) => a.toString();
+const $readInt = (t) => (/^[0-9]+$/.test(t) ? $Just(BigInt(t)) : $Nothing);
+
+// lists
+const $length = (xs) => BigInt(xs.length);
+const $map = (f) => (xs) => xs.map((x) => f(x));
+const $filter = (f) => (xs) => xs.filter((x) => f(x));
+const $foldl = (f) => (z) => (xs) => xs.reduce((acc, x) => f(acc)(x), z);
+const $reverse = (xs) => [...xs].reverse();
+const $take = (n) => (xs) => (n <= 0n ? [] : xs.slice(0, Number(n)));
+const $drop = (n) => (xs) => (n <= 0n ? xs : xs.slice(Number(n)));
+const $sum = (xs) => xs.reduce((a, b) => a + b, 0n);
+const $all = (f) => (xs) => xs.every((x) => f(x));
+const $any = (f) => (xs) => xs.some((x) => f(x));
+const $elem = (x) => (xs) => xs.some((y) => $equal(x, y));
+const $concat = (xss) => [].concat(...xss);
+const $range = (a) => (b) => { const o = []; for (let i = a; i < b; i++) o.push(i); return o; };
+const $zip = (a) => (b) => a.slice(0, Math.min(a.length, b.length)).map((x, i) => $Pair(x)(b[i]));
+const $nth = (i) => (xs) => (i >= 0n && i < BigInt(xs.length) ? $Just(xs[Number(i)]) : $Nothing);
+const $sortBy = (lt) => (xs) => xs.map((x, i) => [x, i]).sort((p, q) => (lt(p[0])(q[0]) ? -1 : lt(q[0])(p[0]) ? 1 : p[1] - q[1])).map((p) => p[0]);
+const $fromMaybe = (d) => (m) => (m.t === "Just" ? m.f[0] : d);
+const $fst = (p) => p.f[0];
+const $snd = (p) => p.f[1];
+
+// Text
+const $textLength = (t) => BigInt(points(t).length);
+const $utf8 = (t) => new TextEncoder().encode(t);
+const $split = (sep) => (t) => (sep === "" ? [t] : t.split(sep));
+const $startsWith = (p) => (t) => t.startsWith(p);
+const $endsWith = (s) => (t) => t.endsWith(s);
+const $asciiLower = (t) => t.replace(/[A-Z]/g, (c) => c.toLowerCase());
+const $joinText = (sep) => (xs) => xs.join(sep);
+const $trim = (t) => t.replace(/^[ \t\n\r]+|[ \t\n\r]+$/g, "");
+const $jsonQuote = (t) => '"' + points(t).map((c) => {
+  const n = c.codePointAt(0);
+  if (c === '"') return '\\"';
+  if (c === "\\") return "\\\\";
+  const short = { 8: "\\b", 9: "\\t", 10: "\\n", 12: "\\f", 13: "\\r" }[n];
+  if (short) return short;
+  return n < 0x20 ? "\\u00" + n.toString(16).padStart(2, "0") : c;
+}).join("") + '"';
+const $ltUtf16 = (a) => (b) => a < b;  // JavaScript compares strings by UTF-16 code unit, as RFC 8785 orders keys
+
+// Bytes
+const $sha256 = (b) => digest(b);
+const $byte = (n) => new Uint8Array([Number(((n % 256n) + 256n) % 256n)]);
+const $be64 = (n) => { const o = new Uint8Array(8); let x = ((n % (1n << 64n)) + (1n << 64n)) % (1n << 64n); for (let i = 7; i >= 0; i--) { o[i] = Number(x & 255n); x >>= 8n; } return o; };
+const $hex = (b) => Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+const $unhex = (t) => (/^([0-9a-fA-F]{2})*$/.test(t) ? $Just(Uint8Array.from(t.match(/../g) || [], (h) => parseInt(h, 16))) : $Nothing);
+const $bytesLength = (b) => BigInt(b.length);
+
+// SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
+// SPDX-License-Identifier: EUPL-1.2
+// Where plié meets the world, in JavaScript: JSON in, a function from Json to Json called by
+// name, its answer out as canonical text (RFC 8785). A number that is not an integer is refused.
+const J = (t, ...f) => ({ t, f });
+function json(v) {
+  if (v === null) return J("JNull");
+  if (typeof v === "boolean") return J("JBool", v);
+  if (typeof v === "number") { if (!Number.isSafeInteger(v)) throw new Error("plié: a number that is not an integer"); return J("JInt", BigInt(v)); }
+  if (typeof v === "string") return J("JText", v);
+  if (Array.isArray(v)) return J("JList", v.map(json));
+  return J("JObj", Object.keys(v).map((k) => ({ t: "Pair", f: [k, json(v[k])] })));
+}
+// Json back to plain JavaScript, for a page to read.
+function plain(j) {
+  const [x] = j.f;
+  switch (j.t) {
+    case "JNull": return null;
+    case "JBool": case "JText": return x;
+    case "JInt": return Number(x);
+    case "JList": return x.map(plain);
+    default: return Object.fromEntries(x.map((p) => [p.f[0], plain(p.f[1])]));
+  }
+}
+// The named function of a compiled module on a JSON text, its answer as canonical text.
+function call(mod, name, text) {
+  const f = mod.entries[name];
+  if (!f) throw new Error("plié: no such function " + name);
+  return mod.$canonical(f(json(JSON.parse(text))));
+}
+
+// SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
+// SPDX-License-Identifier: EUPL-1.2
+// Written by plie/plie.py. Do not edit: edit the sources.
+// ---- Json
+const $field = $k => $j => ((s) => { if (s.t === "JObj") { const $fs = s.f[0]; return $fieldIn($k)($fs); } if (true) { return {t: "JNull", f: []}; } throw new Error("plié: no alternative matches"); })($j);
+const $fieldIn = $k => $fs => ((s) => { if (s.length === 0) { return {t: "JNull", f: []}; } if (s.length > 0) { const $f = s[0]; const $rest = s.slice(1); return ($eq($fst($f))($k) ? $snd($f) : $fieldIn($k)($rest)); } throw new Error("plié: no alternative matches"); })($fs);
+const $has = $k => $j => ((s) => { if (s.t === "JObj") { const $fs = s.f[0]; return $any(($f => $eq($fst($f))($k)))($fs); } if (true) { return false; } throw new Error("plié: no alternative matches"); })($j);
+const $path = $ks => $j => $foldl(($x => $k => $field($k)($x)))($j)($ks);
+const $asInt = $j => ((s) => { if (s.t === "JInt") { const $n = s.f[0]; return $n; } if (true) { return 0n; } throw new Error("plié: no alternative matches"); })($j);
+const $asText = $j => ((s) => { if (s.t === "JText") { const $t = s.f[0]; return $t; } if (true) { return ""; } throw new Error("plié: no alternative matches"); })($j);
+const $asBool = $j => ((s) => { if (s.t === "JBool") { const $b = s.f[0]; return $b; } if (true) { return false; } throw new Error("plié: no alternative matches"); })($j);
+const $asList = $j => ((s) => { if (s.t === "JList") { const $xs = s.f[0]; return $xs; } if (true) { return []; } throw new Error("plié: no alternative matches"); })($j);
+const $isNull = $j => ((s) => { if (s.t === "JNull") { return true; } if (true) { return false; } throw new Error("plié: no alternative matches"); })($j);
+const $entry = $k => $v => (x0 => x1 => ({t: "Pair", f: [x0, x1]}))($k)($v);
+const $object = $fs => (x0 => ({t: "JObj", f: [x0]}))($fs);
+const $texts = $ts => (x0 => ({t: "JList", f: [x0]}))($map((x0 => ({t: "JText", f: [x0]})))($ts));
+const $ints = $ns => (x0 => ({t: "JList", f: [x0]}))($map((x0 => ({t: "JInt", f: [x0]})))($ns));
+const $canonical = $j => ((s) => { if (s.t === "JNull") { return "null"; } if (s.t === "JBool") { const $b = s.f[0]; return ($b ? "true" : "false"); } if (s.t === "JInt") { const $n = s.f[0]; return $showInt($n); } if (s.t === "JText") { const $t = s.f[0]; return $jsonQuote($t); } if (s.t === "JList") { const $xs = s.f[0]; return $append("[")($append($joinText(",")($map($canonical)($xs)))("]")); } if (s.t === "JObj") { const $fs = s.f[0]; return $append("{")($append($joinText(",")($map($member)($sortBy(($a => $b => $ltUtf16($fst($a))($fst($b))))($fs))))("}")); } throw new Error("plié: no alternative matches"); })($j);
+const $member = $f => $append($jsonQuote($fst($f)))($append(":")($canonical($snd($f))));
+const $canonicalBytes = $j => $utf8($canonical($j));
+const $digest = $j => $hex($sha256($canonicalBytes($j)));
+// ---- Merkle
+const $leafHash = $d => $sha256($append($byte(0n))($d));
+const $nodeHash = $l => $r => $sha256($append($byte(1n))($append($l)($r)));
+const $pairUp = $xs => ((s) => { if (s.length > 0 && s.slice(1).length > 0) { const $a = s[0]; const $b = s.slice(1)[0]; const $rest = s.slice(1).slice(1); return $cons($nodeHash($a)($b))($pairUp($rest)); } if (true) { return $xs; } throw new Error("plié: no alternative matches"); })($xs);
+const $climb = $fuel => $level => ((s) => { if (s.length === 0) { return $sha256($utf8("")); } if (s.length > 0) { const $h = s[0]; const $more = s.slice(1); return ((s) => { if (s.length === 0) { return $h; } if (true) { return ((s) => { if (s.length === 0) { return $h; } if (s.length > 0) { const $f = s[0]; const $rest = s.slice(1); return $climb($rest)($pairUp($level)); } throw new Error("plié: no alternative matches"); })($fuel); } throw new Error("plié: no alternative matches"); })($more); } throw new Error("plié: no alternative matches"); })($level);
+const $ordered = $ds => $sortBy(($a => $b => $lt($a)($b)))($ds);
+const $root = $ds => (($ls) => $climb($ls)($ls))($map($leafHash)($ordered($ds)));
+const $pathAt = $fuel => $i => $level => ((s) => { if (s.length === 0) { return []; } if (s.length > 0) { const $f = s[0]; const $rest = s.slice(1); return ($lt($length($level))(2n) ? [] : (($sibling) => $append($sibling)($pathAt($rest)($div($i)(2n))($pairUp($level))))(($eq($mod($i)(2n))(0n) ? $mapMaybe((x0 => ({t: "OnRight", f: [x0]})))($nth($add($i)(1n))($level)) : $mapMaybe((x0 => ({t: "OnLeft", f: [x0]})))($nth($sub($i)(1n))($level))))); } throw new Error("plié: no alternative matches"); })($fuel);
+const $mapMaybe = $f => $m => ((s) => { if (s.t === "Just") { const $x = s.f[0]; return [$f($x)]; } if (s.t === "Nothing") { return []; } throw new Error("plié: no alternative matches"); })($m);
+const $position = $d => $ds => $length($filter(($x => $lt($x)($d)))($ordered($ds)));
+const $pathOf = $d => $ds => (($ls) => $pathAt($ls)($position($d)($ds))($ls))($map($leafHash)($ordered($ds)));
+const $rootFrom = $d => $steps => $foldl(($acc => $s => $up($acc)($s)))($leafHash($d))($steps);
+const $up = $acc => $s => ((s) => { if (s.t === "OnLeft") { const $x = s.f[0]; return $nodeHash($x)($acc); } if (s.t === "OnRight") { const $x = s.f[0]; return $nodeHash($acc)($x); } throw new Error("plié: no alternative matches"); })($s);
+const $stepJson = $s => ((s) => { if (s.t === "OnLeft") { const $x = s.f[0]; return $object([$entry("left")((x0 => ({t: "JText", f: [x0]}))($hex($x)))]); } if (s.t === "OnRight") { const $x = s.f[0]; return $object([$entry("right")((x0 => ({t: "JText", f: [x0]}))($hex($x)))]); } throw new Error("plié: no alternative matches"); })($s);
+const $stepOf = $j => ($has("left")($j) ? $mapStep((x0 => ({t: "OnLeft", f: [x0]})))($unhex($asText($field("left")($j)))) : ($has("right")($j) ? $mapStep((x0 => ({t: "OnRight", f: [x0]})))($unhex($asText($field("right")($j)))) : {t: "Nothing", f: []}));
+const $mapStep = $f => $m => ((s) => { if (s.t === "Just") { const $x = s.f[0]; return ($eq($bytesLength($x))(32n) ? (x0 => ({t: "Just", f: [x0]}))($f($x)) : {t: "Nothing", f: []}); } if (s.t === "Nothing") { return {t: "Nothing", f: []}; } throw new Error("plié: no alternative matches"); })($m);
+const $merkleBatch = $input => (($ds) => $object([$entry("root")((x0 => ({t: "JText", f: [x0]}))($hex($root($ds)))), $entry("size")((x0 => ({t: "JInt", f: [x0]}))($length($ds))), $entry("paths")($object($map(($d => $entry($hex($d))((x0 => ({t: "JList", f: [x0]}))($map($stepJson)($pathOf($d)($ds))))))($ordered($ds))))]))($hexes($asList($field("leaves")($input))));
+const $hexes = $js => $concat($map(($j => $maybeList($unhex($asText($j)))))($js));
+const $maybeList = $m => ((s) => { if (s.t === "Just") { const $x = s.f[0]; return [$x]; } if (s.t === "Nothing") { return []; } throw new Error("plié: no alternative matches"); })($m);
+// ---- Seed
+const $seedOf = $randomness => $site => $cycle => $sha256($append($randomness)($append($utf8($site))($utf8($cycle))));
+const $placeOf = $seed => $url => $sha256($append($seed)($utf8($url)));
+const $orderBy = $seed => $urls => $sortBy(($a => $b => $lt($placeOf($seed)($a))($placeOf($seed)($b))))($urls);
+const $commitment = $urls => $digest($texts($dedupe($sortBy(($a => $b => $lt($a)($b)))($urls))));
+const $dedupe = $xs => $reverse($foldl(($acc => $x => ($eq($nth(0n)($acc))((x0 => ({t: "Just", f: [x0]}))($x)) ? $acc : $cons($x)($acc))))([])($xs));
+const $orderOf = $input => (($r) => (($urls) => (($seed) => $object([$entry("seed")((x0 => ({t: "JText", f: [x0]}))($hex($seed))), $entry("order")($texts($orderBy($seed)($urls))), $entry("commitment")((x0 => ({t: "JText", f: [x0]}))($commitment($urls)))]))($seedOf($r)($asText($field("site")($input)))($asText($field("cycle")($input)))))($map($asText)($asList($field("candidates")($input)))))($fromMaybe($utf8(""))($unhex($asText($field("randomness")($input)))));
+const $commitmentOf = $input => (($urls) => $object([$entry("commitment")((x0 => ({t: "JText", f: [x0]}))($commitment($urls))), $entry("candidates")($texts($dedupe($sortBy(($a => $b => $lt($a)($b)))($urls))))]))($map($asText)($asList($field("candidates")($input))));
+const $firstRoundAfter = $t => $add($div($sub($t)(1692803367n))(3n))(2n);
+// ---- Chain
+const $recordHash = $r => $digest($r);
+const $linked = $previous => $r => (($prev) => (($status) => ($isNull($prev) ? ($eq($status)("reset") || ($eq($status)("unbroken") && $isNull($previous))) : ($eq($status)("unbroken") && ($not($isNull($previous)) && ($eq($asText($prev))($recordHash($previous)) && ($eq($asText($field("site")($previous)))($asText($field("site")($r))) && $eq($asText($field("baseline")($previous)))($asText($field("baseline")($r)))))))))($asText($field("chain_status")($r))))($field("prev")($r));
+const $chainNext = $input => (($last) => (($reset) => (($date) => (($isNull($last) || $reset) ? $object([$entry("prev")({t: "JNull", f: []}), $entry("baseline")((x0 => ({t: "JText", f: [x0]}))($date)), $entry("chain_status")((x0 => ({t: "JText", f: [x0]}))(($isNull($last) ? "unbroken" : "reset")))]) : $object([$entry("prev")($field("hash")($last)), $entry("baseline")($field("baseline")($last)), $entry("chain_status")((x0 => ({t: "JText", f: [x0]}))("unbroken"))])))($asText($field("date")($input))))($asBool($field("reset")($input))))($field("last")($input));
+const $canonicalOf = $j => $object([$entry("canonical")((x0 => ({t: "JText", f: [x0]}))($canonical($j))), $entry("hash")((x0 => ({t: "JText", f: [x0]}))($digest($j)))]);
+// ---- Roots
+const $entryHash = $e => $digest($e);
+const $chained = $before => $es => ((s) => { if (s.length === 0) { return true; } if (s.length > 0) { const $e = s[0]; const $rest = s.slice(1); return (($isNull($before) ? $isNull($field("prev_entry_hash")($e)) : ($eq($asText($field("prev_entry_hash")($e)))($entryHash($before)) && $lt($asText($field("cycle")($before)))($asText($field("cycle")($e))))) && $chained($e)($rest)); } throw new Error("plié: no alternative matches"); })($es);
+const $listed = $cycle => $rootHex => $es => $any(($e => ($eq($asText($field("cycle")($e)))($cycle) && $eq($asText($field("root")($e)))($rootHex))))($es);
+const $lastOf = $es => $foldl(($acc => $e => $e))({t: "JNull", f: []})($es);
+const $rootsAppend = $input => (($es) => (($before) => (($e) => $object([$entry("format")((x0 => ({t: "JText", f: [x0]}))("releve-roots/1")), $entry("entries")((x0 => ({t: "JList", f: [x0]}))($append($es)([$e])))]))($object([$entry("cycle")($field("cycle")($input)), $entry("root")($field("root")($input)), $entry("token_hash")($field("token_hash")($input)), $entry("prev_entry_hash")(($isNull($before) ? {t: "JNull", f: []} : (x0 => ({t: "JText", f: [x0]}))($entryHash($before))))])))($lastOf($es)))($asList($field("roots")($input)));
+// ---- Readings
+const $scParts = $sc => $map(($p => $fromMaybe(0n)($readInt($p))))($split(".")($sc));
+const $scBefore = $a => $b => $lexLess($scParts($a))($scParts($b));
+const $lexLess = $xs => $ys => ((s) => { if (s.length === 0) { return ((s) => { if (s.length === 0) { return false; } if (true) { return true; } throw new Error("plié: no alternative matches"); })($ys); } if (s.length > 0) { const $x = s[0]; const $xr = s.slice(1); return ((s) => { if (s.length === 0) { return false; } if (s.length > 0) { const $y = s[0]; const $yr = s.slice(1); return ($lt($x)($y) ? true : ($lt($y)($x) ? false : $lexLess($xr)($yr))); } throw new Error("plié: no alternative matches"); })($ys); } throw new Error("plié: no alternative matches"); })($xs);
+const $marked = $label => $rule => $asInt($field($label)($rule));
+const $labelOf = $rules => ($any(($r => $gt($marked("fail")($r))(0n)))($rules) ? (x0 => ({t: "JText", f: [x0]}))("fail") : ($any(($r => $gt($marked("review")($r))(0n)))($rules) ? (x0 => ({t: "JText", f: [x0]}))("review") : ($any(($r => $gt($marked("hint")($r))(0n)))($rules) ? (x0 => ({t: "JText", f: [x0]}))("hint") : {t: "JNull", f: []})));
+const $wcag = $rules => (($scs) => (x0 => ({t: "JList", f: [x0]}))($map(($sc => (($on) => $object([$entry("sc")((x0 => ({t: "JText", f: [x0]}))($sc)), $entry("label")($labelOf($on)), $entry("criteria")($texts($map(($r => $asText($field("criterion")($r))))($filter(($r => $gt($add($add($marked("fail")($r))($marked("review")($r)))($marked("hint")($r)))(0n)))($on))))]))($filter(($r => $elem((x0 => ({t: "JText", f: [x0]}))($sc))($asList($field("wcag")($r)))))($rules))))($sortBy($scBefore)($scs))))($uniqueTexts($concat($map(($r => $map($asText)($asList($field("wcag")($r)))))($rules))));
+const $uniqueTexts = $ts => $foldl(($acc => $t => ($elem($t)($acc) ? $acc : $append($acc)([$t]))))([])($ts);
+const $hostOf = $origin => (($rest) => ($startsWith("[")($rest) ? $append($fromMaybe($rest)($nth(0n)($split("]")($rest))))("]") : $asciiLower($fromMaybe($rest)($nth(0n)($split(":")($rest))))))($fromMaybe($origin)($nth(1n)($split("://")($origin))));
+const $isAddress = $host => ($startsWith("[")($host) || $all(($l => ($gt($textLength($l))(0n) && $ne($readInt($l))({t: "Nothing", f: []}))))($split(".")($host)));
+const $lastLabels = $k => $labels => $joinText(".")($drop($sub($length($labels))($k))($labels));
+const $suffixLength = $rules => $labels => (($n) => (($ks) => (($excepted) => ($gt($length($excepted))(0n) ? $sub($foldl($max)(0n)($excepted))(1n) : $foldl($max)(1n)($filter(($k => ($elem($lastLabels($k)($labels))($rules) || ($gt($k)(1n) && $elem($append("*.")($lastLabels($sub($k)(1n))($labels)))($rules)))))($ks))))($filter(($k => $elem($append("!")($lastLabels($k)($labels)))($rules)))($ks)))($range(1n)($add($n)(1n))))($length($labels));
+const $registrable = $rules => $host => ($isAddress($host) ? $host : (($labels) => (($s) => ($gt($length($labels))($s) ? $lastLabels($add($s)(1n))($labels) : $host))($suffixLength($rules)($labels)))($split(".")($host)));
+const $dependencies = $rules => $version => $site => $requests => (($mine) => (($domainOf) => (($domains) => $object([$entry("psl")((x0 => ({t: "JText", f: [x0]}))($version)), $entry("site")((x0 => ({t: "JText", f: [x0]}))($mine)), $entry("domains")((x0 => ({t: "JList", f: [x0]}))($map(($d => (($qs) => $object([$entry("domain")((x0 => ({t: "JText", f: [x0]}))($d)), $entry("party")((x0 => ({t: "JText", f: [x0]}))(($eq($d)($mine) ? "first" : "third"))), $entry("requests")((x0 => ({t: "JInt", f: [x0]}))($length($qs))), $entry("bytes")((x0 => ({t: "JInt", f: [x0]}))($sum($map(($q => $asInt($field("bytes")($q))))($qs)))), $entry("pre_interaction")((x0 => ({t: "JInt", f: [x0]}))($length($filter(($q => $asBool($field("pre_interaction")($q))))($qs))))]))($filter(($q => $eq($domainOf($q))($d)))($requests))))($domains)))]))($sortBy(($a => $b => $lt($a)($b)))($uniqueTexts($map($domainOf)($requests)))))(($q => $registrable($rules)($hostOf($asText($field("origin")($q)))))))($registrable($rules)($hostOf($site)));
+const $legibility = $ax => (($n) => (($named) => $object([$entry("interactive")((x0 => ({t: "JInt", f: [x0]}))($n)), $entry("named")((x0 => ({t: "JInt", f: [x0]}))($named)), $entry("unnamed")((x0 => ({t: "JInt", f: [x0]}))($sub($n)($named))), $entry("invalid_roles")($field("invalid_roles")($ax)), $entry("context_violations")($field("context_violations")($ax)), $entry("hidden_interactive")($field("hidden_interactive")($ax)), $entry("obstacles")((x0 => ({t: "JInt", f: [x0]}))($add($add($add($sub($n)($named))($asInt($field("invalid_roles")($ax))))($asInt($field("context_violations")($ax))))($asInt($field("hidden_interactive")($ax)))))]))($asInt($field("named")($ax))))($asInt($field("interactive")($ax)));
+const $decimal9 = $nano => $append($showInt($div($nano)(1000000000n)))($append(".")($pad9($showInt($mod($nano)(1000000000n)))));
+const $pad9 = $t => $append($joinText("")($map(($k => "0"))($range($textLength($t))(9n))))($t);
+const $energy = $coefficient => $bytes => (($num) => (($den) => (($d) => (($nano) => $object([$entry("bytes")((x0 => ({t: "JInt", f: [x0]}))($bytes)), $entry("kwh")((x0 => ({t: "JText", f: [x0]}))($decimal9($nano))), $entry("coefficient")($object([$entry("source")($field("source")($coefficient)), $entry("version")($field("version")($coefficient)), $entry("kwh_per_gb")($field("kwh_per_gb")($coefficient))]))]))(($gt($d)(0n) ? $div($add($mul($mul($mul($bytes)($num))(1000000000n))(2n))($d))($mul(2n)($d)) : 0n)))($mul($den)(1000000000n)))($asInt($path(["kwh_per_gb", "den"])($coefficient))))($asInt($path(["kwh_per_gb", "num"])($coefficient)));
+const $reading = $name => $version => $value => $object([$entry("name")((x0 => ({t: "JText", f: [x0]}))($name)), $entry("version")((x0 => ({t: "JInt", f: [x0]}))($version)), $entry("value")($value)]);
+const $readingsOf = $input => (($o) => (($psl) => (x0 => ({t: "JList", f: [x0]}))([$reading("wcag")(1n)($wcag($asList($field("rules")($input)))), $reading("dependencies")(1n)($dependencies($map($asText)($asList($field("rules")($psl))))($asText($field("version")($psl)))($asText($field("site")($input)))($asList($field("requests")($o)))), $reading("legibility")(1n)($legibility($field("ax")($o))), $reading("energy")(1n)($energy($field("energy")($input))($asInt($path(["bytes", "total"])($o))))]))($field("psl")($input)))($field("observation")($input));
+// ---- Verify
+const $checkJson = $c => ((s) => { if (s.t === "Check") { const $name = s.f[0]; const $ok = s.f[1]; const $detail = s.f[2]; return $object([$entry("check")((x0 => ({t: "JText", f: [x0]}))($name)), $entry("ok")($ok), $entry("detail")((x0 => ({t: "JText", f: [x0]}))($detail))]); } throw new Error("plié: no alternative matches"); })($c);
+const $okOf = $c => ((s) => { if (s.t === "Check") { const $name = s.f[0]; const $ok = s.f[1]; const $detail = s.f[2]; return $ok; } throw new Error("plié: no alternative matches"); })($c);
+const $pass = $name => $ok => $good => $bad => (x0 => x1 => x2 => ({t: "Check", f: [x0, x1, x2]}))($name)((x0 => ({t: "JBool", f: [x0]}))($ok))(($ok ? $good : $bad));
+const $unchecked = $name => $why => (x0 => x1 => x2 => ({t: "Check", f: [x0, x1, x2]}))($name)({t: "JNull", f: []})($why);
+const $hex32 = $t => ((s) => { if (s.t === "Just") { const $b = s.f[0]; return $eq($bytesLength($b))(32n); } if (s.t === "Nothing") { return false; } throw new Error("plié: no alternative matches"); })($unhex($t));
+const $quicknet = (() => { let v; return () => v === undefined ? (v = "52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971") : v; })();
+const $roundTime = $r => $add(1692803367n)($mul($sub($r)(1n))(3n));
+const $verifyBundle = $input => (($b) => (($r) => (($h) => (($previous) => (($rootHex) => (($steps) => (($edge) => (($roots) => (($token) => (($checks) => (($oks) => $object([$entry("ok")((x0 => ({t: "JBool", f: [x0]}))($all(($o => $eq($o)((x0 => ({t: "JBool", f: [x0]}))(true))))($oks))), $entry("checks")((x0 => ({t: "JList", f: [x0]}))($map($checkJson)($checks))), $entry("first_failure")($firstFailure($checks))]))($map($okOf)($checks)))($append([$pass("record-hash")(($eq($recordHash($r))($h) && $hex32($h)))("the record's canonical bytes hash to the hash it is delivered with")("the record does not hash to the hash it is delivered with: it is not the record that was chained"), (($isNull($previous) && $not($isNull($field("prev")($r)))) ? $unchecked("prev-link")("the record names a previous record; give it to check the link") : $pass("prev-link")($linked($previous)($r))("the record follows from the one before it")("the record does not follow from the one before it")), $pass("inclusion-path")(($all(($s => $ne($s)({t: "Nothing", f: []})))($steps) && $eq($hex($rootFrom($fromMaybe($utf8(""))($unhex($h)))($justs($steps))))($rootHex)))("the path leads from the record's hash to the root")("the path does not lead from the record's hash to the root"), $pass("root")(($hex32($rootHex) && $eq($asText($field("cycle")($b)))($asText($field("cycle")($r)))))("the root is the root of the record's own cycle")("the root is not one of the record's cycle"), $pass("published")(($chained({t: "JNull", f: []})($roots) && ($listed($asText($field("cycle")($b)))($rootHex)($roots) && $any(($e => ($eq($asText($field("root")($e)))($rootHex) && $eq($asText($field("token_hash")($e)))($hex($sha256($token))))))($roots))))("the root and its token stand in the published list, and the list runs unbroken")("the root, or its token, is not in the published list, or the list does not run unbroken"), $edgeCheck("tsa-token")($field("tsa")($edge))($rootHex)("the time-stamp token covers the root, under the authority's signature")])($selection($r)($edge))))($fromMaybe($utf8(""))($unhex($asText($field("token")($b))))))($asList($field("entries")($field("roots")($input)))))($field("edge")($input)))($map($stepOf)($asList($field("path")($b)))))($asText($field("root")($b))))($field("previous")($input)))($asText($field("record_hash")($b))))($field("record")($b)))($field("bundle")($input));
+const $justs = $ms => $concat($map(($m => ((s) => { if (s.t === "Just") { const $s = s.f[0]; return [$s]; } if (s.t === "Nothing") { return []; } throw new Error("plié: no alternative matches"); })($m)))($ms));
+const $firstFailure = $cs => ((s) => { if (s.length === 0) { return {t: "JNull", f: []}; } if (s.length > 0) { const $c = s[0]; const $rest = s.slice(1); return ((s) => { if (s.t === "Check") { const $name = s.f[0]; const $ok = s.f[1]; const $detail = s.f[2]; return ($eq($ok)((x0 => ({t: "JBool", f: [x0]}))(false)) ? (x0 => ({t: "JText", f: [x0]}))($name) : $firstFailure($rest)); } throw new Error("plié: no alternative matches"); })($c); } throw new Error("plié: no alternative matches"); })($cs);
+const $edgeCheck = $name => $e => $expected => $good => (($isNull($e) || $isNull($field("ok")($e))) ? $unchecked($name)(($isNull($e) ? "not checked here" : $asText($field("detail")($e)))) : $pass($name)(($asBool($field("ok")($e)) && $eq($asText($field("imprint")($e)))($expected)))($good)(($asBool($field("ok")($e)) ? $append("the token covers something else than ")($expected) : $asText($field("detail")($e)))));
+const $selection = $r => $edge => (($sel) => (($beacon) => ($eq($asText($field("status")($beacon)))("unavailable") ? [$unchecked("beacon")("selection not beacon-seeded: the record says the beacon could not be reached")] : (($rnd) => (($sig) => (($round) => (($given) => (($order) => (($picks) => (($read) => (($committed) => [$pass("beacon-round")(($eq($asText($field("chain")($beacon)))($quicknet()) && ($eq($hex($sha256($sig)))($rnd) && $gt($round)(0n))))("the round is of drand quicknet, and its randomness is the hash of its signature")("the round is not of drand quicknet, or its randomness is not the hash of its signature"), $edgeBls($field("bls")($edge)), $pass("order")(($eq($field("order")($given))($field("order")($sel)) && ($eq($field("seed")($given))($field("seed")($sel)) && ($inOrder($read)($order) && ($gt($length($picks))(0n) && ($eq($nth(0n)($picks))($nth(0n)($read)) && ($all(($p => $elem($p)($read)))($picks) && $elem((x0 => ({t: "JText", f: [x0]}))($asText($field("url")($r))))($asList($field("picks")($sel))))))))))("the order is the one the round gives, the pages read follow it, the first pick heads them, and the page is among the picks")("the order, the seed or the picks are not those the round gives"), $edgeCheck("committed")($field("commitment_tsa")($edge))($asText($field("hash")($committed)))("the candidates were committed to, and the commitment dated by the authority"), $pass("before-beacon")(($eq($asText($field("commitment")($given)))($asText($field("hash")($committed))) && ($lt($asInt($field("time")($committed)))($roundTime($round)) && ($eq($round)($firstRoundAfter($asInt($field("time")($committed)))) && ($isNull($field("commitment_tsa")($edge)) || ($isNull($field("time")($field("commitment_tsa")($edge))) || $eq($asInt($field("time")($field("commitment_tsa")($edge))))($asInt($field("time")($committed)))))))))("the candidates were dated before the round, and the round is the first one after: the round chose, not the Bureau")("the candidates were not dated before the round, the round is not the first one after, or the candidates are not those committed to")])($field("commitment")($sel)))($map($asText)($asList($field("read")($sel)))))($map($asText)($asList($field("picks")($sel)))))($map($asText)($asList($field("order")($sel)))))($orderOf($object([$entry("randomness")((x0 => ({t: "JText", f: [x0]}))($rnd)), $entry("site")($field("site")($r)), $entry("cycle")($field("cycle")($r)), $entry("candidates")($field("candidates")($sel))]))))($asInt($field("round")($beacon))))($fromMaybe($utf8(""))($unhex($asText($field("signature")($beacon))))))($asText($field("randomness")($beacon)))))($field("beacon")($r)))($field("selection")($r));
+const $inOrder = $xs => $ys => ((s) => { if (s.length === 0) { return true; } if (s.length > 0) { const $x = s[0]; const $xr = s.slice(1); return ((s) => { if (s.length === 0) { return false; } if (s.length > 0) { const $y = s[0]; const $yr = s.slice(1); return ($eq($x)($y) ? $inOrder($xr)($yr) : $inOrder($xs)($yr)); } throw new Error("plié: no alternative matches"); })($ys); } throw new Error("plié: no alternative matches"); })($xs);
+const $edgeBls = $e => (($isNull($e) || $isNull($field("ok")($e))) ? $unchecked("beacon-signature")(($isNull($e) ? "the round's BLS signature is not checked here; the command line checks it" : $asText($field("detail")($e)))) : $pass("beacon-signature")($asBool($field("ok")($e)))("the round is signed by the League of Entropy's quicknet key")($asText($field("detail")($e))));
+const entries = {"merkleBatch": $merkleBatch, "orderOf": $orderOf, "commitmentOf": $commitmentOf, "chainNext": $chainNext, "canonicalOf": $canonicalOf, "rootsAppend": $rootsAppend, "legibility": $legibility, "readingsOf": $readingsOf, "verifyBundle": $verifyBundle};
+
+const read = async (id) => { const f = document.getElementById(id).files[0]; return f ? JSON.parse(await f.text()) : null; };
+const browserEdge = {
+  tsa: { ok: null, detail: "the token's signature is not checked in a browser; python -m record verify checks it with OpenSSL" },
+  commitment_tsa: { ok: null, time: null, detail: "the commitment token's signature is not checked in a browser; the command line checks it" },
+  bls: { ok: null, detail: "the round's BLS signature is not checked in a browser; the command line checks it" },
+};
+export function check(bundle, roots, previous) {
+  const input = { bundle, roots, previous: previous ? previous.record : null, edge: browserEdge };
+  return plain($verifyBundle(json(input)));
+}
+window.verifyRecord = check;
+document.getElementById("f").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const out = document.getElementById("result");
+  try {
+    const r = check(await read("bundle"), await read("roots"), await read("previous"));
+    const failed = r.checks.some((c) => c.ok === false);
+    out.innerHTML = "";
+    const v = document.createElement("p");
+    v.className = "verdict " + (failed ? "bad" : "ok");
+    v.textContent = failed ? "Not verified: " + r.first_failure : "Every check this browser can make holds";
+    const list = document.createElement("ol");
+    for (const c of r.checks) {
+      const li = document.createElement("li");
+      const b = document.createElement("b");
+      b.className = c.ok === true ? "ok" : c.ok === false ? "bad" : "open";
+      b.textContent = (c.ok === true ? "holds" : c.ok === false ? "fails" : "not checked here") + " · " + c.check;
+      li.append(b, document.createTextNode(" — " + c.detail));
+      list.append(li);
+    }
+    out.append(v, list);
+  } catch (err) {
+    out.textContent = "These files cannot be read as a bundle and a list of roots: " + err.message;
+  }
+});
+</script>
+</body>
+</html>

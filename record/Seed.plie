@@ -1,0 +1,46 @@
+-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
+-- SPDX-License-Identifier: EUPL-1.2
+-- The order the selector reads a site's candidate pages in, drawn from a public beacon.
+-- seed = SHA-256(randomness || site || cycle); each candidate is placed by SHA-256(seed || its
+-- address), ascending. The selector (receipt/, surface-core/select-1) starts from the first
+-- page of that order and breaks its ties by it, so neither the Bureau nor the site chooses
+-- where the selection begins. The candidates are committed to, and the commitment dated,
+-- before the round is drawn (Run.plie): `commitment` is what is dated.
+module Seed where
+
+import Json
+
+seedOf : Bytes -> Text -> Text -> Bytes
+seedOf randomness site cycle = sha256 (randomness ++ utf8 site ++ utf8 cycle)
+
+placeOf : Bytes -> Text -> Bytes
+placeOf seed url = sha256 (seed ++ utf8 url)
+
+orderBy : Bytes -> List Text -> List Text
+orderBy seed urls = sortBy (\a b -> placeOf seed a < placeOf seed b) urls
+
+-- The candidates as committed to: sorted by code point, each once, as canonical JSON text.
+commitment : List Text -> Text
+commitment urls = digest (texts (dedupe (sortBy (\a b -> a < b) urls)))
+
+dedupe : List Text -> List Text
+dedupe xs = reverse (foldl (\acc x -> if nth 0 acc == Just x then acc else x :: acc) [] xs)
+
+-- {"randomness": hex, "site", "cycle", "candidates": [url]} gives {"seed": hex, "order": [url], "commitment": hex}.
+orderOf : Json -> Json
+orderOf input =
+  let r = fromMaybe (utf8 "") (unhex (asText (field "randomness" input))) in
+  let urls = map asText (asList (field "candidates" input)) in
+  let seed = seedOf r (asText (field "site" input)) (asText (field "cycle" input)) in
+  object [ entry "seed" (JText (hex seed)), entry "order" (texts (orderBy seed urls))
+         , entry "commitment" (JText (commitment urls)) ]
+
+-- {"candidates": [url]} gives {"commitment": hex, "candidates": [url]}: what is dated before the round.
+commitmentOf : Json -> Json
+commitmentOf input =
+  let urls = map asText (asList (field "candidates" input)) in
+  object [ entry "commitment" (JText (commitment urls)), entry "candidates" (texts (dedupe (sortBy (\a b -> a < b) urls))) ]
+
+-- The first round drand publishes strictly after a time: the round a commitment dated then must take.
+firstRoundAfter : Int -> Int
+firstRoundAfter t = div (t - 1692803367) 3 + 2

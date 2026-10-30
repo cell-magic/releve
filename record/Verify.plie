@@ -1,0 +1,141 @@
+-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
+-- SPDX-License-Identifier: EUPL-1.2
+-- The verifier: a delivered bundle checked, each check named, in this order: the record's
+-- hash, its link to the record before it, the inclusion path, the root, the root among the
+-- published ones, the time-stamp token over the root; then the selection: the beacon round,
+-- the order it gives, and that the candidates were dated before the round was drawn.
+-- What only the world can check (a signature under OpenSSL, BLS on the curve) is done at the
+-- edge and handed in as `edge`; what is handed in is said, and so is what was not checked.
+module Verify where
+
+import Json
+import Merkle
+import Chain
+import Roots
+import Seed
+
+data Check = Check Text Json Text
+
+checkJson : Check -> Json
+checkJson c = case c of
+  | Check name ok detail -> object [entry "check" (JText name), entry "ok" ok, entry "detail" (JText detail)]
+
+okOf : Check -> Json
+okOf c = case c of
+  | Check name ok detail -> ok
+
+pass : Text -> Bool -> Text -> Text -> Check
+pass name ok good bad = Check name (JBool ok) (if ok then good else bad)
+
+unchecked : Text -> Text -> Check
+unchecked name why = Check name JNull why
+
+hex32 : Text -> Bool
+hex32 t = case unhex t of
+  | Just b -> bytesLength b == 32
+  | Nothing -> False
+
+-- drand quicknet (League of Entropy): the chain this record's beacon must come from.
+quicknet : Text
+quicknet = "52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971"
+
+roundTime : Int -> Int
+roundTime r = 1692803367 + (r - 1) * 3
+
+verifyBundle : Json -> Json
+verifyBundle input =
+  let b = field "bundle" input in
+  let r = field "record" b in
+  let h = asText (field "record_hash" b) in
+  let previous = field "previous" input in
+  let rootHex = asText (field "root" b) in
+  let steps = map stepOf (asList (field "path" b)) in
+  let edge = field "edge" input in
+  let roots = asList (field "entries" (field "roots" input)) in
+  let token = fromMaybe (utf8 "") (unhex (asText (field "token" b))) in
+  let checks =
+        [ pass "record-hash" (recordHash r == h && hex32 h) "the record's canonical bytes hash to the hash it is delivered with"
+               "the record does not hash to the hash it is delivered with: it is not the record that was chained"
+        , if isNull previous && not (isNull (field "prev" r)) then unchecked "prev-link" "the record names a previous record; give it to check the link"
+          else pass "prev-link" (linked previous r) "the record follows from the one before it" "the record does not follow from the one before it"
+        , pass "inclusion-path" (all (\s -> s /= Nothing) steps && hex (rootFrom (fromMaybe (utf8 "") (unhex h)) (justs steps)) == rootHex)
+               "the path leads from the record's hash to the root" "the path does not lead from the record's hash to the root"
+        , pass "root" (hex32 rootHex && asText (field "cycle" b) == asText (field "cycle" r))
+               "the root is the root of the record's own cycle" "the root is not one of the record's cycle"
+        , pass "published" (chained JNull roots && listed (asText (field "cycle" b)) rootHex roots
+                             && any (\e -> asText (field "root" e) == rootHex && asText (field "token_hash" e) == hex (sha256 token)) roots)
+               "the root and its token stand in the published list, and the list runs unbroken"
+               "the root, or its token, is not in the published list, or the list does not run unbroken"
+        , edgeCheck "tsa-token" (field "tsa" edge) rootHex "the time-stamp token covers the root, under the authority's signature"
+        ] ++ selection r edge in
+  let oks = map okOf checks in
+  object [ entry "ok" (JBool (all (\o -> o == JBool True) oks))
+         , entry "checks" (JList (map checkJson checks))
+         , entry "first_failure" (firstFailure checks) ]
+
+justs : List (Maybe Step) -> List Step
+justs ms = concat (map (\m -> case m of
+  | Just s -> [s]
+  | Nothing -> []) ms)
+
+firstFailure : List Check -> Json
+firstFailure cs = case cs of
+  | [] -> JNull
+  | c :: rest -> case c of
+    | Check name ok detail -> if ok == JBool False then JText name else firstFailure rest
+
+-- A check the edge made: its verdict, and that what it checked is what it had to.
+edgeCheck : Text -> Json -> Text -> Text -> Check
+edgeCheck name e expected good =
+  if isNull e || isNull (field "ok" e) then unchecked name (if isNull e then "not checked here" else asText (field "detail" e))
+  else pass name (asBool (field "ok" e) && asText (field "imprint" e) == expected) good
+            (if asBool (field "ok" e) then "the token covers something else than " ++ expected else asText (field "detail" e))
+
+-- The selection: drawn from the beacon round the record names, in the order the round gives,
+-- over candidates dated before the round.
+selection : Json -> Json -> List Check
+selection r edge =
+  let sel = field "selection" r in
+  let beacon = field "beacon" r in
+  if asText (field "status" beacon) == "unavailable" then
+    [ unchecked "beacon" "selection not beacon-seeded: the record says the beacon could not be reached" ]
+  else
+    let rnd = asText (field "randomness" beacon) in
+    let sig = fromMaybe (utf8 "") (unhex (asText (field "signature" beacon))) in
+    let round = asInt (field "round" beacon) in
+    let given = orderOf (object [ entry "randomness" (JText rnd), entry "site" (field "site" r), entry "cycle" (field "cycle" r)
+                                , entry "candidates" (field "candidates" sel) ]) in
+    let order = map asText (asList (field "order" sel)) in
+    let picks = map asText (asList (field "picks" sel)) in
+    let read = map asText (asList (field "read" sel)) in
+    let committed = field "commitment" sel in
+    [ pass "beacon-round" (asText (field "chain" beacon) == quicknet && hex (sha256 sig) == rnd && round > 0)
+           "the round is of drand quicknet, and its randomness is the hash of its signature"
+           "the round is not of drand quicknet, or its randomness is not the hash of its signature"
+    , edgeBls (field "bls" edge)
+    , pass "order" (field "order" given == field "order" sel && field "seed" given == field "seed" sel
+                    && inOrder read order && length picks > 0 && nth 0 picks == nth 0 read && all (\p -> elem p read) picks
+                    && elem (JText (asText (field "url" r))) (asList (field "picks" sel)))
+           "the order is the one the round gives, the pages read follow it, the first pick heads them, and the page is among the picks"
+           "the order, the seed or the picks are not those the round gives"
+    , edgeCheck "committed" (field "commitment_tsa" edge) (asText (field "hash" committed))
+           "the candidates were committed to, and the commitment dated by the authority"
+    , pass "before-beacon" (asText (field "commitment" given) == asText (field "hash" committed)
+                            && asInt (field "time" committed) < roundTime round
+                            && round == firstRoundAfter (asInt (field "time" committed))
+                            && (isNull (field "commitment_tsa" edge) || isNull (field "time" (field "commitment_tsa" edge))
+                                || asInt (field "time" (field "commitment_tsa" edge)) == asInt (field "time" committed)))
+           "the candidates were dated before the round, and the round is the first one after: the round chose, not the Bureau"
+           "the candidates were not dated before the round, the round is not the first one after, or the candidates are not those committed to" ]
+
+-- Whether xs is a subsequence of ys: read in the order given, some left out.
+inOrder : List Text -> List Text -> Bool
+inOrder xs ys = case xs of
+  | [] -> True
+  | x :: xr -> case ys of
+    | [] -> False
+    | y :: yr -> if x == y then inOrder xr yr else inOrder xs yr
+
+edgeBls : Json -> Check
+edgeBls e = if isNull e || isNull (field "ok" e) then unchecked "beacon-signature" (if isNull e then "the round's BLS signature is not checked here; the command line checks it" else asText (field "detail" e))
+  else pass "beacon-signature" (asBool (field "ok" e)) "the round is signed by the League of Entropy's quicknet key" (asText (field "detail" e))

@@ -1,7 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
 # SPDX-License-Identifier: EUPL-1.2
 # Builds releve on Linux, macOS and Windows, runs the kernel tests, checks the
-# licence headers, the boundary between open and closed code, the observer's conduct and the service, and attaches the
+# licence headers, the boundary between open and closed code, the observer's conduct and the service,
+# the record's core in plié (Haskell and JavaScript folds held to the same bytes) and its verifier, and attaches the
 # binaries to every published release, one file per system: releve-linux,
 # releve-macos, releve-windows.exe.
 name: build
@@ -87,3 +88,25 @@ jobs:
       - run: bash -n serve/install.sh && bash -n serve/egress.sh && shellcheck serve/install.sh serve/egress.sh receipt/build.sh
       - name: the verifier handed out is the one its sources build
         run: sh receipt/build.sh && git diff --exit-code receipt/verifier.html
+  record:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: haskell-actions/setup@v2
+        with:
+          ghc-version: "9.6"
+          cabal-version: "3.10"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: cabal update && cabal install --install-method=copy --installdir=dist --overwrite-policy=always
+      - run: pip install -r record/requirements.txt && sudo apt-get install -y -qq faketime
+      - name: the folds kept, and the verifier page, are those their plié sources give
+        run: sh record/build.sh && git diff --exit-code record/
+      - run: python tests/plie.py
+      - run: python tests/record.py
+        env:
+          RELEVE: dist/releve

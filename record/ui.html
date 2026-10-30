@@ -1,0 +1,92 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr> -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verify a record</title>
+<style>
+  :root { --ink:#141414; --muted:#5a5a5a; --line:#d6d6d6; --bg:#ffffff; --ok:#1d5e2e; --bad:#9b1c1c; --focus:#1f4e8c; }
+  @media (prefers-color-scheme: dark) { :root { --ink:#ececec; --muted:#a8a8a8; --line:#3a3a3a; --bg:#121212; --ok:#7fd18f; --bad:#ff8a8a; --focus:#8db4ff; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, sans-serif; }
+  main { max-width:680px; margin:0 auto; padding:48px 16px 64px; }
+  h1 { font-size:1.6rem; font-weight:600; margin:0 0 8px; }
+  p.lede { color:var(--muted); margin:0 0 32px; }
+  .field { margin:0 0 20px; }
+  label { display:block; font-weight:600; margin:0 0 6px; }
+  .hint { display:block; color:var(--muted); font-size:.9rem; margin:0 0 6px; }
+  input[type=file] { font:inherit; color:inherit; background:transparent; border:1px solid var(--line); padding:8px; width:100%; }
+  button { font:inherit; font-weight:600; color:var(--bg); background:var(--ink); border:0; padding:10px 20px; cursor:pointer; }
+  :focus-visible { outline:3px solid var(--focus); outline-offset:2px; }
+  #result { margin-top:32px; border-top:1px solid var(--line); padding-top:20px; min-height:4rem; }
+  .verdict { font-size:1.3rem; font-weight:600; }
+  .ok { color:var(--ok); } .bad { color:var(--bad); } .open { color:var(--muted); }
+  ol { padding-left:1.2rem; } li { margin:0 0 8px; overflow-wrap:anywhere; } li b { font-variant-numeric:tabular-nums; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Verify a record</h1>
+  <p class="lede">Checks a RADAR record against its path, its month's root and the published roots, and its selection against its beacon round. Everything runs in this browser, from this one file; nothing is sent anywhere. Two checks need more than a browser holds, the time-stamp tokens' signatures and the round's BLS signature: this page says so, and <code>python -m record verify</code> makes them.</p>
+  <form id="f">
+    <div class="field">
+      <label for="bundle">Record bundle</label>
+      <span class="hint" id="bundle-hint">The .json bundle delivered with the record.</span>
+      <input type="file" id="bundle" accept=".json,application/json" aria-describedby="bundle-hint" required>
+    </div>
+    <div class="field">
+      <label for="roots">Published roots</label>
+      <span class="hint" id="roots-hint">roots.json, as the Bureau publishes it.</span>
+      <input type="file" id="roots" accept=".json,application/json" aria-describedby="roots-hint" required>
+    </div>
+    <div class="field">
+      <label for="previous">Previous bundle</label>
+      <span class="hint" id="previous-hint">Optional: the site's bundle before this one, to check the link between them.</span>
+      <input type="file" id="previous" accept=".json,application/json" aria-describedby="previous-hint">
+    </div>
+    <button type="submit">Verify</button>
+  </form>
+  <section id="result" aria-live="polite"></section>
+</main>
+<script type="module">
+/*__RECORD_JS__*/
+const read = async (id) => { const f = document.getElementById(id).files[0]; return f ? JSON.parse(await f.text()) : null; };
+const browserEdge = {
+  tsa: { ok: null, detail: "the token's signature is not checked in a browser; python -m record verify checks it with OpenSSL" },
+  commitment_tsa: { ok: null, time: null, detail: "the commitment token's signature is not checked in a browser; the command line checks it" },
+  bls: { ok: null, detail: "the round's BLS signature is not checked in a browser; the command line checks it" },
+};
+export function check(bundle, roots, previous) {
+  const input = { bundle, roots, previous: previous ? previous.record : null, edge: browserEdge };
+  return plain($verifyBundle(json(input)));
+}
+window.verifyRecord = check;
+document.getElementById("f").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const out = document.getElementById("result");
+  try {
+    const r = check(await read("bundle"), await read("roots"), await read("previous"));
+    const failed = r.checks.some((c) => c.ok === false);
+    out.innerHTML = "";
+    const v = document.createElement("p");
+    v.className = "verdict " + (failed ? "bad" : "ok");
+    v.textContent = failed ? "Not verified: " + r.first_failure : "Every check this browser can make holds";
+    const list = document.createElement("ol");
+    for (const c of r.checks) {
+      const li = document.createElement("li");
+      const b = document.createElement("b");
+      b.className = c.ok === true ? "ok" : c.ok === false ? "bad" : "open";
+      b.textContent = (c.ok === true ? "holds" : c.ok === false ? "fails" : "not checked here") + " · " + c.check;
+      li.append(b, document.createTextNode(" — " + c.detail));
+      list.append(li);
+    }
+    out.append(v, list);
+  } catch (err) {
+    out.textContent = "These files cannot be read as a bundle and a list of roots: " + err.message;
+  }
+});
+</script>
+</body>
+</html>
