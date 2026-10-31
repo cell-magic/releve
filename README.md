@@ -142,6 +142,19 @@ full surface it concerns, the proposed change, and the person's verdict
 next to the machine's. It is a dataset of how page structure meets its
 constraints, and of what it would take to reconcile them.
 
+**survive** (`python -m survive URL --contact URL`) is one JSON record:
+whether each image's C2PA, EXIF and IPTC markers survive the site's
+delivery. The markers are found in the delivered bytes (presence and size;
+no manifest is parsed, no signature checked). Where an edge transformer
+stands between (a header, or a wrapper such as `/_next/image`), the file
+behind it is asked for once, plainly (probe 2), and each class is then
+present, stripped at delivery, absent at origin, or, when the origin could
+not be seen, unobservable: never absent by default. The surface is taken
+once settled (500 ms idle, 1 s quiet, 15 s at most). Two runs of an
+unchanged surface give the same body and root; only `observed_at` differs.
+`survive/CONTRACT.md` is the record's contract, and BOUNDARY.md says what
+of the instrument is open.
+
 ## Use
 
 Requirements: Python ≥ 3.10 with Playwright, and GHC ≥ 9.2 with cabal.
@@ -269,6 +282,7 @@ python tests/run.py            # the kernel against recorded pages: no browser, 
 python tests/run.py --record [PAGE ...]   # re-record the test pages, or those named, after changing the observer
 python tests/conduct.py        # the observer against local sites that say no (on Linux, also openssl and certutil)
 python tests/service.py        # the service against local sites: a report out, nothing left behind
+python tests/survive.py        # survive against five local sites, the whole truth table, each run twice
 ```
 
 `tests/pages/` holds pages with known defects and edge cases, each

@@ -1,5 +1,27 @@
 # Changes
 
+## 0.10.1
+
+Whether an image's provenance markers survive the site's delivery.
+
+- **survive** (`survive/`, `python -m survive URL --contact URL`): one record per
+  page (`survive/CONTRACT.md`). Each image's C2PA, EXIF and IPTC markers are
+  read from the delivered bytes, by presence and size (JPEG APP11 JUMBF, APP1,
+  APP13 8BIM, XMP; PNG caBX, eXIf; ISO-BMFF's C2PA uuid box). Where an edge
+  transformer stands between, the file behind it is asked for once (probe 2:
+  the wrapper stripped, no-transform, one hop, 5 s, never a loopback or
+  private address), and each class is present, stripped at delivery, absent
+  at origin (only after a probe that succeeded untransformed), or
+  unobservable. The surface is taken once settled (idle 500, quiet 1000,
+  cap 15000 ms), and the scope says how. Assets in one order; the root is
+  SHA-256 of the body's canonical bytes, and two runs of one surface give the
+  same. Unsigned, and it says so. A fix-list helper ranks what to fix.
+- **BOUNDARY.md**: what of the instrument is open, here, and what is not.
+- **tests/survive.py**: five local sites, the whole truth table, each run
+  twice to its stored root; the contract's absolutes, each broken once; the
+  record path read for randomness, clocks and locales. No new dependency.
+- The kernel is unchanged; criteria stay at v10.
+
 ## 0.10.0
 
 Each report comes with the page as it was served, and a way to check it.

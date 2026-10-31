@@ -1,0 +1,13 @@
+{
+ "routes": {
+  "/stripped/": {
+   "file": "index.html"
+  },
+  "/_next/image?url=%2Fstripped%2Forigin.jpg&w=64&q=75": {
+   "file": "delivered.jpg"
+  },
+  "/stripped/origin.jpg": {
+   "file": "origin.jpg"
+  }
+ }
+}
