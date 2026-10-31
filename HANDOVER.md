@@ -38,8 +38,8 @@ Each question below stands alone.
 syntax-directed. The Haskell output is type-checked by GHC, the Lean output by
 Lean, and the JavaScript output not at all. That the three agree is checked
 only by running Haskell and JavaScript on the same inputs and comparing bytes
-(17 checks pass). Equal outputs on tested inputs say nothing about untested
-ones.
+(`tests/plie.py` passes). Equal outputs on tested inputs say nothing about
+untested ones.
 
 **My default without you:** take the Lean output as the reference, and keep
 testing the other two against it.

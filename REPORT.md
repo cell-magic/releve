@@ -16,9 +16,9 @@ The checks pass on the final tree (`evidence/radar-v2/suite/summary.txt`):
 | `tests/run.py` | 98 ok |
 | `tests/conduct.py` | 31 ok |
 | `tests/service.py` | 47 ok |
-| `tests/boundary.py` | 217 files, 0 problems |
-| `tests/plie.py` | 17 of 17 |
-| `tests/record.py` | 44 ok |
+| `tests/boundary.py` | 234 files, 0 problems |
+| `tests/plie.py` | 21 of 21 |
+| `tests/record.py` | 50 ok |
 | `reuse lint` | compliant |
 | `radar/tests/run.py` | 24 of 24 |
 | `radar/tests/test_disclosure_chain.py` | 8 of 8 |
@@ -97,7 +97,7 @@ The checks pass on the final tree (`evidence/radar-v2/suite/summary.txt`):
 - The candidates are committed to and the commitment is dated **before** the
   round.
 - The round taken is quicknet's first after that date, and its BLS signature
-  is checked (record/bls; py_ecc at first).
+  is checked (`record/bls`).
 - seed = SHA-256(randomness ‖ site ‖ cycle). The candidates are read in
   SHA-256(seed ‖ url) order, and the unchanged selector picks from what was
   read in that order.
@@ -106,8 +106,8 @@ The checks pass on the final tree (`evidence/radar-v2/suite/summary.txt`):
 - The verifier re-derives all of it. Without a round, the record says
   "selection not beacon-seeded".
 - `verifier.html` checks the round offline: right chain, randomness equal to
-  the hash of the signature, first round after the commitment. It says it
-  does not check BLS; the command line does.
+  the hash of the signature, first round after the commitment, and the BLS
+  signature, with the same Rust code as the command line.
 
 **A5, the owner's mandate.**
 - `mandate.granted` and `mandate.date` are kept per site

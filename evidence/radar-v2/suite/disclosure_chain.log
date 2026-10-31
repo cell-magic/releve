@@ -1,0 +1,9 @@
+ok    test_clause_rule_needs_every_group
+ok    test_cli_add_verify_export
+ok    test_html_text_leaves_script_out
+ok    test_record_carries_every_input
+ok    test_refusals
+ok    test_snapshot_kept_and_policy_amended_later
+ok    test_verdicts
+ok    test_verify_finds_tampering
+8 of 8 hold

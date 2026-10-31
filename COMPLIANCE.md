@@ -12,7 +12,7 @@ complete evaluation, which includes a person using assistive technology.
 
 | rule | where it bears | how it stands | evidence |
 |---|---|---|---|
-| EUPL-1.2, REUSE 3.3 | every file of relevé | every file states its licence; open and closed kept apart | `reuse lint`, `tests/boundary.py` (0 problems, 220 files) |
+| EUPL-1.2, REUSE 3.3 | every file of relevé | every file states its licence; open and closed kept apart | `reuse lint`, `tests/boundary.py` (0 problems, 234 files) |
 | Free dependencies only | runtime and tests | all MIT, BSD-3-Clause, Apache-2.0 or MPL-2.0 | *Licences* below |
 | Generative AI disclosed (NLnet's policy) | every commit | each commit made with a model names it; none at runtime | *How it is made*, README |
 | WCAG 2.2 AA, RGAA 4.1.2 (EAA) | the pages relevé and RADAR hand out | no failure found by relevé's rules or by axe-core | `evidence/radar-v2/own-pages/` |

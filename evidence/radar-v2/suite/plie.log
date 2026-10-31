@@ -12,7 +12,11 @@ ok    refuses a definition without a signature
 ok    refuses a prelude name redefined
 ok    refuses a name reserved by Lean
 ok    refuses a comparison chained
+ok    a sealed type: admits through the home module's functions
+ok    a sealed type: refuses making a sealed value elsewhere
+ok    a sealed type: refuses opening a sealed value elsewhere
+ok    GHC too refuses a Seed made outside Seed: the order is the round's
 ok    the hs fold of record/ is the one its sources give
 ok    the lean fold of record/ is the one its sources give
 ok    the js fold of record/ is the one its sources give
-17 of 17 hold
+21 of 21 hold

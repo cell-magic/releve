@@ -41,5 +41,11 @@ ok    tampered beacon round, rehashed (a later round chosen): fails at beacon-si
 ok    tampered candidates, rehashed (a page added after the round): fails at order
 ok    tampered commitment time, rehashed: fails at before-beacon
 ok    a record whose beacon could not be reached says so, and is not taken as seeded
+ok    the WebAssembly BLS check imports nothing, and gives the command line's verdicts
+ok    verifier.html checks the round's BLS signature itself, offline: it holds, and a moved round's does not
+ok    changes between two records of a page are the typed differences, +n and -n, and nothing else
+ok    no change between a record and itself
+ok    two different pages are not compared
+ok    the JavaScript fold gives the same changes, byte for byte
 ok    a relevé 0.10 record reads, saying what it did not record
-32 of 32 hold
+38 of 38 hold
