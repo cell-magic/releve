@@ -26,10 +26,11 @@ may read it too: it is the house rule, written down.
 python tests/run.py        # the kernel, against recorded pages
 python tests/conduct.py    # the observer, against local sites that say no
 python tests/service.py    # the service: a report out, nothing left behind
+python tests/survive.py    # survive: the five cases, twice, to their stored roots
 reuse lint
 ```
 
-All four pass. A change of judgement shows as a diff in `tests/expected/`
+All five pass. A change of judgement shows as a diff in `tests/expected/`
 and is accepted on purpose (`--accept`), never in passing.
 
 ## Each commit says how it was made

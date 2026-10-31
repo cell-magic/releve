@@ -1,0 +1,13 @@
+{
+ "routes": {
+  "/blocked/": {
+   "file": "index.html"
+  },
+  "/_next/image?url=%2Fblocked%2Forigin.jpg&w=64&q=75": {
+   "file": "delivered.jpg"
+  },
+  "/blocked/origin.jpg": {
+   "status": 403
+  }
+ }
+}

@@ -2,6 +2,6 @@ version = 1
 
 # Files that cannot carry a comment: documentation, recorded test data, images.
 [[annotations]]
-path = ["README.md", "CLAUDE.md", "CHANGELOG.md", "CONTRIBUTING.md", "SECURITY.md", "releve.cabal", ".gitattributes", ".gitignore", "examples/**", "tests/expected/**", "tests/observations/**", "tests/pages/*.png", "tests/pages/*.jpg"]
+path = ["README.md", "CLAUDE.md", "CHANGELOG.md", "CONTRIBUTING.md", "SECURITY.md", "releve.cabal", ".gitattributes", ".gitignore", "examples/**", "tests/expected/**", "tests/observations/**", "tests/pages/*.png", "tests/pages/*.jpg", "BOUNDARY.md", "survive/CONTRACT.md", "tests/survive/**/*.json", "tests/survive/**/*.jpg", "tests/survive/**/*.html", "tests/survive/*.css"]
 SPDX-FileCopyrightText = "2026 Anna Teterkina <anna@bureaudessurfaces.fr>"
 SPDX-License-Identifier = "EUPL-1.2"

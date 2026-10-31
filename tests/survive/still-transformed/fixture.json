@@ -1,0 +1,13 @@
+{
+ "routes": {
+  "/still-transformed/": {
+   "file": "index.html"
+  },
+  "/still-transformed/photo.jpg": {
+   "file": "photo.jpg",
+   "headers": {
+    "cf-polished": "origSize=900, status=webp_bigger"
+   }
+  }
+ }
+}
