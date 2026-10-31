@@ -69,6 +69,17 @@ jobs:
       - run: pip install -r observe/requirements.txt reuse && playwright install --with-deps chromium && sudo apt-get install -y -qq libnss3-tools
       - run: reuse lint
       - run: python tests/conduct.py
+  survive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r observe/requirements.txt && playwright install --with-deps chromium
+      # the five cases, twice, to their stored roots; the frozen order, the settle triple, no absence
+      # without a clean probe 2, and no randomness, clock or locale in the record path
+      - run: python tests/survive.py
   service:
     runs-on: ubuntu-latest
     steps:

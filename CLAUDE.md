@@ -31,10 +31,11 @@ python tests/service.py    # the service: a report out, nothing left behind
 python tests/boundary.py   # open code reaches nothing closed (BOUNDARY.md)
 python tests/plie.py       # plié: its folds agree, and those kept are those their sources give
 python tests/record.py     # the RADAR record, its verifier, and tampering caught
+python tests/survive.py    # survive: the five cases, twice, to their stored roots
 reuse lint
 ```
 
-All seven pass. A change of judgement shows as a diff in `tests/expected/`
+All eight pass. A change of judgement shows as a diff in `tests/expected/`
 and is accepted on purpose (`--accept`), never in passing.
 
 ## Each commit says how it was made

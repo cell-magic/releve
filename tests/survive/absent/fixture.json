@@ -1,0 +1,13 @@
+{
+ "routes": {
+  "/absent/": {
+   "file": "index.html"
+  },
+  "/_next/image?url=%2Fabsent%2Forigin.jpg&w=64&q=75": {
+   "file": "delivered.jpg"
+  },
+  "/absent/origin.jpg": {
+   "file": "origin.jpg"
+  }
+ }
+}

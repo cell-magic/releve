@@ -1,0 +1,10 @@
+{
+ "routes": {
+  "/clean/": {
+   "file": "index.html"
+  },
+  "/clean/photo.jpg": {
+   "file": "photo.jpg"
+  }
+ }
+}

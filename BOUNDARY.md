@@ -4,6 +4,18 @@ What of the Bureau des Surfaces' work is open, what is closed, and what is
 kept out of every Bureau repository. Decision D-026; this file is its text.
 `tests/boundary.py` holds the repository to it, in CI and before a commit.
 
+In short:
+
+- **open**: verification, the record format, hashing, the verifier, under
+  EUPL-1.2;
+- **closed**: scheduling, diffing, alerting, member management, series storage.
+
+The open half must remain independently verifiable without the closed half. A
+record, its root and the code that made them are enough to check it: anyone with
+relevé and a record can recompute and verify what the open half produces, without
+any service, account, key or schedule of the Bureau's. Nothing open depends on
+anything closed, and no closed part is needed to read, recompute or verify it.
+
 ## Open: EUPL-1.2, public, in this repository
 
 Anyone can read, run and check it. It is what a verdict and a record rest on.
@@ -19,6 +31,7 @@ Anyone can read, run and check it. It is what a verdict and a record rest on.
 - the WACZ bundle and receipt tooling (`receipt/`)
 - the offline verifier, on the command line and as `verifier.html`
   (`record/`, `receipt/`)
+- whether provenance markers survive delivery, and its record (`survive/`)
 - the public specification: README, this file, the schemas
 - the free report service, as software anyone can run on their own machine
   (`serve/`); see *Open questions*
@@ -28,6 +41,11 @@ Anyone can read, run and check it. It is what a verdict and a record rest on.
 - RADAR: sign-up, the member store, the mandate and consultation-voice flags,
   the monthly batch as an operation, root publication, the stamp generator,
   the status page, mirror aggregation
+- scheduling: when and how often a surface is observed
+- diffing: what changed between records, over time (radar's `changes`)
+- alerting: telling anyone that something changed
+- member management: who subscribes, and to what
+- series storage: keeping records over time
 - the services the Bureau operates, as operated: hosts, keys, configuration
 - deployment automation for the Bureau's own machines
 - client adapters and guard synthesis (`surface-core-lab`)
