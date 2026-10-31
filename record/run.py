@@ -2,10 +2,12 @@
 # SPDX-License-Identifier: EUPL-1.2
 """One site's run in one cycle, as the instrument makes it: the records of the pages picked.
 
-  1. The candidate pages are committed to (SHA-256 of their canonical list) and the
-     commitment dated by a time-stamping authority (RFC 3161), before anything is drawn.
-  2. The beacon round taken is the first one after that date (record/beacon.py); its
-     randomness gives the order the candidates are read in (record/Seed.plie).
+  1. The candidate pages, each written in its one way, are committed to (SHA-256 of their
+     canonical list) and the commitment dated by a time-stamping authority (RFC 3161),
+     before the cycle begins.
+  2. The beacon round taken is the cycle's: the first one after the cycle begins
+     (releve-draw/1, record/Seed.plie), whatever the moment of the commitment; its
+     randomness gives the order the candidates are read in.
   3. The candidates are observed in that order, by the observer and under its conduct;
      the owner's mandate, when granted, opens what robots.txt closes, on that site alone.
   4. The selector (receipt/, surface-core/select-1) picks pages from what was observed.
@@ -32,6 +34,10 @@ class Unsigned(Exception):
     """A beacon round whose signature does not hold: nothing is drawn from it."""
 
 
+class Late(Exception):
+    """A commitment dated once its cycle has begun: the cycle's round may be known, so nothing is drawn."""
+
+
 def release():
     out = subprocess.run([core.releve(), "--version"], capture_output=True, text=True).stdout.split()
     return out[1], out[-1].lstrip("v")  # "releve 0.11.0 · criteria v10"
@@ -43,16 +49,16 @@ def rules_of(raws):
     return [json.loads(l)["rules"] for l in out]
 
 
-def drawn(commitment_time, recorded=None):
-    """The beacon block of a record: the first round after the commitment, checked; or the statement that
+def drawn(cycle, recorded=None):
+    """The beacon block of a cycle's records: its round (releve-draw/1), checked; or the statement that
     there is none. `recorded`: rounds already published, by number, for a run that replays them."""
-    r = beacon.first_after(commitment_time)
+    r = core.call("drawOf", {"cycle": cycle})["round"]
     got = (recorded or {}).get(r) if recorded is not None else beacon.fetch(r)
     if got is None:
         return {"status": "unavailable", "statement": UNSEEDED, "tried": len(beacon.RELAYS)}
     if beacon.bls(r, got["signature"]) is False:
-        raise Unsigned(f"round {r} is not signed by quicknet's key")
-    return {"chain": beacon.CHAIN, "round": r, "randomness": got["randomness"], "signature": got["signature"]}
+        raise Unsigned(f"round {r} is not signed by the beacon's key")
+    return {"chain": beacon.trusted()[0], "round": r, "randomness": got["randomness"], "signature": got["signature"]}
 
 
 def site_of(url):
@@ -66,9 +72,14 @@ def run(site, cycle, candidates, budget, browser, *, contact, last=None, reset=F
     """The records of one site in one cycle, in the order picked, and the pages as served (url, html), in the order read.
     last: what is kept of the site's last record, {"hash", "baseline"}, or None; mandate: {"granted": bool, "date"} or None."""
     committed = core.call("commitmentOf", {"candidates": candidates})
+    if committed["refused"]:
+        raise ValueError("candidates not written in their one way (record/Seed.plie, canonicalUrl): " + ", ".join(committed["refused"][:5]))
     token = tsa.stamp(committed["commitment"], tsa_url)
     when = tsa.time_of(token)
-    block = drawn(when, recorded)
+    start = core.call("drawOf", {"cycle": cycle})["start"]
+    if not 0 <= when < start:
+        raise Late(f"the commitment is dated {when}, not before cycle {cycle} begins ({start}): its round may already be known")
+    block = drawn(cycle, recorded)
     seeded = "round" in block
     order = core.call("orderOf", {"randomness": block.get("randomness", ""), "site": site, "cycle": cycle,
                                   "candidates": committed["candidates"]})
@@ -114,7 +125,8 @@ def run(site, cycle, candidates, budget, browser, *, contact, last=None, reset=F
     results = rules_of(chosen)
     rel, criteria = release()
     lists = psl.load()
-    selection = {"protocol": "surface-core/select-1", "order_rule": "releve-order/1", "candidates": committed["candidates"],
+    selection = {"protocol": "surface-core/select-1", "order_rule": "releve-order/1", "draw_rule": "releve-draw/1",
+                 "candidates": committed["candidates"],
                  "commitment": {"hash": committed["commitment"], "time": when, "tsa": tsa_url, "token": token.hex()},
                  "budget": budget, "seed": order["seed"] if seeded else None, "order": reading,
                  "read": [r["url"] for r, _ in seen], "picks": picked,

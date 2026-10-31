@@ -216,9 +216,16 @@ agree on every test input:
 
 The "fixed before the beacon" fact of question 5 is now enforced:
 
-- the candidate list is committed to and time-stamped first;
-- the round must be the first one after that time;
+- the candidate list is committed to and time-stamped before the cycle begins;
+- the round is the cycle's, the first after its first second, so that the
+  moment is no one's choice and drawing again gives nothing;
 - the verifier checks both (check `before-beacon`).
+
+Each list of a record is also written one way (check `canonical`), and the
+changes between two records form a Z-set in one form. Three laws are tested
+and are the next theorems: `consolidate` is idempotent and ignores order;
+the readings do not depend on the order of the requests; changes add along
+a chain of records.
 
 What I would like proved first, in `record/gen/lean/`:
 

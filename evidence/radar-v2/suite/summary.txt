@@ -1,9 +1,9 @@
 run exit=0 98 ok 0 fail
 conduct exit=0 31 ok 0 fail
 service exit=0 47 ok 0 fail
-boundary exit=0 (234 files, 0 problems)
-plie exit=0 21 ok 0 fail
-record exit=0 50 ok 0 fail
+boundary exit=0 (235 files, 0 problems)
+plie exit=0 21 of 21 hold
+record exit=0 56 of 56 hold
 reuse exit=0 Congratulations! Your project is compliant with version 3.3 of the REUSE Specification :-)
 radar exit=0 24 of 24 hold
 disclosure_chain exit=0 8 of 8 hold

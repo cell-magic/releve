@@ -20,11 +20,14 @@ def edge(bundle):
         t = bytes.fromhex(c["token"])
         ok, why = tsa.check(t, c["hash"])
         out["commitment_tsa"] = {"ok": ok, "imprint": c["hash"] if ok else None, "time": tsa.time_of(t) if ok else None, "detail": why}
+    chain, key = beacon.trusted()
+    out["chain"] = chain
+    whose = "quicknet's key (the League of Entropy)" if key is None else "the key RELEVE_BEACON names, not quicknet's"
     b = r.get("beacon", {})
     if "round" in b:
         v = beacon.bls(b["round"], b["signature"])
         out["bls"] = {"ok": v, "detail": "releve-bls is not built (record/bls): the BLS signature is not checked" if v is None
-                      else "the round's signature does not hold under quicknet's key"}
+                      else f"the round is signed by {whose}" if v else f"the round's signature does not hold under {whose}"}
     return out
 
 

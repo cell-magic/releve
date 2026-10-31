@@ -40,7 +40,22 @@ def early (r : Json) : Int :=
 def measureChanges (before : Json) (after : Json) : List Json :=
   ((Plie.moved "bytes" (Plie.asInt (Plie.path ["observation", "bytes", "total"] before)) (Plie.asInt (Plie.path ["observation", "bytes", "total"] after))) ++ ((Plie.moved "requests" (Plie.Prelude.length (Plie.asList (Plie.path ["observation", "requests"] before))) (Plie.Prelude.length (Plie.asList (Plie.path ["observation", "requests"] after)))) ++ ((Plie.moved "before-interaction" (Plie.early before) (Plie.early after)) ++ (Plie.moved "obstacles" (Plie.asInt (Plie.field "obstacles" (Plie.readingValue "legibility" before))) (Plie.asInt (Plie.field "obstacles" (Plie.readingValue "legibility" after)))))))
 
+def kindOf (c : Json) : String :=
+  (Plie.asText (Plie.field "kind" c))
+
+def keyOf (c : Json) : String :=
+  (Plie.asText (Plie.field "key" c))
+
+def merged (acc : List Json) (c : Json) : List Json :=
+  (match acc with | [] => [c] | (top :: rest) => (if (((Plie.kindOf top) == (Plie.kindOf c)) && ((Plie.keyOf top) == (Plie.keyOf c))) then ((Plie.change (Plie.kindOf c) (Plie.keyOf c) ((Plie.asInt (Plie.field "delta" top)) + (Plie.asInt (Plie.field "delta" c)))) :: rest) else (c :: acc)))
+
+def consolidate (cs : List Json) : List Json :=
+  (let sorted := (Plie.Prelude.sortBy (fun x y => ((Plie.Prelude.lt (Plie.kindOf x) (Plie.kindOf y)) || (((Plie.kindOf x) == (Plie.kindOf y)) && (Plie.Prelude.lt (Plie.keyOf x) (Plie.keyOf y))))) cs); (Plie.Prelude.reverse (Plie.Prelude.filter (fun c => ((Plie.asInt (Plie.field "delta" c)) != (0 : Int))) (Plie.Prelude.foldl Plie.merged [] sorted))))
+
+def changesAdd (input : Json) : Json :=
+  (Plie.object [(Plie.entry "changes" (Json.JList (Plie.consolidate (Plie.Prelude.concat (Plie.Prelude.map Plie.asList (Plie.asList (Plie.field "changes" input)))))))])
+
 def changesOf (input : Json) : Json :=
-  (let b := (Plie.field "before" input); (let a := (Plie.field "after" input); (let same := (((Plie.asText (Plie.field "url" b)) == (Plie.asText (Plie.field "url" a))) && ((Plie.asText (Plie.field "site" b)) == (Plie.asText (Plie.field "site" a)))); (Plie.object [(Plie.entry "page" (Plie.field "url" a)), (Plie.entry "from" (Plie.field "cycle" b)), (Plie.entry "to" (Plie.field "cycle" a)), (Plie.entry "compared" (Json.JBool same)), (Plie.entry "changes" (Json.JList (if same then ((Plie.ruleChanges (Plie.asList (Plie.field "rules" b)) (Plie.asList (Plie.field "rules" a))) ++ ((Plie.domainChanges b a) ++ (Plie.measureChanges b a))) else [])))]))))
+  (let b := (Plie.field "before" input); (let a := (Plie.field "after" input); (let same := (((Plie.asText (Plie.field "url" b)) == (Plie.asText (Plie.field "url" a))) && ((Plie.asText (Plie.field "site" b)) == (Plie.asText (Plie.field "site" a)))); (Plie.object [(Plie.entry "page" (Plie.field "url" a)), (Plie.entry "from" (Plie.field "cycle" b)), (Plie.entry "to" (Plie.field "cycle" a)), (Plie.entry "compared" (Json.JBool same)), (Plie.entry "changes" (Json.JList (if same then (Plie.consolidate ((Plie.ruleChanges (Plie.asList (Plie.field "rules" b)) (Plie.asList (Plie.field "rules" a))) ++ ((Plie.domainChanges b a) ++ (Plie.measureChanges b a)))) else [])))]))))
 
 end Plie

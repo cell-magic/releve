@@ -22,12 +22,19 @@ Criteria stay at v10.
   authority a setting; the published roots, an append-only list (RFC 4998 renewal left room
   for, not done); a bundle per record. `python -m record verify` names each check.
 - **The selection**: the candidates are committed to and the commitment dated before the
-  beacon; the round taken is drand quicknet's first after that date, its BLS signature
-  checked; the order it gives is the one the selector reads. Without a round, the record
-  says "selection not beacon-seeded".
+  cycle begins; the round is the cycle's, drand quicknet's first after its first second
+  (`releve-draw/1`), its BLS signature checked; the order it gives is the one the selector
+  reads. The calendar fixes the moment, so drawing again gives nothing: a later commitment
+  takes the same round, and is dated too late. Without a round, the record says
+  "selection not beacon-seeded".
+- **One way to write each list**: a candidate is admitted only in its one written form
+  (lowercase host, no default port, no fragment, no dot segment, escapes in uppercase),
+  and once; the observation's requests are kept in one order, not the network's. The
+  verifier checks both (`canonical`), so a record's bytes carry nothing its meaning does not.
 - **What changed on a page** (`record/Changes.plie`, `python -m record changes`): two
   records of one page compared as signed differences, derived from what the member
-  holds, never kept.
+  holds, never kept. They are a Z-set in one form, and add: changes from a to b, then b
+  to c, are those from a to c.
 - **BLS in the browser** (`record/bls`): the drand round's signature checked by one Rust
   source, as `releve-bls` on the command line and as WebAssembly in `verifier.html`
   (no import, two exports, reproducible build, the compiled crates' notice carried

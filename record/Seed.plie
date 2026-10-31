@@ -4,8 +4,9 @@
 -- seed = SHA-256(randomness || site || cycle); each candidate is placed by SHA-256(seed || its
 -- address), ascending. The selector (receipt/, surface-core/select-1) starts from the first
 -- page of that order and breaks its ties by it, so neither the Bureau nor the site chooses
--- where the selection begins. The candidates are committed to, and the commitment dated,
--- before the round is drawn (record/run.py): `commitment` is what is dated.
+-- where the selection begins. The candidates, each in its one written form, are committed to,
+-- and the commitment dated, before the cycle begins whose round orders them (releve-draw/1,
+-- below; record/run.py): `commitment` is what is dated.
 --
 -- A Seed is sealed: only seedOf makes one, from a round's randomness, its site and cycle,
 -- and only orderBy uses one. No other code can make an order from bytes of its choosing:
@@ -46,12 +47,83 @@ orderOf input =
   object [ entry "seed" (JText (seedHex seed)), entry "order" (texts (orderBy seed urls))
          , entry "commitment" (JText (commitment urls)) ]
 
--- {"candidates": [url]} gives {"commitment": hex, "candidates": [url]}: what is dated before the round.
+-- {"candidates": [url]} gives {"commitment": hex, "candidates": [url], "refused": [url]}: what is dated
+-- before the round, and the addresses not written in their one way, which are never committed to.
 commitmentOf : Json -> Json
 commitmentOf input =
   let urls = map asText (asList (field "candidates" input)) in
-  object [ entry "commitment" (JText (commitment urls)), entry "candidates" (texts (dedupe (sortBy (\a b -> a < b) urls))) ]
+  object [ entry "commitment" (JText (commitment urls)), entry "candidates" (texts (dedupe (sortBy (\a b -> a < b) urls)))
+         , entry "refused" (texts (filter (\u -> not (canonicalUrl u)) urls)) ]
 
--- The first round drand publishes strictly after a time: the round a commitment dated then must take.
+-- The first round drand publishes strictly after a time.
 firstRoundAfter : Int -> Int
 firstRoundAfter t = div (t - 1692803367) 3 + 2
+
+-- ---- releve-draw/1: the round a cycle is drawn from, fixed by the cycle alone.
+-- A cycle's round is drand's first after the cycle begins (the first second of its month,
+-- UTC), and its candidates must be dated before then. No one chooses the moment, so no one
+-- can draw again: a later commitment would take the same round, and be dated too late.
+
+-- Days from 1970-01-01 to a day of the Gregorian calendar, by eras of 400 years.
+daysFrom : Int -> Int -> Int -> Int
+daysFrom y m d =
+  let y1 = if m <= 2 then y - 1 else y in
+  let era = div y1 400 in
+  let yoe = y1 - era * 400 in
+  let doy = div (153 * mod (m + 9) 12 + 2) 5 + d - 1 in
+  era * 146097 + yoe * 365 + div yoe 4 - div yoe 100 + doy - 719468
+
+-- The first second of a cycle written YYYY-MM, UTC; -1 for one not so written.
+cycleStart : Text -> Int
+cycleStart cycle =
+  let parts = split "-" cycle in
+  case readInt (fromMaybe "" (nth 0 parts)) of
+  | Nothing -> 0 - 1
+  | Just y -> case readInt (fromMaybe "" (nth 1 parts)) of
+    | Nothing -> 0 - 1
+    | Just m -> if length parts == 2 && m >= 1 && m <= 12 then daysFrom y m 1 * 86400 else 0 - 1
+
+-- {"cycle"} gives {"rule", "start", "round"}: the instant the candidates are dated before, and the round drawn after it.
+drawOf : Json -> Json
+drawOf input =
+  let start = cycleStart (asText (field "cycle" input)) in
+  object [ entry "rule" (JText "releve-draw/1"), entry "start" (JInt start), entry "round" (JInt (firstRoundAfter start)) ]
+
+-- ---- One way to write each candidate: the only page addresses a commitment admits.
+-- Scheme http or https; host in lowercase ASCII (an international name as punycode), with no
+-- user, no trailing dot and no default port; a path that begins with "/" and has no "." or
+-- ".." segment; no fragment; each percent escape in uppercase hex. What these leave open (an
+-- escape of a letter that needs none, a query's order) the server alone can say is the same page.
+canonicalUrl : Text -> Bool
+canonicalUrl url =
+  let scheme = if startsWith "https://" url then "https" else if startsWith "http://" url then "http" else "" in
+  let rest = joinText "://" (drop 1 (split "://" url)) in
+  let segments = split "/" rest in
+  let authority = fromMaybe "" (nth 0 segments) in
+  let pathPart = joinText "/" (drop 1 segments) in
+  let host = authorityHost authority in
+  scheme /= "" && length segments >= 2 && host /= "" && asciiLower authority == authority
+  && not (endsWith ":" authority) && length (split "?" authority) == 1
+  && bytesLength (utf8 authority) == textLength authority && not (endsWith "." host)
+  && length (split "@" authority) == 1 && length (split "#" url) == 1
+  && portFits scheme (authorityPort authority)
+  && all (\seg -> seg /= "." && seg /= "..") (split "/" (fromMaybe "" (nth 0 (split "?" pathPart))))
+  && all upperEscape (drop 1 (split "%" url))
+
+authorityHost : Text -> Text
+authorityHost authority = if startsWith "[" authority then fromMaybe "" (nth 0 (split "]" authority)) ++ "]"
+                   else fromMaybe "" (nth 0 (split ":" authority))
+
+authorityPort : Text -> Text
+authorityPort authority = joinText ":" (drop 1 (split ":" (if startsWith "[" authority then joinText "]" (drop 1 (split "]" authority)) else authority)))
+
+portFits : Text -> Text -> Bool
+portFits scheme port =
+  port == "" || (readInt port /= Nothing && not (startsWith "0" port)
+                 && not (scheme == "http" && port == "80") && not (scheme == "https" && port == "443"))
+
+upperEscape : Text -> Bool
+upperEscape after = any (\a -> any (\b -> startsWith (a ++ b) after) hexDigits) hexDigits
+
+hexDigits : List Text
+hexDigits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"]

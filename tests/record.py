@@ -3,12 +3,19 @@
 # SPDX-License-Identifier: EUPL-1.2
 """The RADAR record, checked without a browser: its schema, its canonical bytes (RFC 8785),
 its readings and their recomputation, its chain, the month's tree (RFC 6962), the published
-roots, the beacon and the order it gives, the commitment dated before the round, and the
-verifier, on a record made whole from a recorded page; then each piece tampered with, and
-the verifier failing at the check that names it. Needs releve (RELEVE), OpenSSL, faketime,
-and releve-bls (cargo build --release in record/bls) for the BLS check, Node for its WebAssembly, and Chromium for verifier.html. No network: the authority is the tests' own, its clock set
-before the recorded round of drand quicknet (tests/beacon/), the only round it may take."""
-import copy, hashlib, json, os, subprocess, sys, tempfile
+roots, the beacon and the order it gives, the commitment dated before the cycle whose round
+it is, the lists each in their one order, and the verifier, on a record made whole from a
+recorded page; then each piece tampered with, and the verifier failing at the check that
+names it; then the laws: what does not depend on order, and changes that add. Needs releve
+(RELEVE), OpenSSL, faketime, releve-bls and the tests' beacon (cargo build --release --bins
+--examples in record/bls), Node for the WebAssembly, and Chromium for verifier.html.
+
+No network. The authority is the tests' own, its clock set before the cycle begins. The
+beacon is the tests' own too, on quicknet's scheme and schedule under a key of their own
+(record/bls/examples/beacon.rs, named to relevé in RELEVE_BEACON): a cycle's round falls on
+the cycle's first seconds, and no recorded quicknet round does. The one recorded quicknet
+round (tests/beacon/) holds the BLS check to quicknet's own key, here and in the browser."""
+import calendar, contextlib, copy, hashlib, json, os, subprocess, sys, tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -17,11 +24,39 @@ from authority import authority  # noqa: E402
 from receipt import sampler  # noqa: E402
 from record import beacon, core, observation, psl, schema, tsa, verify  # noqa: E402
 from record.cli import recompute  # noqa: E402
-from record.run import ENERGY, MANDATED, drawn, rules_of  # noqa: E402
+from record.run import ENERGY, MANDATED, Late, drawn, rules_of, run  # noqa: E402
 
 checks = []
 ROUND = json.loads((ROOT / "tests" / "beacon" / "quicknet-12040883.json").read_text())
 H = lambda b: hashlib.sha256(b).digest()
+SIGNER = ROOT / "record" / "bls" / "target" / "release" / "examples" / "beacon"
+SECRET = "1729"  # the tests' beacon's key, of the tests' own
+
+
+def own(r):
+    """Round r of the tests' own beacon."""
+    sig = subprocess.run([SIGNER, SECRET, str(r)], capture_output=True, text=True, check=True).stdout.strip()
+    return {"round": r, "signature": sig, "randomness": hashlib.sha256(bytes.fromhex(sig)).hexdigest()}
+
+
+def own_beacon(dir):
+    """The tests' own beacon, named to relevé in RELEVE_BEACON: its chain (the hash of its key) and its key."""
+    key = subprocess.run([SIGNER, SECRET], capture_output=True, text=True, check=True).stdout.strip()
+    named = dir / "beacon.json"
+    named.write_text(json.dumps({"chain": hashlib.sha256(bytes.fromhex(key)).hexdigest(), "key": key}))
+    os.environ["RELEVE_BEACON"] = str(named)
+    return beacon.trusted()[0]
+
+
+@contextlib.contextmanager
+def quicknet():
+    """Quicknet trusted again, for its own recorded round."""
+    named = os.environ.pop("RELEVE_BEACON", None)
+    try:
+        yield
+    finally:
+        if named:
+            os.environ["RELEVE_BEACON"] = named
 
 
 def check(name, ok, detail=""):
@@ -53,8 +88,9 @@ def raw_page():
 
 def main():
     tmp = Path(tempfile.mkdtemp())
-    os.environ["RELEVE_CA"] = str(authority(tmp / "tsa", 8768, clock="@2024-10-14 17:13:30"))
+    os.environ["RELEVE_CA"] = str(authority(tmp / "tsa", 8768, clock="@2024-09-30 23:59:00"))
     url = "http://127.0.0.1:8768"
+    chain = own_beacon(tmp)
 
     # ---- canonical bytes
     rfc = {"€": "Euro Sign", "\r": "Carriage Return", "דּ": "Hebrew Letter Dalet With Dagesh", "1": "One",
@@ -77,6 +113,9 @@ def main():
                 acc = H(b"\1" + bytes.fromhex(s["left"]) + acc) if "left" in s else H(b"\1" + acc + bytes.fromhex(s["right"]))
             ok &= acc.hex() == out["root"]
     check("the month's root is RFC 6962's over the sorted leaves, and every path leads to it (0 to 31 leaves)", ok)
+    leaves = [H(bytes([7, i])).hex() for i in range(9)]
+    check("the month's root does not depend on the order its leaves come in",
+          core.call("merkleBatch", {"leaves": leaves})["root"] == core.call("merkleBatch", {"leaves": leaves[::-1]})["root"])
 
     # ---- a record made whole
     raw = raw_page()
@@ -84,12 +123,46 @@ def main():
     site = observation.origin(raw["url"])
     candidates = [raw["url"], site + "/b", site + "/a"]
     committed = core.call("commitmentOf", {"candidates": candidates})
+    check("the commitment does not depend on the order or the repetition of the candidates",
+          committed == core.call("commitmentOf", {"candidates": candidates[::-1] + candidates}) and not committed["refused"])
     token = tsa.stamp(committed["commitment"], url)
     when = tsa.time_of(token)
-    block = drawn(when, {ROUND["round"]: ROUND})
-    check("the round taken is the first after the commitment's date", block.get("round") == ROUND["round"] == beacon.first_after(when))
-    check("its BLS signature holds under quicknet's key", beacon.bls(block["round"], block["signature"]) is True)
-    check("a signature moved to another round does not", beacon.bls(block["round"] + 1, block["signature"]) is False)
+    draw = core.call("drawOf", {"cycle": "2024-10"})
+    block = drawn("2024-10", {draw["round"]: own(draw["round"])})
+    check("the cycle's round is the first after the cycle begins, and the commitment is dated before (releve-draw/1)",
+          draw["start"] == 1727740800 and block.get("round") == draw["round"] == beacon.first_after(draw["start"]) and when < draw["start"]
+          and block["chain"] == chain)
+    js_fold = lambda fn, value: subprocess.run(["node", str(ROOT / "plie" / "run.mjs"), str(ROOT / "record" / "gen" / "record.js"), fn],
+                                               input=json.dumps(value).encode("utf-8"), capture_output=True).stdout.decode("utf-8").strip()
+    cycles = [f"{y}-{m:02d}" for y, m in ((1970, 1), (1999, 12), (2000, 2), (2000, 3), (2024, 2), (2024, 3), (2100, 2), (2100, 3), (2400, 2))]
+    check("a cycle begins on its month's first second, UTC, in both folds (leap years and centuries among them)",
+          all(core.call("drawOf", {"cycle": c})["start"] == calendar.timegm((int(c[:4]), int(c[5:]), 1, 0, 0, 0)) for c in cycles)
+          and all(js_fold("drawOf", {"cycle": c}) == core.run("drawOf", {"cycle": c}) for c in cycles + ["2024-13", "2024"])
+          and core.call("drawOf", {"cycle": "2024-13"})["start"] == core.call("drawOf", {"cycle": "2024"})["start"] == -1)
+    spellings = ["https://x.fr/", "https://x.fr", "https://X.fr/", "https://x.fr/#top", "https://x.fr./", "https://x.fr:443/", "http://x.fr:80/",
+                 "https://x.fr:8443/", "https://u@x.fr/", "https://x.fr/a/../b", "https://x.fr/a%2fb", "https://x.fr/a%2Fb", "https://café.fr/",
+                 "https://xn--caf-dma.fr/", "ftp://x.fr/", "https://[::1]:8080/", "http://x.fr/a?q=1/2"]
+    kept = {"https://x.fr/", "https://x.fr:8443/", "https://x.fr/a%2Fb", "https://xn--caf-dma.fr/", "https://[::1]:8080/", "http://x.fr/a?q=1/2"}
+    check("a page address is admitted only in its one way, in both folds",
+          set(spellings) - set(core.call("commitmentOf", {"candidates": spellings})["refused"]) == kept
+          and js_fold("commitmentOf", {"candidates": spellings}) == core.run("commitmentOf", {"candidates": spellings}))
+    with quicknet():
+        check("quicknet's recorded round holds under quicknet's key", beacon.bls(ROUND["round"], ROUND["signature"]) is True)
+        check("a signature moved to another round does not", beacon.bls(ROUND["round"] + 1, ROUND["signature"]) is False)
+        check("nor does the tests' beacon's round, under quicknet's key", beacon.bls(block["round"], block["signature"]) is False)
+    check("the tests' own beacon signs on quicknet's scheme, under its own key", beacon.bls(block["round"], block["signature"]) is True)
+    try:
+        run(observation.origin(raw_page()["url"]), "2024-09", candidates, 1, None, contact="tests", tsa_url=url, recorded={})
+        late = False
+    except Late:
+        late = True
+    check("a run whose commitment is dated once its cycle has begun draws nothing", late)
+    try:
+        run("http://localhost:8765", "2024-10", ["http://LOCALHOST:8765/a", "http://localhost:8765/a#x"], 1, None, contact="tests", tsa_url=url, recorded={})
+        refused = False
+    except ValueError as e:
+        refused = "LOCALHOST" in str(e) and "#x" in str(e)
+    check("a candidate not written in its one way is refused before anything is committed", refused)
     order = core.call("orderOf", {"randomness": block["randomness"], "site": site, "cycle": "2024-10", "candidates": committed["candidates"]})
     again = core.call("orderOf", {"randomness": block["randomness"], "site": site, "cycle": "2024-10", "candidates": list(reversed(candidates))})
     other = core.call("orderOf", {"randomness": block["randomness"], "site": site, "cycle": "2024-11", "candidates": candidates})
@@ -99,18 +172,26 @@ def main():
     picked, receipt, _ = sampler.run(pages, 1)
     rules = rules_of([raw])[0]
     obs = observation.block(raw)
+    turned = copy.deepcopy(raw)
+    turned["network"]["resources"].reverse()
+    check("the observation's requests are in their one order, whatever order they arrived in",
+          observation.block(turned) == obs and [observation.order(q) for q in obs["requests"]] == sorted(observation.order(q) for q in obs["requests"]))
     check("an observation keeps scheme and host of each request, never its path or query",
           all(q["origin"] == site for q in obs["requests"]) and "SECRET" not in json.dumps(obs) and "session" not in json.dumps(obs))
     check("the rule results carry machine labels only", all(set(r) == {"criterion", "wcag", "fail", "review", "hint"} for r in rules))
     lists = psl.load()
     readings = core.call("readingsOf", {"observation": obs, "rules": rules, "site": site, "psl": lists, "energy": ENERGY})
+    shuffled = {**obs, "requests": obs["requests"][::-1]}
+    check("the readings do not depend on the order of the requests",
+          core.call("readingsOf", {"observation": shuffled, "rules": rules, "site": site, "psl": lists, "energy": ENERGY}) == readings)
     wcag = next(r for r in readings if r["name"] == "wcag")["value"]
     check("the WCAG reading labels criteria fail, review or hint, and gives no share",
           {w["label"] for w in wcag} <= {"fail", "review", "hint", None} and "%" not in json.dumps(wcag) and "coverage" not in json.dumps(wcag))
     record = {"schema": "releve-record/2", "site": site, "cycle": "2024-10", "url": raw["url"], "requested": raw["requested"], "at": raw["at"],
               "agent": raw["agent"], "browser": raw["browser"], "release": "0.11.0", "criteria": "10", "from": "CH",
               "observation": obs, "rules": rules, "readings": readings,
-              "selection": {"protocol": "surface-core/select-1", "order_rule": "releve-order/1", "candidates": committed["candidates"],
+              "selection": {"protocol": "surface-core/select-1", "order_rule": "releve-order/1", "draw_rule": "releve-draw/1",
+                            "candidates": committed["candidates"],
                             "commitment": {"hash": committed["commitment"], "time": when, "tsa": url, "token": token.hex()},
                             "budget": 1, "seed": order["seed"], "order": order["order"], "read": order["order"], "picks": picked,
                             "receipt": receipt["head"]},
@@ -145,8 +226,9 @@ def main():
     names = lambda cs: [c[0] for c in cs]
     cs, ok = verify.verify(b2, roots, previous=record)
     verify.show(cs)
-    check("the verifier passes a record whole, every check named", ok and names(cs) == ["schema", "record-hash", "prev-link", "inclusion-path", "root",
-          "published", "tsa-token", "beacon-round", "beacon-signature", "order", "committed", "before-beacon"])
+    check("the verifier passes a record whole, every check named", ok and names(cs) == ["schema", "record-hash", "canonical", "prev-link", "inclusion-path",
+          "root", "published", "tsa-token", "beacon-round", "beacon-signature", "order", "committed", "before-beacon"])
+    check("the verifier says the beacon it trusted is not quicknet", chain in dict((c[0], c[2]) for c in cs)["beacon-round"])
     cs, ok = verify.verify(b1, roots)
     check("the first record of a chain passes without a previous one", ok)
     cs, ok = verify.verify(b2, roots)
@@ -190,10 +272,23 @@ def main():
     fails_at("beacon randomness, rehashed", b, rs, want="beacon-round")
     b, rs = resealed(lambda r: r["beacon"].update(round=r["beacon"]["round"] + 1))
     fails_at("beacon round, rehashed (a later round chosen)", b, rs, want="beacon-signature")
-    b, rs = resealed(lambda r: r["selection"]["candidates"].append(site + "/late"))
+    b, rs = resealed(lambda r: r["selection"]["candidates"].append(raw["url"] + "/zz"))
     fails_at("candidates, rehashed (a page added after the round)", b, rs, want="order")
+    b, rs = resealed(lambda r: r["selection"]["candidates"].insert(0, site + "/a#top"))
+    fails_at("candidates, rehashed (a page twice, in two spellings)", b, rs, want="canonical")
+    b, rs = resealed(lambda r: r["observation"]["requests"].reverse())
+    fails_at("requests, rehashed (in the order they arrived)", b, rs, want="canonical")
     b, rs = resealed(lambda r: r["selection"]["commitment"].update(time=r["selection"]["commitment"]["time"] + 600))
-    fails_at("commitment time, rehashed", b, rs, want="before-beacon")
+    fails_at("commitment time, rehashed (dated once the cycle began)", b, rs, want="before-beacon")
+
+    def drawn_again(r):  # the Bureau draws again: a later round, signed, and its order followed throughout
+        later = own(r["beacon"]["round"] + 20)
+        r["beacon"].update(later)
+        o = core.call("orderOf", {"randomness": later["randomness"], "site": r["site"], "cycle": r["cycle"], "candidates": r["selection"]["candidates"]})
+        r["selection"].update(seed=o["seed"], order=o["order"], read=o["order"], picks=o["order"][:1])
+        r["url"] = o["order"][0]
+    b, rs = resealed(drawn_again)
+    fails_at("beacon, rehashed (a later round, signed, its order followed)", b, rs, want="before-beacon")
     unseeded = core.call("verifyBundle", {"bundle": {**b2, "record": {**b2["record"], "beacon": {"status": "unavailable"}}}, "previous": record,
                                           "roots": roots, "edge": verify.edge(b2)})
     check("a record whose beacon could not be reached says so, and is not taken as seeded",
@@ -207,8 +302,11 @@ def main():
               "console.log(JSON.stringify([WebAssembly.Module.imports(m).length, out]));")
     cases = [(ROUND["round"], ROUND["signature"]), (ROUND["round"] + 1, ROUND["signature"]), (ROUND["round"], ROUND["signature"][:-2] + "00")]
     imports, verdicts = json.loads(subprocess.run(["node", "-e", script, str(wasm), json.dumps(cases)], capture_output=True, text=True).stdout)
+    with quicknet():
+        native = [beacon.bls(r, h) for r, h in cases]
     check("the WebAssembly BLS check imports nothing, and gives the command line's verdicts",
-          imports == 0 and [v == 1 for v in verdicts] == [beacon.bls(r, h) for r, h in cases] == [True, False, False])
+          imports == 0 and [v == 1 for v in verdicts] == native == [True, False, False])
+    real, real_roots = resealed(lambda r: r["beacon"].update(chain=beacon.CHAIN, **ROUND))
     try:
         from playwright.sync_api import sync_playwright
         with sync_playwright() as pw:
@@ -217,10 +315,10 @@ def main():
             asked = []
             page.on("request", lambda q: asked.append(q.url))
             page.goto((ROOT / "record" / "verifier.html").as_uri())
-            moved = copy.deepcopy(b2)
+            moved = copy.deepcopy(real)
             moved["record"]["beacon"]["round"] += 1
-            seen = [next(c for c in page.evaluate("([b, r, p]) => window.verifyRecord(b, r, p)", [x, roots, {"record": record}])["checks"]
-                         if c["check"] == "beacon-signature")["ok"] for x in (b2, moved)]
+            seen = [next(c for c in page.evaluate("([b, r, p]) => window.verifyRecord(b, r, p)", [x, real_roots, {"record": record}])["checks"]
+                         if c["check"] == "beacon-signature")["ok"] for x in (real, moved)]
             browser.close()
         check("verifier.html checks the round's BLS signature itself, offline: it holds, and a moved round's does not",
               seen == [True, False] and not [u for u in asked if not u.startswith("file:")], f"{seen} {asked}")
@@ -244,12 +342,35 @@ def main():
     check("changes between two records of a page are the typed differences, +n and -n, and nothing else",
           out["compared"] and got == want, f"{got} != {want}")
     check("no change between a record and itself", core.call("changesOf", {"before": record, "after": record})["changes"] == [])
+    middle = copy.deepcopy(record)
+    middle["observation"]["bytes"]["total"] -= 40
+    middle["rules"] = [dict(r, fail=r["fail"] + (2 if r["criterion"] == "image-alt" else 0)) for r in middle["rules"]]
+    middle["readings"] = [dict(x, value={**x["value"], "domains": x["value"]["domains"]
+                                          + [{"domain": "tracker.example", "party": "third", "requests": 1, "bytes": 1, "pre_interaction": 1},
+                                             {"domain": "gone.example", "party": "third", "requests": 1, "bytes": 1, "pre_interaction": 0}]})
+                          if x["name"] == "dependencies" else x for x in middle["readings"]]
+    ch = lambda a, b: core.call("changesOf", {"before": a, "after": b})["changes"]
+    first, then, whole = ch(record, middle), ch(middle, later), ch(record, later)
+    check("changes are in their one form: ascending by kind and key, each once, none zero",
+          all(c["delta"] != 0 for c in whole + first + then)
+          and all((x["kind"], x["key"]) < (y["kind"], y["key"]) for cs in (whole, first, then) for x, y in zip(cs, cs[1:])))
+    check("changes add: from the first record to the second, then to the third, are from the first to the third",
+          core.call("changesAdd", {"changes": [first, then]})["changes"] == whole and first != whole)
+    check("their one form is kept by adding again, and does not depend on order",
+          core.call("changesAdd", {"changes": [whole]})["changes"] == whole
+          == core.call("changesAdd", {"changes": [(then + first)[::-1]]})["changes"])
+    check("changes the other way are the same changes, negated",
+          ch(later, record) == [dict(c, delta=-c["delta"]) for c in whole])
     other = {**later, "url": record["url"] + "-other"}
     check("two different pages are not compared", core.call("changesOf", {"before": record, "after": other})["compared"] is False)
     text = json.dumps({"before": record, "after": later}, ensure_ascii=False).encode("utf-8")
     js = subprocess.run(["node", str(ROOT / "plie" / "run.mjs"), str(ROOT / "record" / "gen" / "record.js"), "changesOf"],
                         input=text, capture_output=True).stdout.decode("utf-8").strip()
-    check("the JavaScript fold gives the same changes, byte for byte", js == core.run("changesOf", {"before": record, "after": later}))
+    added = json.dumps({"changes": [first, then]}).encode("utf-8")
+    js_added = subprocess.run(["node", str(ROOT / "plie" / "run.mjs"), str(ROOT / "record" / "gen" / "record.js"), "changesAdd"],
+                              input=added, capture_output=True).stdout.decode("utf-8").strip()
+    check("the JavaScript fold gives the same changes, and the same sum, byte for byte",
+          js == core.run("changesOf", {"before": record, "after": later}) and js_added == core.run("changesAdd", {"changes": [first, then]}))
 
     # ---- records of relevé 0.10
     with tempfile.TemporaryDirectory() as d:

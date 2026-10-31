@@ -2,18 +2,24 @@
 # SPDX-License-Identifier: EUPL-1.2
 """The public beacon a selection is drawn from: drand's quicknet (League of Entropy), a
 round every 3 seconds, each a BLS signature on BLS12-381 (bls-unchained-g1-rfc9380) whose
-SHA-256 is the round's randomness. The round taken is the first one published after the
-candidates were dated, so no one could know it when they were chosen.
+SHA-256 is the round's randomness. A cycle's round is the first one published after the
+cycle begins, and the candidates are dated before then (releve-draw/1, record/Seed.plie):
+no one could know it when they were chosen, and no one chose when it would be.
 
 The beacon is asked within a bounded window, over several of drand's relays. If no round
 comes, the record says "selection not beacon-seeded" (run.py), and nothing stands in for
 it. The BLS check is record/bls, one Rust source run here as releve-bls and in the browser
 as WebAssembly; where releve-bls is not built, the round is said not checked, never taken
-as checked."""
+as checked.
+
+RELEVE_BEACON may name a file {"chain", "key"} of another chain on quicknet's schedule: the
+tests' own beacon, as RELEVE_CA names the tests' own authority. The verifier then says that
+the chain it trusted is not quicknet."""
 import json, os, shutil, subprocess, time, urllib.request
 from pathlib import Path
 
 CHAIN = "52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971"
+KEY = None  # quicknet's own, which releve-bls holds
 GENESIS, PERIOD = 1692803367, 3
 RELAYS = ["https://api.drand.sh", "https://api2.drand.sh", "https://api3.drand.sh", "https://drand.cloudflare.com"]
 WINDOW = 60  # seconds within which a round must come
@@ -26,6 +32,15 @@ def round_time(r):
 def first_after(t):
     """The first round published strictly after time t (seconds since 1970)."""
     return (t - GENESIS) // PERIOD + 2
+
+
+def trusted():
+    """The chain trusted and its key: quicknet's (key None: releve-bls holds it), or the one RELEVE_BEACON names."""
+    named = os.environ.get("RELEVE_BEACON")
+    if not named:
+        return CHAIN, KEY
+    given = json.loads(Path(named).read_text(encoding="utf-8"))
+    return given["chain"], given["key"]
 
 
 def fetch(r, relays=RELAYS, window=WINDOW):
@@ -55,9 +70,10 @@ def checker():
 
 
 def bls(r, signature_hex):
-    """Whether the signature is quicknet's over round r: True, False, or None when it cannot be checked here."""
+    """Whether the signature is the trusted chain's over round r: True, False, or None when it cannot be checked here."""
     exe = checker()
     if exe is None:
         return None
-    out = subprocess.run([exe, str(int(r)), signature_hex], capture_output=True, text=True, timeout=60)
+    key = trusted()[1]
+    out = subprocess.run([exe, str(int(r)), signature_hex] + ([key] if key else []), capture_output=True, text=True, timeout=60)
     return out.returncode == 0 and out.stdout.strip() == "valid"

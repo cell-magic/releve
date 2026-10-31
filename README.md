@@ -395,15 +395,20 @@ what it reads as: each reading is a function of the observation and of the rules
 and `python -m record recompute` rebuilds it byte for byte. Records chain per site, each
 month's records are gathered under one Merkle root (RFC 6962) dated by a time-stamping
 authority (RFC 3161) and published in an append-only list, and the pages observed are drawn
-in an order given by a public beacon (drand) whose round is fixed after the candidates
-were dated. `python -m record verify BUNDLE --roots roots.json` checks all of it, each check
-named; `record/verifier.html` does the same in a browser, offline, including the beacon
+in an order given by a public beacon (drand). The round is the cycle's, drand's first after
+the cycle begins, and the candidates are dated before then (releve-draw/1): the moment is
+fixed by the calendar, so no one can draw again for an order they prefer. Each list in a
+record is written one way: a candidate address in its one form and once, the requests in
+one order; the order they arrived in is the network's, and would otherwise be a freedom
+of the record's bytes that nothing reads. `python -m record verify BUNDLE --roots roots.json`
+checks all of it, each check named; `record/verifier.html` does the same in a browser, offline, including the beacon
 round's BLS signature (record/bls, compiled to WebAssembly), and says that the time-stamp
 tokens' signatures are the command line's. The command line checks BLS with the same
 code, built once: `cargo build --release` in `record/bls`. `python -m record changes BEFORE AFTER` gives what changed on a
 page between two of its records, as signed differences (a rule's marks, third parties
 come or gone, bytes, requests before any interaction, legibility's obstacles): derived
-from the records the member holds, never stored. What judges and checks is written once, in plié (`plie/`,
+from the records the member holds, never stored. Changes are a Z-set in one form, so they
+add: from January to February, then to March, they are those from January to March. What judges and checks is written once, in plié (`plie/`,
 `record/*.plie`), and runs the same in Haskell and in JavaScript. BOUNDARY.md says what of
 RADAR is open, here, and what the Bureau keeps closed.
 

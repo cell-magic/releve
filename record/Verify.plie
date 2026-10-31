@@ -1,9 +1,10 @@
 -- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
 -- SPDX-License-Identifier: EUPL-1.2
 -- The verifier: a delivered bundle checked, each check named, in this order: the record's
--- hash, its link to the record before it, the inclusion path, the root, the root among the
--- published ones, the time-stamp token over the root; then the selection: the beacon round,
--- the order it gives, and that the candidates were dated before the round was drawn.
+-- hash, its lists each written in their one way, its link to the record before it, the
+-- inclusion path, the root, the root among the published ones, the time-stamp token over the
+-- root; then the selection: the beacon round, the order it gives, and that the candidates
+-- were dated before the cycle began, whose round it is (releve-draw/1).
 -- What only the world can check (a signature under OpenSSL, BLS on the curve) is done at the
 -- edge and handed in as `edge`; what is handed in is said, and so is what was not checked.
 module Verify where
@@ -35,12 +36,40 @@ hex32 t = case unhex t of
   | Just b -> bytesLength b == 32
   | Nothing -> False
 
--- drand quicknet (League of Entropy): the chain this record's beacon must come from.
+-- drand quicknet (League of Entropy): the chain a record's beacon must come from, unless the
+-- edge names another (the tests' own beacon, as RELEVE_BEACON gives it), which is then said.
 quicknet : Text
 quicknet = "52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971"
 
-roundTime : Int -> Int
-roundTime r = 1692803367 + (r - 1) * 3
+beaconName : Text -> Text
+beaconName chain = if chain == quicknet then "drand quicknet" else "the chain " ++ chain ++ " (named at the edge, not quicknet)"
+
+-- A record's lists, each in its one order: candidates written in their one way, once, ascending;
+-- the requests ascending by origin, type, status, before any interaction, bytes.
+canonicalRecord : Json -> Bool
+canonicalRecord r =
+  let cs = map asText (asList (field "candidates" (field "selection" r))) in
+  let qs = asList (path ["observation", "requests"] r) in
+  all canonicalUrl cs && all (\p -> fst p < snd p) (zip cs (drop 1 cs))
+  && all (\p -> not (requestBefore (snd p) (fst p))) (zip qs (drop 1 qs))
+
+flag : Bool -> Int
+flag b = if b then 1 else 0
+
+requestBefore : Json -> Json -> Bool
+requestBefore q p =
+  let a = asText (field "origin" q) in
+  let b = asText (field "origin" p) in
+  if a /= b then a < b else
+  let s = asText (field "type" q) in
+  let t = asText (field "type" p) in
+  if s /= t then s < t else
+  let u = asInt (field "status" q) in
+  let v = asInt (field "status" p) in
+  if u /= v then u < v else
+  let x = flag (asBool (field "pre_interaction" q)) in
+  let y = flag (asBool (field "pre_interaction" p)) in
+  if x /= y then x < y else asInt (field "bytes" q) < asInt (field "bytes" p)
 
 verifyBundle : Json -> Json
 verifyBundle input =
@@ -56,6 +85,9 @@ verifyBundle input =
   let checks =
         [ pass "record-hash" (recordHash r == h && hex32 h) "the record's canonical bytes hash to the hash it is delivered with"
                "the record does not hash to the hash it is delivered with: it is not the record that was chained"
+        , pass "canonical" (canonicalRecord r)
+               "each candidate is written in its one way, once and in order, and the requests are in their one order"
+               "a candidate is not written in its one way, or not once and in order, or the requests are not in their one order"
         , if isNull previous && not (isNull (field "prev" r)) then unchecked "prev-link" "the record names a previous record; give it to check the link"
           else pass "prev-link" (linked previous r) "the record follows from the one before it" "the record does not follow from the one before it"
         , pass "inclusion-path" (all (\s -> s /= Nothing) steps && hex (rootFrom (fromMaybe (utf8 "") (unhex h)) (justs steps)) == rootHex)
@@ -91,8 +123,8 @@ edgeCheck name e expected good =
   else pass name (asBool (field "ok" e) && asText (field "imprint" e) == expected) good
             (if asBool (field "ok" e) then "the token covers something else than " ++ expected else asText (field "detail" e))
 
--- The selection: drawn from the beacon round the record names, in the order the round gives,
--- over candidates dated before the round.
+-- The selection: drawn from the beacon round the record names, the cycle's, in the order the
+-- round gives, over candidates dated before the cycle began.
 selection : Json -> Json -> List Check
 selection r edge =
   let sel = field "selection" r in
@@ -109,9 +141,11 @@ selection r edge =
     let picks = map asText (asList (field "picks" sel)) in
     let read = map asText (asList (field "read" sel)) in
     let committed = field "commitment" sel in
-    [ pass "beacon-round" (asText (field "chain" beacon) == quicknet && hex (sha256 sig) == rnd && round > 0)
-           "the round is of drand quicknet, and its randomness is the hash of its signature"
-           "the round is not of drand quicknet, or its randomness is not the hash of its signature"
+    let chain = if isNull (field "chain" edge) then quicknet else asText (field "chain" edge) in
+    let start = cycleStart (asText (field "cycle" r)) in
+    [ pass "beacon-round" (asText (field "chain" beacon) == chain && hex (sha256 sig) == rnd && round > 0)
+           ("the round is of " ++ beaconName chain ++ ", and its randomness is the hash of its signature")
+           ("the round is not of " ++ beaconName chain ++ ", or its randomness is not the hash of its signature")
     , edgeBls (field "bls" edge)
     , pass "order" (field "order" given == field "order" sel && field "seed" given == field "seed" sel
                     && inOrder read order && length picks > 0 && nth 0 picks == nth 0 read && all (\p -> elem p read) picks
@@ -121,12 +155,11 @@ selection r edge =
     , edgeCheck "committed" (field "commitment_tsa" edge) (asText (field "hash" committed))
            "the candidates were committed to, and the commitment dated by the authority"
     , pass "before-beacon" (asText (field "commitment" given) == asText (field "hash" committed)
-                            && asInt (field "time" committed) < roundTime round
-                            && round == firstRoundAfter (asInt (field "time" committed))
+                            && start >= 0 && asInt (field "time" committed) < start && round == firstRoundAfter start
                             && (isNull (field "commitment_tsa" edge) || isNull (field "time" (field "commitment_tsa" edge))
                                 || asInt (field "time" (field "commitment_tsa" edge)) == asInt (field "time" committed)))
-           "the candidates were dated before the round, and the round is the first one after: the round chose, not the Bureau"
-           "the candidates were not dated before the round, the round is not the first one after, or the candidates are not those committed to" ]
+           "the candidates were dated before the cycle began, and the round is the first after it: the cycle fixed the round, not the Bureau"
+           "the candidates were not dated before the cycle began, the round is not the cycle's, or the candidates are not those committed to" ]
 
 -- Whether xs is a subsequence of ys: read in the order given, some left out.
 inOrder : List Text -> List Text -> Bool
@@ -138,4 +171,4 @@ inOrder xs ys = case xs of
 
 edgeBls : Json -> Check
 edgeBls e = if isNull e || isNull (field "ok" e) then unchecked "beacon-signature" (if isNull e then "the round's BLS signature is not checked here; the command line checks it" else asText (field "detail" e))
-  else pass "beacon-signature" (asBool (field "ok" e)) "the round is signed by the League of Entropy's quicknet key" (asText (field "detail" e))
+  else pass "beacon-signature" (asBool (field "ok" e)) (asText (field "detail" e)) (asText (field "detail" e))

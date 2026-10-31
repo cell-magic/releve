@@ -19,11 +19,15 @@ dependencies impose:
   The verifier, readings, chain, tree and roots list therefore have one
   source, not a Python copy and a JavaScript copy. Python is the edge:
   files, network, OpenSSL, BLS.
-- **The candidates are dated before the beacon.** The run commits to the
-  candidate list and time-stamps the commitment (RFC 3161). It then takes
-  drand's first round after that time. The verifier checks the round really
-  is the first one after, so nobody could choose pages, or a round, once the
-  randomness was known.
+- **The candidates are dated before the cycle's round.** The run commits to
+  the candidate list and time-stamps the commitment (RFC 3161), before the
+  cycle begins. The round is the cycle's: drand's first after the cycle's
+  first second (`releve-draw/1`). The verifier checks both, so nobody could
+  choose pages once the randomness was known, nor draw again. (The first
+  plan took the first round after the commitment; its moment was the
+  Bureau's to choose, and so was the round.)
+- **One way to write each list.** Candidates in one written form, once;
+  requests in one order. The verifier checks it (`canonical`).
 - **The chain is built from what is kept.** The next record's `prev` and
   `baseline` come from the last record's hash and baseline, which is all the
   Bureau keeps. No record is needed.

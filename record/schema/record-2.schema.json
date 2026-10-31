@@ -232,6 +232,7 @@
    "required": [
     "protocol",
     "order_rule",
+    "draw_rule",
     "candidates",
     "commitment",
     "budget",
@@ -247,6 +248,9 @@
     },
     "order_rule": {
      "const": "releve-order/1"
+    },
+    "draw_rule": {
+     "const": "releve-draw/1"
     },
     "candidates": {
      "type": "array",

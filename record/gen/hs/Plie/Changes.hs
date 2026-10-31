@@ -3,7 +3,7 @@
 -- Written by plie/plie.py from Changes.plie. Do not edit: edit the source.
 {-# LANGUAGE NoImplicitPrelude, OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-unused-matches -Wno-name-shadowing -Wno-unused-imports -Wno-incomplete-patterns -Wno-overlapping-patterns #-}
-module Plie.Changes (marks, criteriaOf, union, change, ruleChanges, readingValue, thirdParties, domainChanges, moved, measureChanges, early, changesOf) where
+module Plie.Changes (marks, criteriaOf, union, change, ruleChanges, readingValue, thirdParties, domainChanges, moved, measureChanges, early, consolidate, kindOf, keyOf, merged, changesAdd, changesOf) where
 
 import Plie.Prelude
 import Prelude (Show)
@@ -43,6 +43,21 @@ measureChanges before after = ((moved (T.pack "bytes") (asInt (path [(T.pack "ob
 early :: Json -> Integer
 early r = (length (filter (\q -> (asBool (field (T.pack "pre_interaction") q))) (asList (path [(T.pack "observation"), (T.pack "requests")] r))))
 
+consolidate :: [Json] -> [Json]
+consolidate cs = (let sorted = (sortBy (\x y -> (((kindOf x) < (kindOf y)) || (((kindOf x) == (kindOf y)) && ((keyOf x) < (keyOf y))))) cs) in (reverse (filter (\c -> ((asInt (field (T.pack "delta") c)) /= (0 :: Integer))) (foldl merged [] sorted))))
+
+kindOf :: Json -> Text
+kindOf c = (asText (field (T.pack "kind") c))
+
+keyOf :: Json -> Text
+keyOf c = (asText (field (T.pack "key") c))
+
+merged :: [Json] -> Json -> [Json]
+merged acc c = (case acc of { [] -> [c]; (top : rest) -> (if (((kindOf top) == (kindOf c)) && ((keyOf top) == (keyOf c))) then ((change (kindOf c) (keyOf c) ((asInt (field (T.pack "delta") top)) + (asInt (field (T.pack "delta") c)))) : rest) else (c : acc)) })
+
+changesAdd :: Json -> Json
+changesAdd input = (object [(entry (T.pack "changes") (JList (consolidate (concat (map asList (asList (field (T.pack "changes") input)))))))])
+
 changesOf :: Json -> Json
-changesOf input = (let b = (field (T.pack "before") input) in (let a = (field (T.pack "after") input) in (let same = (((asText (field (T.pack "url") b)) == (asText (field (T.pack "url") a))) && ((asText (field (T.pack "site") b)) == (asText (field (T.pack "site") a)))) in (object [(entry (T.pack "page") (field (T.pack "url") a)), (entry (T.pack "from") (field (T.pack "cycle") b)), (entry (T.pack "to") (field (T.pack "cycle") a)), (entry (T.pack "compared") (JBool same)), (entry (T.pack "changes") (JList (if same then ((ruleChanges (asList (field (T.pack "rules") b)) (asList (field (T.pack "rules") a))) <> ((domainChanges b a) <> (measureChanges b a))) else [])))]))))
+changesOf input = (let b = (field (T.pack "before") input) in (let a = (field (T.pack "after") input) in (let same = (((asText (field (T.pack "url") b)) == (asText (field (T.pack "url") a))) && ((asText (field (T.pack "site") b)) == (asText (field (T.pack "site") a)))) in (object [(entry (T.pack "page") (field (T.pack "url") a)), (entry (T.pack "from") (field (T.pack "cycle") b)), (entry (T.pack "to") (field (T.pack "cycle") a)), (entry (T.pack "compared") (JBool same)), (entry (T.pack "changes") (JList (if same then (consolidate ((ruleChanges (asList (field (T.pack "rules") b)) (asList (field (T.pack "rules") a))) <> ((domainChanges b a) <> (measureChanges b a)))) else [])))]))))
 

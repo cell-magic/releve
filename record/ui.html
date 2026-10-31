@@ -69,7 +69,8 @@ async function browserEdge(record) {
   return {
     tsa: { ok: null, detail: "the token's signature is not checked in a browser; python -m record verify checks it with OpenSSL" },
     commitment_tsa: { ok: null, time: null, detail: "the commitment token's signature is not checked in a browser; the command line checks it" },
-    bls: verdict === null ? null : { ok: verdict === 1, detail: verdict === 0 ? "the round's signature does not hold under quicknet's key"
+    bls: verdict === null ? null : { ok: verdict === 1, detail: verdict === 1 ? "the round is signed by quicknet's key (the League of Entropy)"
+                                                                 : verdict === 0 ? "the round's signature does not hold under quicknet's key"
                                                                  : "the round's signature is not a point of the curve" },
   };
 }

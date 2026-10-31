@@ -4,6 +4,10 @@
 -- each a key and a signed count, +n where there is more, -n where there is less. The
 -- Bureau keeps no record, so a change is never stored: it is derived, whenever wanted,
 -- from two records the member holds. Records of two different pages are not compared.
+--
+-- Changes are a Z-set in its one form: ascending by kind, then key; each key once; no zero.
+-- So they add: changes a b, added to changes b c, are changes a c; changes b a are changes
+-- a b negated; changes a a are none (tests/record.py holds the three).
 module Changes where
 
 import Json
@@ -59,6 +63,30 @@ measureChanges before after =
 early : Json -> Int
 early r = length (filter (\q -> asBool (field "pre_interaction" q)) (asList (path ["observation", "requests"] r)))
 
+-- The one form of a list of changes: ascending by kind and key, each key once with its
+-- deltas summed, and none whose sum is zero.
+consolidate : List Json -> List Json
+consolidate cs =
+  let sorted = sortBy (\x y -> kindOf x < kindOf y || (kindOf x == kindOf y && keyOf x < keyOf y)) cs in
+  reverse (filter (\c -> asInt (field "delta" c) /= 0) (foldl merged [] sorted))
+
+kindOf : Json -> Text
+kindOf c = asText (field "kind" c)
+
+keyOf : Json -> Text
+keyOf c = asText (field "key" c)
+
+merged : List Json -> Json -> List Json
+merged acc c = case acc of
+  | [] -> [c]
+  | top :: rest -> if kindOf top == kindOf c && keyOf top == keyOf c
+                   then change (kindOf c) (keyOf c) (asInt (field "delta" top) + asInt (field "delta" c)) :: rest
+                   else c :: acc
+
+-- {"changes": [[change]]} gives {"changes": [change]}: their sum, in the one form.
+changesAdd : Json -> Json
+changesAdd input = object [ entry "changes" (JList (consolidate (concat (map asList (asList (field "changes" input)))))) ]
+
 -- {"before": record, "after": record} gives {"page", "from", "to", "compared", "changes": [{kind, key, delta}]}.
 changesOf : Json -> Json
 changesOf input =
@@ -67,5 +95,5 @@ changesOf input =
   let same = asText (field "url" b) == asText (field "url" a) && asText (field "site" b) == asText (field "site" a) in
   object [ entry "page" (field "url" a), entry "from" (field "cycle" b), entry "to" (field "cycle" a)
          , entry "compared" (JBool same)
-         , entry "changes" (JList (if same then ruleChanges (asList (field "rules" b)) (asList (field "rules" a))
-                                                ++ domainChanges b a ++ measureChanges b a else [])) ]
+         , entry "changes" (JList (if same then consolidate (ruleChanges (asList (field "rules" b)) (asList (field "rules" a))
+                                                             ++ domainChanges b a ++ measureChanges b a) else [])) ]

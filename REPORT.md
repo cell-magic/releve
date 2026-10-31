@@ -16,9 +16,9 @@ The checks pass on the final tree (`evidence/radar-v2/suite/summary.txt`):
 | `tests/run.py` | 98 ok |
 | `tests/conduct.py` | 31 ok |
 | `tests/service.py` | 47 ok |
-| `tests/boundary.py` | 234 files, 0 problems |
+| `tests/boundary.py` | 235 files, 0 problems |
 | `tests/plie.py` | 21 of 21 |
-| `tests/record.py` | 50 ok |
+| `tests/record.py` | 56 of 56 |
 | `reuse lint` | compliant |
 | `radar/tests/run.py` | 24 of 24 |
 | `radar/tests/test_disclosure_chain.py` | 8 of 8 |
@@ -29,7 +29,7 @@ The checks pass on the final tree (`evidence/radar-v2/suite/summary.txt`):
 |---|---|---|
 | The network policy denies drand, DigiCert's TSA, publicsuffix.org and public sites. | The end-to-end run uses three local sites (`127.0.0.1`, `.2`, `.3`, port 80). | A live run on 3 public sites, below. |
 | No live drand round can be fetched. | One real quicknet round (12040883, 2024-10-14 17:13:33 UTC), taken from drand's own test code (`tests/beacon/`). Its BLS signature verifies. | The live fetch path (`record/beacon.py`) is written but has not been exercised. |
-| No real TSA is reachable. | The tests' own RFC 3161 authority, with its clock set by `faketime` to 17:13:30 that day, so that 12040883 is the first round after the commitment, as the rule demands. | The DigiCert path has not been exercised. |
+| No real TSA is reachable. | The tests' own RFC 3161 authority, with its clock set by `faketime` to 17:13:30 that day, so that 12040883 is the first round after the commitment, as the first draw rule demanded. Since the draw rule of the cycle (below), `tests/record.py` also uses a beacon of its own. | The DigiCert path has not been exercised. |
 | The sandbox ships Chromium for Playwright 1.63.0; the repo pins 1.64.0. | Local runs used 1.63.0. | `requirements.txt` keeps its pin. CI uses 1.64.0. |
 | Installing Lean was refused here. | The Lean output (`record/gen/lean/`) is written. | It has never been compiled. |
 | Surface Core and the site repository are not reachable. | — | See *Deferred*. |
@@ -95,9 +95,11 @@ The checks pass on the final tree (`evidence/radar-v2/suite/summary.txt`):
 
 **A4, the beacon.**
 - The candidates are committed to and the commitment is dated **before** the
-  round.
-- The round taken is quicknet's first after that date, and its BLS signature
-  is checked (`record/bls`).
+  cycle begins.
+- The round is the cycle's, quicknet's first after the cycle's first second
+  (`releve-draw/1`), and its BLS signature is checked (`record/bls`). At
+  first it was the first round after the commitment: see *No freedom left in
+  a record*, below.
 - seed = SHA-256(randomness ‖ site ‖ cycle). The candidates are read in
   SHA-256(seed ‖ url) order, and the unchanged selector picks from what was
   read in that order.
@@ -106,8 +108,8 @@ The checks pass on the final tree (`evidence/radar-v2/suite/summary.txt`):
 - The verifier re-derives all of it. Without a round, the record says
   "selection not beacon-seeded".
 - `verifier.html` checks the round offline: right chain, randomness equal to
-  the hash of the signature, first round after the commitment, and the BLS
-  signature, with the same Rust code as the command line.
+  the hash of the signature, the cycle's round, and the BLS signature, with
+  the same Rust code as the command line.
 
 **A5, the owner's mandate.**
 - `mandate.granted` and `mandate.date` are kept per site
@@ -157,7 +159,10 @@ scratchpad.
   `published`. `tests/record.py` adds:
   - a later round chosen fails `beacon-signature`;
   - a page added after the round fails `order`;
-  - a commitment dated later fails `before-beacon`;
+  - a commitment dated later fails `before-beacon` (and since, a later round
+    drawn again, signed and its order followed, fails it too);
+  - a page twice in two spellings, and requests in arrival order, fail
+    `canonical`;
   - a forged previous record fails `prev-link`;
   - a changed token fails `published`.
 - **Recompute:** `recompute.log`, all six records byte-equal, plus the
@@ -172,6 +177,45 @@ scratchpad.
   - the network log of the page load: **one request, the member's own page,
     none to the Bureau**; the click then opens the status page, and only it.
     `status-page.png` shows that page.
+
+**After D-033: no freedom left in a record.** Read against one question:
+what in a record could differ while its meaning stays the same, or be chosen
+while it looks drawn? Three answers, each closed, each with its test
+(`tests/record.py`).
+- *The moment of the draw.* The round was the first after the commitment,
+  and the commitment's moment was the Bureau's: it could commit again, every
+  3 seconds, until an order suited it, and no verifier would see. The round
+  is now the cycle's (`releve-draw/1`), and the candidates are dated before
+  the cycle begins. Drawing again gives the same round, too late. A later
+  round, signed and its order followed throughout, fails `before-beacon`.
+- *Two spellings of one page.* Candidates were kept as written, so
+  `https://x.fr/a`, `https://X.fr/a` and `https://x.fr/a#top` were three
+  places in the order, three chances to be picked. A candidate is now
+  admitted only in its one written form, once (`canonicalUrl`,
+  `record/Seed.plie`); the run refuses any other before committing.
+- *The order of arrival.* The requests were kept in the order the network
+  gave them: up to log₂(n!) bits a record (about 272 for 60 requests) that
+  no reading uses and the observer could have set. They are kept in one
+  order. The verifier's `canonical` check holds both lists.
+- Changes between two records are now a Z-set in one form, so they add:
+  from a to b, then b to c, they are those from a to c; the other way they
+  are negated.
+- Laws now tested: the readings, the month's root and the commitment do not
+  depend on the order their inputs come in.
+- **What remains:** several candidate lists, each dated before a cycle,
+  could be made and one kept once the round is known. Only publishing the
+  commitments before the cycle begins would show there was one. It is
+  bounded by the lists prepared beforehand, not by the rounds, as it was.
+- **The tests' own beacon.** No recorded quicknet round falls on a cycle's
+  first seconds, and drand cannot be reached from here. So the tests sign
+  rounds under a key of their own, on quicknet's scheme and schedule
+  (`record/bls/examples/beacon.rs`), named to relevé in `RELEVE_BEACON`, as
+  `RELEVE_CA` names their authority. The verifier then names the chain it
+  trusted as not quicknet's. Quicknet's own key is still held to its
+  recorded round, on the command line, in WebAssembly and in the page.
+- **The end-to-end evidence of D-033** (`evidence/radar-v2/bundles/`,
+  `verify.log`) was made under the first draw rule. It verifies with the tree
+  of D-033 (commit `0575d4f`), not under the cycle's rule.
 
 **After D-033: the disclosure chain** (radar, `radar/disclosure_chain.py`,
 EUPL-1.2 by request; its tests pass, 8 of 8).

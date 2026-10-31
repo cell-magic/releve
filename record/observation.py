@@ -5,6 +5,10 @@ request by its origin (scheme and host, nothing more: no port, path, query, cook
 header), its type, its bytes, its HTTP status, and whether it was sent before any
 interaction; the accessibility tree, counted. Built from what observe/observe.py wrote.
 
+The requests are kept in one order, ascending by origin, type, status, before any
+interaction, bytes (record/Verify.plie, canonical): the order they arrived in is the
+network's, read by nothing, and would otherwise be a freedom of the record's bytes.
+
 Records of relevé 0.10 (a corpus line, `observed`) are read too: what they did not record
 (status, the moment of a request, the tree) is None, said so, and never guessed."""
 import json, urllib.parse
@@ -17,10 +21,15 @@ def origin(url):
     return f"{p.scheme.lower()}://" + (f"[{host}]" if ":" in host else host)
 
 
+def order(q):
+    """A request's place in the one order of the observation's requests."""
+    return q["origin"], q["type"], q["status"], q["pre_interaction"], q["bytes"]
+
+
 def block(raw):
     """The observation block, from one line of the observer's output."""
-    requests = [{"origin": origin(r["url"]), "type": r["kind"], "bytes": int(r["bytes"]), "status": int(r["status"]),
-                 "pre_interaction": bool(r["pre"])} for r in raw["network"]["resources"]]
+    requests = sorted(({"origin": origin(r["url"]), "type": r["kind"], "bytes": int(r["bytes"]), "status": int(r["status"]),
+                        "pre_interaction": bool(r["pre"])} for r in raw["network"]["resources"]), key=order)
     ax = raw["page"]["ax"]
     return {"bytes": {"total": sum(q["bytes"] for q in requests)}, "requests": requests,
             "ax": {k: ax[k] for k in ("version", "interactive", "named", "unnamed", "invalid_roles", "context_violations", "hidden_interactive")}}
