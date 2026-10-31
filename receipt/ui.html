@@ -5,7 +5,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Verify a receipt</title>
+<title>Verify a receipt · relevé</title>
 <style>
   :root { --ink:#141414; --muted:#5a5a5a; --line:#d6d6d6; --bg:#ffffff; --ok:#1d5e2e; --bad:#9b1c1c; --focus:#1f4e8c; }
   @media (prefers-color-scheme: dark) { :root { --ink:#ececec; --muted:#a8a8a8; --line:#3a3a3a; --bg:#121212; --ok:#7fd18f; --bad:#ff8a8a; --focus:#8db4ff; } }
@@ -38,12 +38,12 @@
   <form id="f">
     <div class="field">
       <label for="receipt">Receipt</label>
-      <span class="hint" id="receipt-hint">receipt.json, delivered with the report.</span>
+      <span class="hint" id="receipt-hint">Required: receipt.json, delivered with the report.</span>
       <input type="file" id="receipt" accept=".json,application/json" aria-describedby="receipt-hint" required>
     </div>
     <div class="field">
       <label for="bundle">Bundle</label>
-      <span class="hint" id="bundle-hint">The .wacz file delivered with the report.</span>
+      <span class="hint" id="bundle-hint">The .wacz file delivered with the report; or, instead, a folder of pages below.</span>
       <input type="file" id="bundle" accept=".wacz" aria-describedby="bundle-hint">
     </div>
     <div class="field">

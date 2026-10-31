@@ -45,7 +45,9 @@ The founder's personal research model, and anything derived from it.
 2. No closed directory, and no file under the closed licence marker
    (`LicenseRef-Bureau-Closed`), appears in this repository.
 3. Every open source file carries an SPDX header naming EUPL-1.2. A file that
-   cannot carry a comment is named in `REUSE.toml`.
+   cannot carry a comment is named in `REUSE.toml`, and so is third-party data
+   kept here under its own free licence (the public suffix list, MPL-2.0; a
+   drand round quoted from drand's tests, MIT or Apache-2.0).
 
 `tests/boundary.py` fails on any of the three. The names it treats as closed
 are these, as a directory or as a module imported:

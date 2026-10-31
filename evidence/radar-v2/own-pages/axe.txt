@@ -1,0 +1,9 @@
+axe-core 4.10.3, rules wcag2a, wcag2aa, wcag21aa, wcag22aa, best-practice; Chromium (Playwright 1.63.0), 2026-10-31.
+Pages served locally as they are handed out; the status page's Content-Security-Policy forbids every script,
+so axe was injected with the policy bypassed in the test browser only.
+
+record/verifier.html                         light: no violation   dark: no violation
+receipt/verifier.html                        light: no violation   dark: no violation
+radar status page, fr                        light: no violation   dark: no violation   (15 rules passed)
+radar status page, en                        light: no violation   dark: no violation   (15 rules passed)
+a member's page with the stamp (fr and en)   no violation (22 rules passed; evidence/radar-v2/stamp-evidence.json)

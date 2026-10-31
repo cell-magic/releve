@@ -262,6 +262,17 @@ and passed on by `install.sh`) names the country the machine reaches the
 web from, as two letters; each record keeps it, and the report says it.
 A service in Switzerland sees what a visitor there sees.
 
+## How it is made
+
+No model runs when relevé observes, judges or checks: every verdict is a rule
+in plain code, and the same record read by the same release gives the same
+report. The code itself is written by its maintainer, partly with a generative
+model. Every commit says so, as NLnet's policy on generative AI asks
+(CLAUDE.md, *Each commit says how it was made*): the author is the maintainer
+*with* the model, by name and version, and the message ends with the model, a
+summary of the prompt, and whether a person changed the output. A commit
+written by a person alone carries none of it.
+
 ## Tests
 
 ```sh

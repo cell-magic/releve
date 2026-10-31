@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: EUPL-1.2
 """The boundary (BOUNDARY.md), checked: open code imports nothing closed, no closed
 directory or closed-licensed file stands in this repository, every open source file
-names EUPL-1.2 in its SPDX header.
+names EUPL-1.2 in its SPDX header (or third-party data its own free licence, in REUSE.toml).
 
     python tests/boundary.py [ROOT]
 
@@ -29,9 +29,10 @@ def closed_names():
 
 
 def annotated():
-    """The paths REUSE.toml licenses for files that cannot carry a comment, as patterns."""
+    """The paths REUSE.toml licenses, as patterns: files that cannot carry a comment (EUPL-1.2), and
+    third-party data kept here under its own free licence. Never the closed licence."""
     toml = tomllib.loads((ROOT / "REUSE.toml").read_text(encoding="utf-8"))
-    pats = [p for a in toml.get("annotations", []) if a.get("SPDX-License-Identifier") == "EUPL-1.2"
+    pats = [p for a in toml.get("annotations", []) if MARK not in a.get("SPDX-License-Identifier", MARK)
             for p in ([a["path"]] if isinstance(a["path"], str) else a["path"])]
     glob = lambda p: re.compile("^" + re.escape(p).replace(r"\*\*", ".*").replace(r"\*", "[^/]*") + "$")
     return [glob(p) for p in pats]
@@ -91,7 +92,7 @@ def main():
         if f.suffix in SOURCE:
             head = "\n".join(text.splitlines()[:12])
             if TAG not in head and not any(g.match(rel.as_posix()) for g in licensed):
-                problems.append(f"{rel}: no SPDX header naming EUPL-1.2")
+                problems.append(f"{rel}: no SPDX header naming EUPL-1.2, and no licence for it in REUSE.toml")
             for ref in imported(f, text):
                 hit = segments(ref) & {n.replace("-", "_") for n in names} | segments(ref) & names
                 if hit:

@@ -5,7 +5,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Verify a record</title>
+<title>Verify a record · relevé</title>
 <style>
   :root { --ink:#141414; --muted:#5a5a5a; --line:#d6d6d6; --bg:#ffffff; --ok:#1d5e2e; --bad:#9b1c1c; --focus:#1f4e8c; }
   @media (prefers-color-scheme: dark) { :root { --ink:#ececec; --muted:#a8a8a8; --line:#3a3a3a; --bg:#121212; --ok:#7fd18f; --bad:#ff8a8a; --focus:#8db4ff; } }
@@ -33,12 +33,12 @@
   <form id="f">
     <div class="field">
       <label for="bundle">Record bundle</label>
-      <span class="hint" id="bundle-hint">The .json bundle delivered with the record.</span>
+      <span class="hint" id="bundle-hint">Required: the .json bundle delivered with the record.</span>
       <input type="file" id="bundle" accept=".json,application/json" aria-describedby="bundle-hint" required>
     </div>
     <div class="field">
       <label for="roots">Published roots</label>
-      <span class="hint" id="roots-hint">roots.json, as the Bureau publishes it.</span>
+      <span class="hint" id="roots-hint">Required: roots.json, as the Bureau publishes it.</span>
       <input type="file" id="roots" accept=".json,application/json" aria-describedby="roots-hint" required>
     </div>
     <div class="field">

@@ -346,7 +346,7 @@ def parse(path):
 
 # ---- the prelude's names, in each fold --------------------------------------------------
 # Types and constructors the prelude defines; everything else it defines is a function of
-# the same name in every fold (plie/prelude/Plie.hs, Plie.lean, plie.js).
+# the same name in every fold (plie/prelude/Plie/Prelude.hs, Plie/Prelude.lean, plie.js).
 TYPES = {"Int": ("Integer", "Int"), "Bool": ("Bool", "Bool"), "Text": ("Text", "String"),
          "Bytes": ("ByteString", "Bytes"), "List": (None, "List"), "Maybe": ("Maybe", "Option"),
          "Pair": ("Pair", "Pair")}
