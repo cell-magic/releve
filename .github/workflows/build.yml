@@ -103,10 +103,13 @@ jobs:
         with:
           node-version: "22"
       - run: cabal update && cabal install --install-method=copy --installdir=dist --overwrite-policy=always
-      - run: pip install -r record/requirements.txt && sudo apt-get install -y -qq faketime
+      # the record's run imports the observer, so its pinned Playwright comes too (no browser is started)
+      - run: pip install -r observe/requirements.txt -r record/requirements.txt && sudo apt-get install -y -qq faketime
       - name: the folds kept, and the verifier page, are those their plié sources give
         run: sh record/build.sh && git diff --exit-code record/
-      - run: python tests/plie.py
+      # the conformance fold is built with ghc on its own; cabal exec gives it the project's packages from the store
+      - name: plié's folds give the same bytes
+        run: cabal build && cabal exec -- python tests/plie.py
       - run: python tests/record.py
         env:
           RELEVE: dist/releve
