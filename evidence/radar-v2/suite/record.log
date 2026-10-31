@@ -58,13 +58,5 @@ ok    tampered beacon, rehashed (a later round, signed, its order followed): fai
 ok    a record whose beacon could not be reached says so, and is not taken as seeded
 ok    the WebAssembly BLS check imports nothing, and gives the command line's verdicts
 ok    verifier.html checks the round's BLS signature itself, offline: it holds, and a moved round's does not
-ok    changes between two records of a page are the typed differences, +n and -n, and nothing else
-ok    no change between a record and itself
-ok    changes are in their one form: ascending by kind and key, each once, none zero
-ok    changes add: from the first record to the second, then to the third, are from the first to the third
-ok    their one form is kept by adding again, and does not depend on order
-ok    changes the other way are the same changes, negated
-ok    two different pages are not compared
-ok    the JavaScript fold gives the same changes, and the same sum, byte for byte
 ok    a relevé 0.10 record reads, saying what it did not record
-56 of 56 hold
+48 of 48 hold

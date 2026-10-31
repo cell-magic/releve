@@ -418,11 +418,8 @@ of the record's bytes that nothing reads. `python -m record verify BUNDLE --root
 checks all of it, each check named; `record/verifier.html` does the same in a browser, offline, including the beacon
 round's BLS signature (record/bls, compiled to WebAssembly), and says that the time-stamp
 tokens' signatures are the command line's. The command line checks BLS with the same
-code, built once: `cargo build --release` in `record/bls`. `python -m record changes BEFORE AFTER` gives what changed on a
-page between two of its records, as signed differences (a rule's marks, third parties
-come or gone, bytes, requests before any interaction, legibility's obstacles): derived
-from the records the member holds, never stored. Changes are a Z-set in one form, so they
-add: from January to February, then to March, they are those from January to March. What judges and checks is written once, in plié (`plie/`,
+code, built once: `cargo build --release` in `record/bls`. What changed between two records
+is diffing, which BOUNDARY.md puts on the closed side: it is not here. What judges and checks is written once, in plié (`plie/`,
 `record/*.plie`), and runs the same in Haskell and in JavaScript. BOUNDARY.md says what of
 RADAR is open, here, and what the Bureau keeps closed.
 

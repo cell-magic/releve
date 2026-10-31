@@ -221,11 +221,10 @@ The "fixed before the beacon" fact of question 5 is now enforced:
   moment is no one's choice and drawing again gives nothing;
 - the verifier checks both (check `before-beacon`).
 
-Each list of a record is also written one way (check `canonical`), and the
-changes between two records form a Z-set in one form. Three laws are tested
-and are the next theorems: `consolidate` is idempotent and ignores order;
-the readings do not depend on the order of the requests; changes add along
-a chain of records.
+Each list of a record is also written one way (check `canonical`). Two laws
+are tested and are the next theorems: the readings do not depend on the order
+of the requests; the month's root and the commitment do not depend on the
+order of their inputs.
 
 What I would like proved first, in `record/gen/lean/`:
 

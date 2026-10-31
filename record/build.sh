@@ -7,7 +7,7 @@
 # CI checks that what is kept is what this gives.
 set -e
 cd "$(dirname "$0")/.."
-src="record/Json.plie record/Merkle.plie record/Seed.plie record/Chain.plie record/Roots.plie record/Readings.plie record/Changes.plie record/Verify.plie"
+src="record/Json.plie record/Merkle.plie record/Seed.plie record/Chain.plie record/Roots.plie record/Readings.plie record/Verify.plie"
 rm -rf record/gen && mkdir -p record/gen/hs/Plie record/gen/lean/Plie
 python3 plie/plie.py hs record/gen/hs/Plie $src
 python3 plie/plie.py lean record/gen/lean/Plie $src

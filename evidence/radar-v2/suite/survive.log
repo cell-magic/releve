@@ -1,0 +1,42 @@
+ok    clean: two runs give the same body, byte for byte, and the same root
+ok    clean: the root is the one stored (d9d876baba4ebdb9…)
+ok    clean: the record keeps to its contract
+ok    clean: unsigned, it says so, and the root is still given
+ok    stripped: two runs give the same body, byte for byte, and the same root
+ok    stripped: the root is the one stored (c7eeea3a2a5a9906…)
+ok    stripped: the record keeps to its contract
+ok    stripped: unsigned, it says so, and the root is still given
+ok    absent: two runs give the same body, byte for byte, and the same root
+ok    absent: the root is the one stored (ce92358dbab8ea52…)
+ok    absent: the record keeps to its contract
+ok    absent: unsigned, it says so, and the root is still given
+ok    blocked: two runs give the same body, byte for byte, and the same root
+ok    blocked: the root is the one stored (ec76fc6882360d42…)
+ok    blocked: the record keeps to its contract
+ok    blocked: unsigned, it says so, and the root is still given
+ok    still-transformed: two runs give the same body, byte for byte, and the same root
+ok    still-transformed: the root is the one stored (0e789581f259e0fe…)
+ok    still-transformed: the record keeps to its contract
+ok    still-transformed: unsigned, it says so, and the root is still given
+ok    clean: every class of every asset is present, and no probe was sent
+ok    stripped: C2PA stripped at delivery; EXIF and IPTC absent at the origin; the transformer is the surface's
+ok    absent: every class absent at the origin, after a probe that succeeded untransformed
+ok    blocked: the origin answers 403, so it is unobservable, never absent
+ok    still-transformed: probe 2 comes back with the edge header, so the origin is unobservable
+ok    assets of one address are kept apart by role, in order
+ok    an open EventSource does not hold the surface from settling
+ok    a page that polls is taken at the cap, and says so
+ok    a page robots.txt closes is left alone, and nothing is recorded
+ok    an asset list out of the frozen order is caught
+ok    a scope without the settle triple is caught
+ok    ABSENT_AT_ORIGIN without a successful untransformed probe 2 is caught
+ok    a root that is not the body's is caught
+ok    the fix list ranks stripped, then absent, then markup; unobservable is unmeasured, apart
+ok    PNG caBX and eXIf, ISO-BMFF's C2PA uuid box, and XMP in JPEG APP1 are each read, by size
+ok    a file that breaks off, or is no image, is read as far as it holds
+ok    wrappers are stripped: a relative url=, an absolute one decoded, Cloudflare's path, imgix's parameters
+ok    an absolute target is refused at a loopback, private, link-local or unique-local address, or off http(s)
+ok    a wrapper whose url= names a private address sends nothing, and the origin stays unobserved
+ok    the record path has no randomness, no wall clock in the body, and no locale-dependent formatting
+ok    the one clock read in the record path is observed_at's
+41 of 41 hold

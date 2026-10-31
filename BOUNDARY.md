@@ -71,7 +71,7 @@ The founder's personal research model, and anything derived from it.
 are these, as a directory or as a module imported:
 
 ```boundary
-radar surface-core-lab surface_core_lab members signup mirror status-page stamp-generator bureau-ops
+radar surface-core-lab surface_core_lab members signup mirror status-page stamp-generator bureau-ops changes
 ```
 
 ## Open questions

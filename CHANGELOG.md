@@ -31,10 +31,9 @@ Criteria stay at v10.
   (lowercase host, no default port, no fragment, no dot segment, escapes in uppercase),
   and once; the observation's requests are kept in one order, not the network's. The
   verifier checks both (`canonical`), so a record's bytes carry nothing its meaning does not.
-- **What changed on a page** (`record/Changes.plie`, `python -m record changes`): two
-  records of one page compared as signed differences, derived from what the member
-  holds, never kept. They are a Z-set in one form, and add: changes from a to b, then b
-  to c, are those from a to c.
+- **What changed on a page** was written here (`record/Changes.plie`, a Z-set of signed
+  differences that add along a chain of records), then moved to the closed side with
+  0.10.1's boundary, where diffing is closed. `python -m record changes` is gone.
 - **BLS in the browser** (`record/bls`): the drand round's signature checked by one Rust
   source, as `releve-bls` on the command line and as WebAssembly in `verifier.html`
   (no import, two exports, reproducible build, the compiled crates' notice carried

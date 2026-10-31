@@ -6,7 +6,7 @@ its readings and their recomputation, its chain, the month's tree (RFC 6962), th
 roots, the beacon and the order it gives, the commitment dated before the cycle whose round
 it is, the lists each in their one order, and the verifier, on a record made whole from a
 recorded page; then each piece tampered with, and the verifier failing at the check that
-names it; then the laws: what does not depend on order, and changes that add. Needs releve
+names it; then the laws: what does not depend on order. Needs releve
 (RELEVE), OpenSSL, faketime, releve-bls and the tests' beacon (cargo build --release --bins
 --examples in record/bls), Node for the WebAssembly, and Chromium for verifier.html.
 
@@ -324,53 +324,6 @@ def main():
               seen == [True, False] and not [u for u in asked if not u.startswith("file:")], f"{seen} {asked}")
     except ImportError:
         check("verifier.html checks the round's BLS signature (Playwright needed)", False)
-
-    # ---- what changed on a page, from one record of it to a later one
-    later = copy.deepcopy(record)
-    later["cycle"] = "2024-11"
-    later["rules"] = [dict(r, fail=r["fail"] + (1 if r["criterion"] == "image-alt" else 0),
-                           review=max(0, r["review"] - (1 if r["criterion"] == "text-contrast" else 0))) for r in later["rules"]]
-    later["observation"]["bytes"]["total"] -= 100
-    later["readings"] = [dict(x, value={**x["value"], "domains": x["value"]["domains"]
-                                         + [{"domain": "tracker.example", "party": "third", "requests": 1, "bytes": 1, "pre_interaction": 1}]})
-                         if x["name"] == "dependencies" else x for x in later["readings"]]
-    out = core.call("changesOf", {"before": record, "after": later})
-    got = {(c["kind"], c["key"]): c["delta"] for c in out["changes"]}
-    want = {("fail", "image-alt"): 1, ("third-party", "tracker.example"): 1, ("measure", "bytes"): -100}
-    if any(r["criterion"] == "text-contrast" and r["review"] > 0 for r in record["rules"]):
-        want[("review", "text-contrast")] = -1
-    check("changes between two records of a page are the typed differences, +n and -n, and nothing else",
-          out["compared"] and got == want, f"{got} != {want}")
-    check("no change between a record and itself", core.call("changesOf", {"before": record, "after": record})["changes"] == [])
-    middle = copy.deepcopy(record)
-    middle["observation"]["bytes"]["total"] -= 40
-    middle["rules"] = [dict(r, fail=r["fail"] + (2 if r["criterion"] == "image-alt" else 0)) for r in middle["rules"]]
-    middle["readings"] = [dict(x, value={**x["value"], "domains": x["value"]["domains"]
-                                          + [{"domain": "tracker.example", "party": "third", "requests": 1, "bytes": 1, "pre_interaction": 1},
-                                             {"domain": "gone.example", "party": "third", "requests": 1, "bytes": 1, "pre_interaction": 0}]})
-                          if x["name"] == "dependencies" else x for x in middle["readings"]]
-    ch = lambda a, b: core.call("changesOf", {"before": a, "after": b})["changes"]
-    first, then, whole = ch(record, middle), ch(middle, later), ch(record, later)
-    check("changes are in their one form: ascending by kind and key, each once, none zero",
-          all(c["delta"] != 0 for c in whole + first + then)
-          and all((x["kind"], x["key"]) < (y["kind"], y["key"]) for cs in (whole, first, then) for x, y in zip(cs, cs[1:])))
-    check("changes add: from the first record to the second, then to the third, are from the first to the third",
-          core.call("changesAdd", {"changes": [first, then]})["changes"] == whole and first != whole)
-    check("their one form is kept by adding again, and does not depend on order",
-          core.call("changesAdd", {"changes": [whole]})["changes"] == whole
-          == core.call("changesAdd", {"changes": [(then + first)[::-1]]})["changes"])
-    check("changes the other way are the same changes, negated",
-          ch(later, record) == [dict(c, delta=-c["delta"]) for c in whole])
-    other = {**later, "url": record["url"] + "-other"}
-    check("two different pages are not compared", core.call("changesOf", {"before": record, "after": other})["compared"] is False)
-    text = json.dumps({"before": record, "after": later}, ensure_ascii=False).encode("utf-8")
-    js = subprocess.run(["node", str(ROOT / "plie" / "run.mjs"), str(ROOT / "record" / "gen" / "record.js"), "changesOf"],
-                        input=text, capture_output=True).stdout.decode("utf-8").strip()
-    added = json.dumps({"changes": [first, then]}).encode("utf-8")
-    js_added = subprocess.run(["node", str(ROOT / "plie" / "run.mjs"), str(ROOT / "record" / "gen" / "record.js"), "changesAdd"],
-                              input=added, capture_output=True).stdout.decode("utf-8").strip()
-    check("the JavaScript fold gives the same changes, and the same sum, byte for byte",
-          js == core.run("changesOf", {"before": record, "after": later}) and js_added == core.run("changesAdd", {"changes": [first, then]}))
 
     # ---- records of relevé 0.10
     with tempfile.TemporaryDirectory() as d:

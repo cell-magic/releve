@@ -16,12 +16,14 @@ The checks pass on the final tree (`evidence/radar-v2/suite/summary.txt`):
 | `tests/run.py` | 98 ok |
 | `tests/conduct.py` | 31 ok |
 | `tests/service.py` | 47 ok |
-| `tests/boundary.py` | 235 files, 0 problems |
+| `tests/boundary.py` | 265 files, 0 problems |
 | `tests/plie.py` | 21 of 21 |
-| `tests/record.py` | 56 of 56 |
+| `tests/record.py` | 48 of 48 |
+| `tests/survive.py` (0.10.1) | 41 of 41 |
 | `reuse lint` | compliant |
 | `radar/tests/run.py` | 24 of 24 |
 | `radar/tests/test_disclosure_chain.py` | 8 of 8 |
+| `radar/tests/test_changes.py` | 6 of 6 |
 
 ## The environment, and what it changes
 
@@ -197,9 +199,11 @@ while it looks drawn? Three answers, each closed, each with its test
   gave them: up to log₂(n!) bits a record (about 272 for 60 requests) that
   no reading uses and the observer could have set. They are kept in one
   order. The verifier's `canonical` check holds both lists.
-- Changes between two records are now a Z-set in one form, so they add:
+- Changes between two records became a Z-set in one form, so they add:
   from a to b, then b to c, they are those from a to c; the other way they
-  are negated.
+  are negated. With relevé 0.10.1's boundary, diffing is closed: the code,
+  its laws and their tests moved to radar (`radar/changes.py`), where they
+  give the same bytes as the plié version did.
 - Laws now tested: the readings, the month's root and the commitment do not
   depend on the order their inputs come in.
 - **What remains:** several candidate lists, each dated before a cycle,
