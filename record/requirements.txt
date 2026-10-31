@@ -1,5 +1,0 @@
-# SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
-# SPDX-License-Identifier: EUPL-1.2
-# The BLS check of a beacon round (record/beacon.py): pairings on BLS12-381 and RFC 9380's hash to G1,
-# which the standard library has not; the Ethereum Foundation's pure-Python reference, pinned.
-py_ecc==8.0.0

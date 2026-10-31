@@ -29,7 +29,8 @@
 <body>
 <main>
   <h1>Verify a record</h1>
-  <p class="lede">Checks a RADAR record against its path, its month's root and the published roots, and its selection against its beacon round. Everything runs in this browser, from this one file; nothing is sent anywhere. Two checks need more than a browser holds, the time-stamp tokens' signatures and the round's BLS signature: this page says so, and <code>python -m record verify</code> makes them.</p>
+  <!--__BLS_NOTICE__-->
+  <p class="lede">Checks a RADAR record against its path, its month's root and the published roots, and its selection against its beacon round. Everything runs in this browser, from this one file; nothing is sent anywhere. The beacon round's BLS signature is checked here too, by the same code the command line runs, compiled to WebAssembly. The time-stamp tokens' signatures need the authorities' certificates, which a browser does not hold: this page says so, and <code>python -m record verify</code> checks them.</p>
   <form id="f">
     <div class="field">
       <label for="bundle">Record bundle</label>
@@ -53,13 +54,27 @@
 <script type="module">
 /*__RECORD_JS__*/
 const read = async (id) => { const f = document.getElementById(id).files[0]; return f ? JSON.parse(await f.text()) : null; };
-const browserEdge = {
-  tsa: { ok: null, detail: "the token's signature is not checked in a browser; python -m record verify checks it with OpenSSL" },
-  commitment_tsa: { ok: null, time: null, detail: "the commitment token's signature is not checked in a browser; the command line checks it" },
-  bls: { ok: null, detail: "the round's BLS signature is not checked in a browser; the command line checks it" },
-};
-export function check(bundle, roots, previous) {
-  const input = { bundle, roots, previous: previous ? previous.record : null, edge: browserEdge };
+// The BLS check of record/bls, compiled to WebAssembly: no import, two exports (a buffer, and the check).
+const BLS_WASM = "__BLS_WASM__";
+let bls = null;
+async function quicknet(round, signatureHex) {
+  if (!bls) bls = (await WebAssembly.instantiate(Uint8Array.from(atob(BLS_WASM), (c) => c.charCodeAt(0)), {})).instance.exports;
+  const sig = Uint8Array.from(signatureHex.match(/../g) || [], (h) => parseInt(h, 16)).subarray(0, 64);
+  new Uint8Array(bls.memory.buffer, bls.buffer(), 64).set(sig);
+  return bls.quicknet(BigInt(round), sig.length);
+}
+async function browserEdge(record) {
+  const b = (record && record.beacon) || {};
+  const verdict = Number.isSafeInteger(b.round) && typeof b.signature === "string" ? await quicknet(b.round, b.signature) : null;
+  return {
+    tsa: { ok: null, detail: "the token's signature is not checked in a browser; python -m record verify checks it with OpenSSL" },
+    commitment_tsa: { ok: null, time: null, detail: "the commitment token's signature is not checked in a browser; the command line checks it" },
+    bls: verdict === null ? null : { ok: verdict === 1, detail: verdict === 0 ? "the round's signature does not hold under quicknet's key"
+                                                                 : "the round's signature is not a point of the curve" },
+  };
+}
+export async function check(bundle, roots, previous) {
+  const input = { bundle, roots, previous: previous ? previous.record : null, edge: await browserEdge(bundle && bundle.record) };
   return plain($verifyBundle(json(input)));
 }
 window.verifyRecord = check;
@@ -67,7 +82,7 @@ document.getElementById("f").addEventListener("submit", async (e) => {
   e.preventDefault();
   const out = document.getElementById("result");
   try {
-    const r = check(await read("bundle"), await read("roots"), await read("previous"));
+    const r = await check(await read("bundle"), await read("roots"), await read("previous"));
     const failed = r.checks.some((c) => c.ok === false);
     out.innerHTML = "";
     const v = document.createElement("p");

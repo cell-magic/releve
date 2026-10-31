@@ -3,7 +3,7 @@
 -- Written by plie/plie.py from Changes.plie. Do not edit: edit the source.
 {-# LANGUAGE NoImplicitPrelude, OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-unused-matches -Wno-name-shadowing -Wno-unused-imports -Wno-incomplete-patterns -Wno-overlapping-patterns #-}
-module Plie.Changes where
+module Plie.Changes (marks, criteriaOf, union, change, ruleChanges, readingValue, thirdParties, domainChanges, moved, measureChanges, early, changesOf) where
 
 import Plie.Prelude
 import Prelude (Show)

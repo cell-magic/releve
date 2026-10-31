@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
+# SPDX-License-Identifier: EUPL-1.2
+# The BLS check of a drand quicknet round, one source for two targets: the command line
+# (releve-bls) and the browser (WebAssembly, inside record/verifier.html).
+[package]
+name = "releve-bls"
+version = "0.1.0"
+edition = "2021"
+license = "EUPL-1.2"
+publish = false
+
+[lib]
+crate-type = ["rlib", "cdylib"]
+
+[[bin]]
+name = "releve-bls"
+path = "src/main.rs"
+
+[dependencies]
+# Pairings on BLS12-381 and RFC 9380's hash to G1 (zkcrypto; MIT OR Apache-2.0).
+bls12_381 = { version = "=0.8.0", default-features = false, features = ["groups", "pairings", "alloc", "experimental"] }
+# SHA-256, as the hash to curve asks it (RustCrypto; MIT OR Apache-2.0).
+sha2 = { version = "0.9", default-features = false }
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

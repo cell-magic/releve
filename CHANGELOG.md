@@ -28,6 +28,13 @@ Criteria stay at v10.
 - **What changed on a page** (`record/Changes.plie`, `python -m record changes`): two
   records of one page compared as signed differences, derived from what the member
   holds, never kept.
+- **BLS in the browser** (`record/bls`): the drand round's signature checked by one Rust
+  source, as `releve-bls` on the command line and as WebAssembly in `verifier.html`
+  (no import, two exports, reproducible build, the compiled crates' notice carried
+  within). It replaces py_ecc and its five dependencies.
+- **Sealed types in plié**: a constructor used only in its own module, kept by the
+  compiler and by GHC's export lists. A `Seed` can come only from a beacon's
+  randomness, so the page order can only be the round's.
 - **The owner's mandate**: a record observed under it says so, and so does the report.
 - **The observer** keeps each request's status and moment and counts the accessibility tree.
 - **"Sealed" is "chained"**: `releve verify` and the service say what the free chain is.

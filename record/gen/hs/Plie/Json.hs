@@ -3,7 +3,7 @@
 -- Written by plie/plie.py from Json.plie. Do not edit: edit the source.
 {-# LANGUAGE NoImplicitPrelude, OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-unused-matches -Wno-name-shadowing -Wno-unused-imports -Wno-incomplete-patterns -Wno-overlapping-patterns #-}
-module Plie.Json where
+module Plie.Json (Json(..), field, fieldIn, has, path, asInt, asText, asBool, asList, isNull, entry, object, texts, ints, canonical, member, canonicalBytes, digest) where
 
 import Plie.Prelude
 import Prelude (Show)

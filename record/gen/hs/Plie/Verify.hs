@@ -3,7 +3,7 @@
 -- Written by plie/plie.py from Verify.plie. Do not edit: edit the source.
 {-# LANGUAGE NoImplicitPrelude, OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-unused-matches -Wno-name-shadowing -Wno-unused-imports -Wno-incomplete-patterns -Wno-overlapping-patterns #-}
-module Plie.Verify where
+module Plie.Verify (Check(..), checkJson, okOf, pass, unchecked, hex32, quicknet, roundTime, verifyBundle, justs, firstFailure, edgeCheck, selection, inOrder, edgeBls) where
 
 import Plie.Prelude
 import Prelude (Show)

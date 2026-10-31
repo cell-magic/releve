@@ -5,18 +5,29 @@
 -- address), ascending. The selector (receipt/, surface-core/select-1) starts from the first
 -- page of that order and breaks its ties by it, so neither the Bureau nor the site chooses
 -- where the selection begins. The candidates are committed to, and the commitment dated,
--- before the round is drawn (Run.plie): `commitment` is what is dated.
+-- before the round is drawn (record/run.py): `commitment` is what is dated.
+--
+-- A Seed is sealed: only seedOf makes one, from a round's randomness, its site and cycle,
+-- and only orderBy uses one. No other code can make an order from bytes of its choosing:
+-- that the round chose, not the Bureau, holds by the language, before any check does.
 module Seed where
 
 import Json
 
-seedOf : Bytes -> Text -> Text -> Bytes
-seedOf randomness site cycle = sha256 (randomness ++ utf8 site ++ utf8 cycle)
+sealed data Seed = Seed Bytes
 
-placeOf : Bytes -> Text -> Bytes
-placeOf seed url = sha256 (seed ++ utf8 url)
+seedOf : Bytes -> Text -> Text -> Seed
+seedOf randomness site cycle = Seed (sha256 (randomness ++ utf8 site ++ utf8 cycle))
 
-orderBy : Bytes -> List Text -> List Text
+seedHex : Seed -> Text
+seedHex s = case s of
+  | Seed b -> hex b
+
+placeOf : Seed -> Text -> Bytes
+placeOf s url = case s of
+  | Seed b -> sha256 (b ++ utf8 url)
+
+orderBy : Seed -> List Text -> List Text
 orderBy seed urls = sortBy (\a b -> placeOf seed a < placeOf seed b) urls
 
 -- The candidates as committed to: sorted by code point, each once, as canonical JSON text.
@@ -32,7 +43,7 @@ orderOf input =
   let r = fromMaybe (utf8 "") (unhex (asText (field "randomness" input))) in
   let urls = map asText (asList (field "candidates" input)) in
   let seed = seedOf r (asText (field "site" input)) (asText (field "cycle" input)) in
-  object [ entry "seed" (JText (hex seed)), entry "order" (texts (orderBy seed urls))
+  object [ entry "seed" (JText (seedHex seed)), entry "order" (texts (orderBy seed urls))
          , entry "commitment" (JText (commitment urls)) ]
 
 -- {"candidates": [url]} gives {"commitment": hex, "candidates": [url]}: what is dated before the round.

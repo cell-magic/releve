@@ -397,8 +397,10 @@ month's records are gathered under one Merkle root (RFC 6962) dated by a time-st
 authority (RFC 3161) and published in an append-only list, and the pages observed are drawn
 in an order given by a public beacon (drand) whose round is fixed after the candidates
 were dated. `python -m record verify BUNDLE --roots roots.json` checks all of it, each check
-named; `record/verifier.html` does the same in a browser, offline, and says which checks
-only the command line makes. `python -m record changes BEFORE AFTER` gives what changed on a
+named; `record/verifier.html` does the same in a browser, offline, including the beacon
+round's BLS signature (record/bls, compiled to WebAssembly), and says that the time-stamp
+tokens' signatures are the command line's. The command line checks BLS with the same
+code, built once: `cargo build --release` in `record/bls`. `python -m record changes BEFORE AFTER` gives what changed on a
 page between two of its records, as signed differences (a rule's marks, third parties
 come or gone, bytes, requests before any interaction, legibility's obstacles): derived
 from the records the member holds, never stored. What judges and checks is written once, in plié (`plie/`,

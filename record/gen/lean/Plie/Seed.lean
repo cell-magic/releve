@@ -7,13 +7,21 @@ import Plie.Json
 namespace Plie
 open Plie.Prelude
 
-def seedOf (randomness : Bytes) (site : String) (cycle : String) : Bytes :=
-  (Plie.Prelude.sha256 (randomness ++ ((Plie.Prelude.utf8 site) ++ (Plie.Prelude.utf8 cycle))))
+-- sealed: its constructor is used in Seed alone (plié checks it, GHC's export list too)
+inductive Seed where
+  | Seed : Bytes → Seed
+  deriving Repr, BEq, Inhabited
 
-def placeOf (seed : Bytes) (url : String) : Bytes :=
-  (Plie.Prelude.sha256 (seed ++ (Plie.Prelude.utf8 url)))
+def seedOf (randomness : Bytes) (site : String) (cycle : String) : Seed :=
+  (Seed.Seed (Plie.Prelude.sha256 (randomness ++ ((Plie.Prelude.utf8 site) ++ (Plie.Prelude.utf8 cycle)))))
 
-def orderBy (seed : Bytes) (urls : List String) : List String :=
+def seedHex (s : Seed) : String :=
+  (match s with | (.Seed b) => (Plie.Prelude.hex b))
+
+def placeOf (s : Seed) (url : String) : Bytes :=
+  (match s with | (.Seed b) => (Plie.Prelude.sha256 (b ++ (Plie.Prelude.utf8 url))))
+
+def orderBy (seed : Seed) (urls : List String) : List String :=
   (Plie.Prelude.sortBy (fun a b => (Plie.Prelude.lt (Plie.placeOf seed a) (Plie.placeOf seed b))) urls)
 
 def dedupe (xs : List String) : List String :=
@@ -23,7 +31,7 @@ def commitment (urls : List String) : String :=
   (Plie.digest (Plie.texts (Plie.dedupe (Plie.Prelude.sortBy (fun a b => (Plie.Prelude.lt a b)) urls))))
 
 def orderOf (input : Json) : Json :=
-  (let r := (Plie.Prelude.fromMaybe (Plie.Prelude.utf8 "") (Plie.Prelude.unhex (Plie.asText (Plie.field "randomness" input)))); (let urls := (Plie.Prelude.map Plie.asText (Plie.asList (Plie.field "candidates" input))); (let seed := (Plie.seedOf r (Plie.asText (Plie.field "site" input)) (Plie.asText (Plie.field "cycle" input))); (Plie.object [(Plie.entry "seed" (Json.JText (Plie.Prelude.hex seed))), (Plie.entry "order" (Plie.texts (Plie.orderBy seed urls))), (Plie.entry "commitment" (Json.JText (Plie.commitment urls)))]))))
+  (let r := (Plie.Prelude.fromMaybe (Plie.Prelude.utf8 "") (Plie.Prelude.unhex (Plie.asText (Plie.field "randomness" input)))); (let urls := (Plie.Prelude.map Plie.asText (Plie.asList (Plie.field "candidates" input))); (let seed := (Plie.seedOf r (Plie.asText (Plie.field "site" input)) (Plie.asText (Plie.field "cycle" input))); (Plie.object [(Plie.entry "seed" (Json.JText (Plie.seedHex seed))), (Plie.entry "order" (Plie.texts (Plie.orderBy seed urls))), (Plie.entry "commitment" (Json.JText (Plie.commitment urls)))]))))
 
 def commitmentOf (input : Json) : Json :=
   (let urls := (Plie.Prelude.map Plie.asText (Plie.asList (Plie.field "candidates" input))); (Plie.object [(Plie.entry "commitment" (Json.JText (Plie.commitment urls))), (Plie.entry "candidates" (Plie.texts (Plie.dedupe (Plie.Prelude.sortBy (fun a b => (Plie.Prelude.lt a b)) urls))))]))

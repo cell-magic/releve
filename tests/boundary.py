@@ -14,7 +14,7 @@ import ast, re, subprocess, sys, tomllib
 from pathlib import Path
 
 ROOT = Path(sys.argv[1] if len(sys.argv) > 1 else Path(__file__).resolve().parent.parent).resolve()
-SOURCE = {".py", ".hs", ".js", ".mjs", ".sh", ".html", ".css", ".yml", ".yaml", ".json", ".plie", ".lean"}
+SOURCE = {".py", ".hs", ".js", ".mjs", ".sh", ".html", ".css", ".yml", ".yaml", ".json", ".plie", ".lean", ".rs", ".toml"}
 MARK = "LicenseRef-Bureau-Closed"
 CLOSED = re.compile(r"SPDX-" r"License-Identifier:\s*" + MARK)  # a file under the closed licence, not one that names it
 TAG = "SPDX-" "License-Identifier: EUPL-1.2"  # split, so that REUSE does not read it as this file's own
@@ -89,7 +89,7 @@ def main():
             continue  # images and other binary files are named in REUSE.toml
         if CLOSED.search(text):
             problems.append(f"{rel}: carries the closed licence ({MARK})")
-        if f.suffix in SOURCE:
+        if f.suffix in SOURCE and rel.name != "REUSE.toml":  # REUSE.toml licenses the others, and is exempt itself
             head = "\n".join(text.splitlines()[:12])
             if TAG not in head and not any(g.match(rel.as_posix()) for g in licensed):
                 problems.append(f"{rel}: no SPDX header naming EUPL-1.2, and no licence for it in REUSE.toml")

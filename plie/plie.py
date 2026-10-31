@@ -19,7 +19,7 @@ a program is a function, and the same input gives the same output, in every fold
 import re, sys
 from pathlib import Path
 
-KEYWORDS = {"module", "where", "import", "data", "case", "of", "if", "then", "else", "let", "in"}
+KEYWORDS = {"module", "where", "import", "data", "sealed", "case", "of", "if", "then", "else", "let", "in"}
 # Names no definition may take: each is a keyword, or a builtin, in one of the three folds.
 RESERVED = set("""abbrev at attribute axiom break by calc catch class const continue def default delete deriving do
 end example export extends false finally for from fun function have instance inductive infix infixl infixr instanceof
@@ -130,7 +130,7 @@ class Parser:
         self.eat("kw", "module")
         mod = self.eat("con")[1]
         self.eat("kw", "where")
-        imports, datas, sigs, defs = [], [], {}, []
+        imports, datas, sigs, defs, sealed = [], [], {}, [], set()
         while not self.at("eof"):
             if not self.top():
                 t = self.peek()
@@ -140,6 +140,10 @@ class Parser:
                 imports.append(self.eat("con")[1])
             elif self.at("kw", "data"):
                 datas.append(self.data())
+            elif self.at("kw", "sealed"):
+                self.eat("kw")
+                datas.append(self.data())
+                sealed.add(datas[-1][0])
             elif self.at("var") and self.at("sym", ":", 1):
                 n = self.eat("var")[1]
                 self.eat("sym", ":")
@@ -151,7 +155,7 @@ class Parser:
                 raise Fault(f"{self.name}: {n} has no signature")
             if n in RESERVED or n in PRELUDE:
                 raise Fault(f"{self.name}: {n} is a reserved or prelude name; choose another")
-        return {"module": mod, "imports": imports, "datas": datas, "sigs": sigs, "defs": defs}
+        return {"module": mod, "imports": imports, "datas": datas, "sigs": sigs, "defs": defs, "sealed": sealed}
 
     def data(self):
         self.eat("kw", "data")
@@ -435,11 +439,17 @@ def hs_expr(e):
     raise Fault(f"no Haskell for {k}")
 
 
+def hs_exports(m):
+    """Every definition and type; a sealed type without its constructors, so that GHC too keeps them home."""
+    types = [name if name in m["sealed"] else f"{name}(..)" for name, _, _ in m["datas"]]
+    return ", ".join(types + [n for n, _, _ in m["defs"]])
+
+
 def to_hs(m):
     out = [f"-- {x}" for x in m["spdx"]] + ["-- Written by plie/plie.py from " + m["module"] + ".plie. Do not edit: edit the source.",
            "{-# LANGUAGE NoImplicitPrelude, OverloadedStrings #-}",
            "{-# OPTIONS_GHC -Wno-unused-matches -Wno-name-shadowing -Wno-unused-imports -Wno-incomplete-patterns -Wno-overlapping-patterns #-}",
-           f"module Plie.{m['module']} where", "", "import Plie.Prelude", "import Prelude (Show)", "import qualified Data.Text as T"]
+           f"module Plie.{m['module']} ({hs_exports(m)}) where", "", "import Plie.Prelude", "import Prelude (Show)", "import qualified Data.Text as T"]
     out += [f"import Plie.{i}" for i in m["imports"]]
     out.append("")
     for name, params, cons in m["datas"]:
@@ -573,6 +583,8 @@ def to_lean(m, owners):
     out += ["", "namespace Plie", "open Plie.Prelude", ""]
     for name, params, cons in m["datas"]:
         ps = " ".join(f"({p} : Type)" for p in params)
+        if name in m["sealed"]:
+            out.append(f"-- sealed: its constructor is used in {m['module']} alone (plié checks it, GHC's export list too)")
         out.append(f"inductive {name}{' ' + ps if ps else ''} where")
         for c, fs in cons:
             out.append(f"  | {c} : " + " → ".join([lean_type(f, False) for f in fs] + [" ".join([name] + params)]))
@@ -795,8 +807,39 @@ def to_js(mods, prelude):
 
 # ---- the whole -------------------------------------------------------------------------------
 
+def pattern_cons(p):
+    if p[0] == "pcon":
+        return {p[1]}.union(*[pattern_cons(a) for a in p[2]])
+    if p[0] == "pcons":
+        return pattern_cons(p[1]) | pattern_cons(p[2])
+    return set()
+
+
+def used_cons(body):
+    """The constructors a definition builds or takes apart."""
+    out = {x[1] for x in walk(body) if x[0] == "con"}
+    for x in walk(body):
+        if x[0] == "case":
+            for p, _ in x[2]:
+                out |= pattern_cons(p)
+    return out
+
+
+def seal(mods):
+    """A sealed type's constructors are used in its own module alone: elsewhere its values are held and
+    passed, and made or opened only through the functions of the module that declares it."""
+    home = {c: (m["module"], name) for m in mods for name, _, cons in m["datas"] if name in m["sealed"] for c, _ in cons}
+    for m in mods:
+        for n, _, body in m["defs"]:
+            for c in sorted(used_cons(body)):
+                if c in home and home[c][0] != m["module"]:
+                    raise Fault(f"{m['module']}.{n} uses the constructor {c} of {home[c][1]}, sealed in {home[c][0]}; "
+                                f"only {home[c][0]}'s own functions may make or open it")
+
+
 def load(paths):
     mods = [parse(p) for p in paths]
+    seal(mods)
     names = {}
     for m in mods:
         for n, _, _ in m["defs"]:

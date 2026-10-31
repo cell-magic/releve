@@ -6,9 +6,9 @@ its readings and their recomputation, its chain, the month's tree (RFC 6962), th
 roots, the beacon and the order it gives, the commitment dated before the round, and the
 verifier, on a record made whole from a recorded page; then each piece tampered with, and
 the verifier failing at the check that names it. Needs releve (RELEVE), OpenSSL, faketime,
-and py_ecc for the BLS check. No network: the authority is the tests' own, its clock set
+and releve-bls (cargo build --release in record/bls) for the BLS check, Node for its WebAssembly, and Chromium for verifier.html. No network: the authority is the tests' own, its clock set
 before the recorded round of drand quicknet (tests/beacon/), the only round it may take."""
-import copy, hashlib, json, os, sys, tempfile
+import copy, hashlib, json, os, subprocess, sys, tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -199,6 +199,34 @@ def main():
     check("a record whose beacon could not be reached says so, and is not taken as seeded",
           [c for c in unseeded["checks"] if c["check"] == "beacon"][0]["detail"].startswith("selection not beacon-seeded"))
 
+    # ---- the BLS check: one Rust source, the same verdicts as WebAssembly and on the command line
+    wasm = ROOT / "record" / "bls" / "target" / "wasm32-unknown-unknown" / "release" / "releve_bls.wasm"
+    script = ("const m = new WebAssembly.Module(require('fs').readFileSync(process.argv[1])); const x = new WebAssembly.Instance(m, {}).exports;"
+              "const out = []; for (const [r, h] of JSON.parse(process.argv[2])) { const b = Uint8Array.from(h.match(/../g) || [], (c) => parseInt(c, 16));"
+              "new Uint8Array(x.memory.buffer, x.buffer(), 64).set(b.subarray(0, 64)); out.push(x.quicknet(BigInt(r), b.length)); }"
+              "console.log(JSON.stringify([WebAssembly.Module.imports(m).length, out]));")
+    cases = [(ROUND["round"], ROUND["signature"]), (ROUND["round"] + 1, ROUND["signature"]), (ROUND["round"], ROUND["signature"][:-2] + "00")]
+    imports, verdicts = json.loads(subprocess.run(["node", "-e", script, str(wasm), json.dumps(cases)], capture_output=True, text=True).stdout)
+    check("the WebAssembly BLS check imports nothing, and gives the command line's verdicts",
+          imports == 0 and [v == 1 for v in verdicts] == [beacon.bls(r, h) for r, h in cases] == [True, False, False])
+    try:
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as pw:
+            browser = pw.chromium.launch()
+            page = browser.new_page()
+            asked = []
+            page.on("request", lambda q: asked.append(q.url))
+            page.goto((ROOT / "record" / "verifier.html").as_uri())
+            moved = copy.deepcopy(b2)
+            moved["record"]["beacon"]["round"] += 1
+            seen = [next(c for c in page.evaluate("([b, r, p]) => window.verifyRecord(b, r, p)", [x, roots, {"record": record}])["checks"]
+                         if c["check"] == "beacon-signature")["ok"] for x in (b2, moved)]
+            browser.close()
+        check("verifier.html checks the round's BLS signature itself, offline: it holds, and a moved round's does not",
+              seen == [True, False] and not [u for u in asked if not u.startswith("file:")], f"{seen} {asked}")
+    except ImportError:
+        check("verifier.html checks the round's BLS signature (Playwright needed)", False)
+
     # ---- what changed on a page, from one record of it to a later one
     later = copy.deepcopy(record)
     later["cycle"] = "2024-11"
@@ -218,7 +246,6 @@ def main():
     check("no change between a record and itself", core.call("changesOf", {"before": record, "after": record})["changes"] == [])
     other = {**later, "url": record["url"] + "-other"}
     check("two different pages are not compared", core.call("changesOf", {"before": record, "after": other})["compared"] is False)
-    import subprocess
     text = json.dumps({"before": record, "after": later}, ensure_ascii=False).encode("utf-8")
     js = subprocess.run(["node", str(ROOT / "plie" / "run.mjs"), str(ROOT / "record" / "gen" / "record.js"), "changesOf"],
                         input=text, capture_output=True).stdout.decode("utf-8").strip()
@@ -227,7 +254,6 @@ def main():
     # ---- records of relevé 0.10
     with tempfile.TemporaryDirectory() as d:
         corpus = Path(d, "c")
-        import subprocess
         subprocess.run([core.releve(), "ingest", corpus], input=(ROOT / "tests" / "observations" / "page.jsonl").read_bytes(), capture_output=True, check=True)
         v1 = [observation.from_v1(l) for l in corpus.read_text().splitlines()]
         v1 = [v for v in v1 if v]

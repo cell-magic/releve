@@ -3,7 +3,7 @@
 -- Written by plie/plie.py from Readings.plie. Do not edit: edit the source.
 {-# LANGUAGE NoImplicitPrelude, OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-unused-matches -Wno-name-shadowing -Wno-unused-imports -Wno-incomplete-patterns -Wno-overlapping-patterns #-}
-module Plie.Readings where
+module Plie.Readings (scParts, scBefore, lexLess, marked, labelOf, wcag, uniqueTexts, hostOf, isAddress, lastLabels, suffixLength, registrable, dependencies, legibility, decimal9, pad9, energy, reading, readingsOf) where
 
 import Plie.Prelude
 import Prelude (Show)

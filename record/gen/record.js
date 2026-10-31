@@ -40,12 +40,13 @@ export const $merkleBatch = $input => (($ds) => $object([$entry("root")((x0 => (
 export const $hexes = $js => $concat($map(($j => $maybeList($unhex($asText($j)))))($js));
 export const $maybeList = $m => ((s) => { if (s.t === "Just") { const $x = s.f[0]; return [$x]; } if (s.t === "Nothing") { return []; } throw new Error("plié: no alternative matches"); })($m);
 // ---- Seed
-export const $seedOf = $randomness => $site => $cycle => $sha256($append($randomness)($append($utf8($site))($utf8($cycle))));
-export const $placeOf = $seed => $url => $sha256($append($seed)($utf8($url)));
+export const $seedOf = $randomness => $site => $cycle => (x0 => ({t: "Seed", f: [x0]}))($sha256($append($randomness)($append($utf8($site))($utf8($cycle)))));
+export const $seedHex = $s => ((s) => { if (s.t === "Seed") { const $b = s.f[0]; return $hex($b); } throw new Error("plié: no alternative matches"); })($s);
+export const $placeOf = $s => $url => ((s) => { if (s.t === "Seed") { const $b = s.f[0]; return $sha256($append($b)($utf8($url))); } throw new Error("plié: no alternative matches"); })($s);
 export const $orderBy = $seed => $urls => $sortBy(($a => $b => $lt($placeOf($seed)($a))($placeOf($seed)($b))))($urls);
 export const $commitment = $urls => $digest($texts($dedupe($sortBy(($a => $b => $lt($a)($b)))($urls))));
 export const $dedupe = $xs => $reverse($foldl(($acc => $x => ($eq($nth(0n)($acc))((x0 => ({t: "Just", f: [x0]}))($x)) ? $acc : $cons($x)($acc))))([])($xs));
-export const $orderOf = $input => (($r) => (($urls) => (($seed) => $object([$entry("seed")((x0 => ({t: "JText", f: [x0]}))($hex($seed))), $entry("order")($texts($orderBy($seed)($urls))), $entry("commitment")((x0 => ({t: "JText", f: [x0]}))($commitment($urls)))]))($seedOf($r)($asText($field("site")($input)))($asText($field("cycle")($input)))))($map($asText)($asList($field("candidates")($input)))))($fromMaybe($utf8(""))($unhex($asText($field("randomness")($input)))));
+export const $orderOf = $input => (($r) => (($urls) => (($seed) => $object([$entry("seed")((x0 => ({t: "JText", f: [x0]}))($seedHex($seed))), $entry("order")($texts($orderBy($seed)($urls))), $entry("commitment")((x0 => ({t: "JText", f: [x0]}))($commitment($urls)))]))($seedOf($r)($asText($field("site")($input)))($asText($field("cycle")($input)))))($map($asText)($asList($field("candidates")($input)))))($fromMaybe($utf8(""))($unhex($asText($field("randomness")($input)))));
 export const $commitmentOf = $input => (($urls) => $object([$entry("commitment")((x0 => ({t: "JText", f: [x0]}))($commitment($urls))), $entry("candidates")($texts($dedupe($sortBy(($a => $b => $lt($a)($b)))($urls))))]))($map($asText)($asList($field("candidates")($input))));
 export const $firstRoundAfter = $t => $add($div($sub($t)(1692803367n))(3n))(2n);
 // ---- Chain

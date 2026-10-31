@@ -6,7 +6,7 @@ the same bytes on the same input; the compiled files kept in the repository are 
 their sources give; and the compiler refuses what it must. Needs GHC (with aeson and
 cryptohash-sha256) and Node. The Lean fold is written and kept, not checked here: no Lean was
 installed where this was made (HANDOVER.md)."""
-import json, os, subprocess, sys, tempfile
+import json, os, re, subprocess, sys, tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -18,7 +18,7 @@ checks = []
 
 
 def check(name, ok, detail=""):
-    checks.append(ok)
+    checks.append(bool(ok))
     print(("ok    " if ok else "FAIL  ") + name + ("" if ok or not detail else f"\n      {detail}"))
 
 
@@ -81,10 +81,28 @@ def main():
             bad.write_text(name and src, encoding="utf-8")
             r = subprocess.run([sys.executable, PLIE, "hs", d, bad], capture_output=True, text=True)
             check(f"refuses {name}", r.returncode == 1 and "plié:" in r.stderr, r.stderr)
+    # a sealed type: its constructor at home only, in the compiler and in GHC
+    with tempfile.TemporaryDirectory() as d:
+        home = Path(d) / "Home.plie"
+        home.write_text("module Home where\n\nsealed data Key = Key Int\n\n"
+                        "mint : Int -> Key\nmint n = Key (n * 2)\n\nreveal : Key -> Int\nreveal k = case k of\n  | Key n -> n\n", encoding="utf-8")
+        away = Path(d) / "Away.plie"
+        for name, body, ok in [("through the home module's functions", "use : Int -> Int\nuse n = reveal (mint n)\n", True),
+                               ("making a sealed value elsewhere", "use : Int -> Key\nuse n = Key n\n", False),
+                               ("opening a sealed value elsewhere", "use : Key -> Int\nuse k = case k of\n  | Key n -> n\n", False)]:
+            away.write_text("module Away where\n\nimport Home\n\n" + body, encoding="utf-8")
+            r = subprocess.run([sys.executable, PLIE, "hs", d, home, away], capture_output=True, text=True)
+            check(f"a sealed type: {'admits' if ok else 'refuses'} {name}", (r.returncode == 0) == ok and (ok or "sealed in Home" in r.stderr), r.stderr)
+        forged = Path(d) / "Forge.hs"
+        forged.write_text("{-# LANGUAGE OverloadedStrings #-}\nimport Plie.Seed\nimport Plie.Prelude (utf8)\n"
+                          "forged :: Seed\nforged = Seed (utf8 \"chosen\")\nmain :: IO ()\nmain = pure ()\n", encoding="utf-8")
+        r = subprocess.run(["ghc", "-fno-code", "-v0", f"-i{ROOT / 'plie' / 'prelude'}", f"-i{ROOT / 'record' / 'gen' / 'hs'}",
+                            "-outputdir", Path(d) / "o", forged], capture_output=True, text=True)
+        check("GHC too refuses a Seed made outside Seed: the order is the round's",
+              r.returncode != 0 and re.search(r"[Dd]ata constructor not in scope: Seed|term-level use of the type constructor or class .Seed", r.stderr) and r.stderr.count("rror") == 1, r.stderr[-600:])
     # the folds kept in the repository are those their sources give
     for target, out in [("hs", ROOT / "record" / "gen" / "hs" / "Plie"), ("lean", ROOT / "record" / "gen" / "lean" / "Plie"),
                         ("js", ROOT / "record" / "gen" / "record.js")]:
-        import re
         sources = [ROOT / x for x in re.search(r'^src="([^"]+)"', (ROOT / "record" / "build.sh").read_text(), re.M).group(1).split()]
         if not out.exists():
             check(f"the {target} fold of record/ is kept", False, f"{out} missing")

@@ -3,7 +3,7 @@
 -- Written by plie/plie.py from Roots.plie. Do not edit: edit the source.
 {-# LANGUAGE NoImplicitPrelude, OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-unused-matches -Wno-name-shadowing -Wno-unused-imports -Wno-incomplete-patterns -Wno-overlapping-patterns #-}
-module Plie.Roots where
+module Plie.Roots (entryHash, chained, listed, lastOf, rootsAppend) where
 
 import Plie.Prelude
 import Prelude (Show)

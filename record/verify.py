@@ -23,7 +23,7 @@ def edge(bundle):
     b = r.get("beacon", {})
     if "round" in b:
         v = beacon.bls(b["round"], b["signature"])
-        out["bls"] = {"ok": v, "detail": "py_ecc is not installed: the BLS signature is not checked" if v is None
+        out["bls"] = {"ok": v, "detail": "releve-bls is not built (record/bls): the BLS signature is not checked" if v is None
                       else "the round's signature does not hold under quicknet's key"}
     return out
 

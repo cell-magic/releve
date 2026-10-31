@@ -3,7 +3,7 @@
 -- Written by plie/plie.py from Chain.plie. Do not edit: edit the source.
 {-# LANGUAGE NoImplicitPrelude, OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-unused-matches -Wno-name-shadowing -Wno-unused-imports -Wno-incomplete-patterns -Wno-overlapping-patterns #-}
-module Plie.Chain where
+module Plie.Chain (recordHash, linked, chainNext, canonicalOf) where
 
 import Plie.Prelude
 import Prelude (Show)

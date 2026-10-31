@@ -3,7 +3,7 @@
 -- Written by plie/plie.py from Merkle.plie. Do not edit: edit the source.
 {-# LANGUAGE NoImplicitPrelude, OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-unused-matches -Wno-name-shadowing -Wno-unused-imports -Wno-incomplete-patterns -Wno-overlapping-patterns #-}
-module Plie.Merkle where
+module Plie.Merkle (Step(..), leafHash, nodeHash, pairUp, climb, ordered, root, pathAt, mapMaybe, position, pathOf, rootFrom, up, stepJson, stepOf, mapStep, merkleBatch, hexes, maybeList) where
 
 import Plie.Prelude
 import Prelude (Show)

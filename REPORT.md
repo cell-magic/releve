@@ -97,7 +97,7 @@ The checks pass on the final tree (`evidence/radar-v2/suite/summary.txt`):
 - The candidates are committed to and the commitment is dated **before** the
   round.
 - The round taken is quicknet's first after that date, and its BLS signature
-  is checked (py_ecc).
+  is checked (record/bls; py_ecc at first).
 - seed = SHA-256(randomness ‖ site ‖ cycle). The candidates are read in
   SHA-256(seed ‖ url) order, and the unchanged selector picks from what was
   read in that order.
@@ -232,9 +232,10 @@ or deleted.
    key stay, or go, now that the RFC 3161 token dates the record?
 3. **Qualified TSA.** Which eIDAS-qualified provider, and when? The switch is
    one line in `radar/config.toml`.
-4. **drand in the browser.** `verifier.html` checks the round offline but not
-   its BLS signature. Is that enough, or should the page carry a BLS verifier?
-   That would mean writing one, since nothing is taken from other software.
+4. **drand in the browser.** *Answered since:* `verifier.html` checks the BLS
+   signature itself, offline, with the same Rust code the command line uses
+   (`record/bls`). The crates are dependencies, not copied, and their notice
+   travels with the page.
 5. **The consultation voice.** The per-site store may keep only five fields,
    so the voice is returned to whoever keeps members and not stored here.
    Where does it live?

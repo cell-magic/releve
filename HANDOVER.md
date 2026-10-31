@@ -225,5 +225,9 @@ What I would like proved first, in `record/gen/lean/`:
 - completeness of `rootFrom`/`pathOf` (question 2);
 - the collision extraction for `Merkle`, `Chain` and `Roots` (question 3).
 
+Sealed types now exist (`sealed data`; plie/README.md): a minimal capability
+discipline, kept by the compiler and by GHC. Question 4 still stands: is it the
+right minimal one, and how should Lean keep it?
+
 The Lean output is written but has never been compiled: no Lean was
 installed where this was made. Its first job is to compile.

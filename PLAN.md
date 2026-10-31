@@ -45,10 +45,11 @@ dependencies impose:
 
 ## Dependencies
 
-- **`py_ecc==8.0.0`** (MIT; brings eth-typing, eth-utils, eth-hash, cytoolz
-  and pydantic, all MIT or BSD). BLS12-381 pairings and RFC 9380 hash-to-G1
-  have no standard-library equivalent, and a hand-written pairing is the
-  greater risk. Used only for the beacon check (`record/requirements.txt`).
+- **The BLS check** (`record/bls`, since the first plan replaced py_ecc).
+  BLS12-381 pairings and RFC 9380 hash-to-G1 have no standard-library
+  equivalent, and a hand-written pairing is the greater risk. It uses the
+  `bls12_381` and `sha2` crates (MIT or Apache-2.0), in one Rust source built
+  twice: for the command line, and as WebAssembly for the browser.
 - **Public suffix list** (MPL-2.0, data). It is what tells first parties
   from third parties by registrable domain. Pinned in `record/data/`, named
   in REUSE.toml, licence text in `LICENSES/MPL-2.0.txt`.

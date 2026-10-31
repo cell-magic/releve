@@ -2,7 +2,7 @@ version = 1
 
 # Files that cannot carry a comment: documentation, recorded test data, images.
 [[annotations]]
-path = ["README.md", "CLAUDE.md", "BOUNDARY.md", "PLAN.md", "REPORT.md", "HANDOVER.md", "plie/README.md", "COMPLIANCE.md", "CHANGELOG.md", "CONTRIBUTING.md", "SECURITY.md", "releve.cabal", ".gitattributes", ".gitignore", "examples/**", "tests/expected/**", "tests/observations/**", "tests/pages/*.png", "tests/pages/*.jpg", "record/data/*.json", "record/schema/*.json", "evidence/**"]
+path = ["README.md", "CLAUDE.md", "BOUNDARY.md", "PLAN.md", "REPORT.md", "HANDOVER.md", "plie/README.md", "COMPLIANCE.md", "CHANGELOG.md", "CONTRIBUTING.md", "SECURITY.md", "releve.cabal", ".gitattributes", ".gitignore", "examples/**", "tests/expected/**", "tests/observations/**", "tests/pages/*.png", "tests/pages/*.jpg", "record/data/*.json", "record/schema/*.json", "evidence/**", "record/bls/Cargo.lock"]
 SPDX-FileCopyrightText = "2026 Anna Teterkina <anna@bureaudessurfaces.fr>"
 SPDX-License-Identifier = "EUPL-1.2"
 
@@ -18,3 +18,10 @@ SPDX-License-Identifier = "MPL-2.0"
 path = "tests/beacon/**"
 SPDX-FileCopyrightText = "drand contributors (github.com/drand/tlock), quoting quicknet round 12040883"
 SPDX-License-Identifier = "MIT OR Apache-2.0"
+
+# The notice of the Rust crates compiled into the BLS check: their authors and licence texts
+# (record/bls/notice.py writes it from the lockfile).
+[[annotations]]
+path = "record/bls/NOTICE"
+SPDX-FileCopyrightText = "The authors of the Rust crates named in it"
+SPDX-License-Identifier = "MIT AND BSD-3-Clause"

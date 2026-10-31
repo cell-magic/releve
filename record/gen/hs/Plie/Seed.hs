@@ -3,20 +3,24 @@
 -- Written by plie/plie.py from Seed.plie. Do not edit: edit the source.
 {-# LANGUAGE NoImplicitPrelude, OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-unused-matches -Wno-name-shadowing -Wno-unused-imports -Wno-incomplete-patterns -Wno-overlapping-patterns #-}
-module Plie.Seed where
+module Plie.Seed (Seed, seedOf, seedHex, placeOf, orderBy, commitment, dedupe, orderOf, commitmentOf, firstRoundAfter) where
 
 import Plie.Prelude
 import Prelude (Show)
 import qualified Data.Text as T
 import Plie.Json
 
-seedOf :: ByteString -> Text -> Text -> ByteString
-seedOf randomness site cycle = (sha256 (randomness <> ((utf8 site) <> (utf8 cycle))))
+data Seed = Seed ByteString deriving (Eq, Show)
+seedOf :: ByteString -> Text -> Text -> Seed
+seedOf randomness site cycle = (Seed (sha256 (randomness <> ((utf8 site) <> (utf8 cycle)))))
 
-placeOf :: ByteString -> Text -> ByteString
-placeOf seed url = (sha256 (seed <> (utf8 url)))
+seedHex :: Seed -> Text
+seedHex s = (case s of { (Seed b) -> (hex b) })
 
-orderBy :: ByteString -> [Text] -> [Text]
+placeOf :: Seed -> Text -> ByteString
+placeOf s url = (case s of { (Seed b) -> (sha256 (b <> (utf8 url))) })
+
+orderBy :: Seed -> [Text] -> [Text]
 orderBy seed urls = (sortBy (\a b -> ((placeOf seed a) < (placeOf seed b))) urls)
 
 commitment :: [Text] -> Text
@@ -26,7 +30,7 @@ dedupe :: [Text] -> [Text]
 dedupe xs = (reverse (foldl (\acc x -> (if ((nth (0 :: Integer) acc) == (Just x)) then acc else (x : acc))) [] xs))
 
 orderOf :: Json -> Json
-orderOf input = (let r = (fromMaybe (utf8 (T.pack "")) (unhex (asText (field (T.pack "randomness") input)))) in (let urls = (map asText (asList (field (T.pack "candidates") input))) in (let seed = (seedOf r (asText (field (T.pack "site") input)) (asText (field (T.pack "cycle") input))) in (object [(entry (T.pack "seed") (JText (hex seed))), (entry (T.pack "order") (texts (orderBy seed urls))), (entry (T.pack "commitment") (JText (commitment urls)))]))))
+orderOf input = (let r = (fromMaybe (utf8 (T.pack "")) (unhex (asText (field (T.pack "randomness") input)))) in (let urls = (map asText (asList (field (T.pack "candidates") input))) in (let seed = (seedOf r (asText (field (T.pack "site") input)) (asText (field (T.pack "cycle") input))) in (object [(entry (T.pack "seed") (JText (seedHex seed))), (entry (T.pack "order") (texts (orderBy seed urls))), (entry (T.pack "commitment") (JText (commitment urls)))]))))
 
 commitmentOf :: Json -> Json
 commitmentOf input = (let urls = (map asText (asList (field (T.pack "candidates") input))) in (object [(entry (T.pack "commitment") (JText (commitment urls))), (entry (T.pack "candidates") (texts (dedupe (sortBy (\a b -> (a < b)) urls))))]))

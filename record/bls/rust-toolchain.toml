@@ -1,0 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
+# SPDX-License-Identifier: EUPL-1.2
+# One compiler, so that the WebAssembly kept in record/verifier.html is the one this source gives.
+[toolchain]
+channel = "1.97.0"
+targets = ["wasm32-unknown-unknown"]
+profile = "minimal"

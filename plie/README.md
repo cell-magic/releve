@@ -32,8 +32,9 @@ pairUp xs = case xs of
 ```
 
 - **Declarations**, each starting in the first column: `module`, `import`,
-  `data` (a sum of products, with type parameters), a signature `name : Type`,
-  and a definition `name x y = expression`. Every definition has a signature.
+  `data` (a sum of products, with type parameters), `sealed data`, a signature
+  `name : Type`, and a definition `name x y = expression`. Every definition has
+  a signature.
 - **Expressions**:
   - application; `\x -> e`; `let x = e in e`; `if c then a else b`;
   - `case e of`, with its alternatives `| pattern -> e` aligned under one
@@ -49,6 +50,31 @@ pairUp xs = case xs of
   the same input gives the same output in every translation.
 - **Reserved names:** a name that is a keyword or builtin in Haskell, Lean or
   JavaScript is refused, and so is any prelude name.
+
+## Sealed types: capabilities the compiler keeps
+
+A `sealed data` type's constructor may be used only in the module that declares
+it, to make a value or to take one apart. Elsewhere its values can be held and
+passed, but made or opened only through that module's own functions. A value
+of the type is therefore a capability: proof that it came from those functions.
+
+```
+sealed data Seed = Seed Bytes
+
+seedOf : Bytes -> Text -> Text -> Seed     -- the one way to make a Seed: from a beacon's randomness
+orderBy : Seed -> List Text -> List Text   -- the one way to use one
+```
+
+This is how RADAR's page order can only be the beacon round's
+(`record/Seed.plie`): no other code can make an order from bytes of its
+choosing.
+
+The rule is kept twice:
+- the compiler refuses a sealed constructor outside its module;
+- the Haskell translation exports a sealed type without its constructors, so
+  GHC refuses one too.
+
+`tests/plie.py` shows both refusing. The Lean translation says so in a comment.
 
 ## The prelude
 
@@ -66,6 +92,10 @@ Each name means the same in each language. Its three definitions are
 - Text is compared by code point, bytes byte by byte.
 - SHA-256 is the one cryptographic primitive. In Lean it is opaque: a proof
   may rely on its being a function, never on what it computes.
+- Signatures are checked at the edge, never in plié. The drand round's BLS
+  signature is checked by `record/bls`, one Rust source, as `releve-bls` on the
+  command line and as WebAssembly in `record/verifier.html`. The verifier is
+  handed the result.
 
 ## The world
 

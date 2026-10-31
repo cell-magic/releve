@@ -13,7 +13,7 @@ complete evaluation, which includes a person using assistive technology.
 | rule | where it bears | how it stands | evidence |
 |---|---|---|---|
 | EUPL-1.2, REUSE 3.3 | every file of relevé | every file states its licence; open and closed kept apart | `reuse lint`, `tests/boundary.py` (0 problems, 220 files) |
-| Free dependencies only | runtime and tests | all MIT, BSD-3-Clause, Apache-2.0, PSF-2.0 or MPL-2.0 | *Licences* below |
+| Free dependencies only | runtime and tests | all MIT, BSD-3-Clause, Apache-2.0 or MPL-2.0 | *Licences* below |
 | Generative AI disclosed (NLnet's policy) | every commit | each commit made with a model names it; none at runtime | *How it is made*, README |
 | WCAG 2.2 AA, RGAA 4.1.2 (EAA) | the pages relevé and RADAR hand out | no failure found by relevé's rules or by axe-core | `evidence/radar-v2/own-pages/` |
 | GDPR, ePrivacy (CNIL) | the service, the status page, records, case files | nothing kept of a request; no cookie; no personal data in records | `tests/service.py`, `radar` tests, *Privacy* below |
@@ -39,10 +39,13 @@ Dependencies, with their licences as their packages state them:
 |---|---|
 | Playwright | Apache-2.0 |
 | cryptography | Apache-2.0 OR BSD-3-Clause |
-| py_ecc and its dependencies (eth-typing, eth-utils, eth-hash, pydantic, pydantic-core, annotated-types, typing-inspection) | MIT |
-| cytoolz, toolz | BSD-3-Clause |
-| typing_extensions | PSF-2.0 |
 | aeson, cryptohash-sha256 (Haskell) | BSD-3-Clause |
+| Rust crates compiled into the BLS check: bls12_381, ff, group, pairing, sha2, digest, block-buffer, opaque-debug, cfg-if, rand_core, typenum | MIT OR Apache-2.0 (MIT taken) |
+| generic-array; subtle (also compiled in) | MIT; BSD-3-Clause |
+
+The BLS check ships compiled inside `record/verifier.html` and as `releve-bls`.
+It carries those crates' authors and licence texts, as their licences ask
+(`record/bls/NOTICE`, written from the lockfile; also inside the page).
 
 axe-core (MPL-2.0) is used to produce evidence and is not part of relevé.
 
@@ -103,7 +106,8 @@ the step before any statement of conformity.
 
 ## Eco-design
 
-- The record verifier is one file of 40 kB.
+- The record verifier is one file of 190 kB, 133 kB of it the BLS check. It is
+  fetched once and kept: nothing is fetched when it runs.
 - The status page is 1 kB, with no font, image or script.
 - The stamp is inline SVG and fetches nothing.
 
