@@ -5,6 +5,7 @@
     python -m record verify BUNDLE --roots ROOTS [--previous BUNDLE]   every check, named
     python -m record recompute BUNDLE | RECORD                          the readings again, compared by byte
     python -m record recompute --v1 CORPUS                              readings of a relevé 0.10 corpus
+    python -m record changes BEFORE AFTER                               what changed on a page between two of its records
 
 `releve` must be on the path, or named in RELEVE; it holds the core (record/*.plie)."""
 import json, sys
@@ -29,7 +30,7 @@ def recompute(record):
 
 
 def main(a):
-    if not a or a[0] not in ("verify", "recompute"):
+    if not a or a[0] not in ("verify", "recompute", "changes"):
         print(__doc__)
         return 2
     if a[0] == "verify":
@@ -40,6 +41,16 @@ def main(a):
         verify.show(checks)
         print("verified: every check holds" if ok else "NOT VERIFIED")
         return 0 if ok else 1
+    if a[0] == "changes":
+        before, after = (load(p).get("record", load(p)) for p in a[1:3])
+        out = core.call("changesOf", {"before": before, "after": after})
+        if not out["compared"]:
+            print("these are records of two different pages; a page is compared only with itself")
+            return 1
+        print(f"{out['page']}: from {out['from']} to {out['to']}, {len(out['changes'])} change(s)")
+        for c in out["changes"]:
+            print(f"  {c['delta']:+d}  {c['kind']:<18} {c['key']}")
+        return 0
     if a[1] == "--v1":
         lists = psl.load()
         with open(a[2], encoding="utf-8") as f:

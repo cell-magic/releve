@@ -1,0 +1,71 @@
+-- SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
+-- SPDX-License-Identifier: EUPL-1.2
+-- What changed on a page from one record of it to a later one, as typed differences:
+-- each a key and a signed count, +n where there is more, -n where there is less. The
+-- Bureau keeps no record, so a change is never stored: it is derived, whenever wanted,
+-- from two records the member holds. Records of two different pages are not compared.
+module Changes where
+
+import Json
+
+-- A rule's mark counts on a record, by criterion and machine label.
+marks : Text -> Text -> List Json -> Int
+marks criterion label rules =
+  foldl (\n r -> if asText (field "criterion" r) == criterion then n + asInt (field label r) else n) 0 rules
+
+criteriaOf : List Json -> List Text
+criteriaOf rules = map (\r -> asText (field "criterion" r)) rules
+
+union : List Text -> List Text -> List Text
+union xs ys = xs ++ filter (\y -> not (elem y xs)) ys
+
+change : Text -> Text -> Int -> Json
+change kind key delta = object [entry "kind" (JText kind), entry "key" (JText key), entry "delta" (JInt delta)]
+
+-- The rules: for each criterion and label whose count moved, by how much.
+ruleChanges : List Json -> List Json -> List Json
+ruleChanges before after =
+  concat (map (\c -> concat (map (\l -> let d = marks c l after - marks c l before in
+                                        if d == 0 then [] else [change l c d])
+                                 ["fail", "review", "hint"]))
+              (union (criteriaOf after) (criteriaOf before)))
+
+readingValue : Text -> Json -> Json
+readingValue name r = foldl (\v x -> if asText (field "name" x) == name then field "value" x else v) JNull (asList (field "readings" r))
+
+thirdParties : Json -> List Text
+thirdParties r = map (\d -> asText (field "domain" d))
+  (filter (\d -> asText (field "party" d) == "third") (asList (field "domains" (readingValue "dependencies" r))))
+
+-- Third parties: +1 for each that appeared, -1 for each that left.
+domainChanges : Json -> Json -> List Json
+domainChanges before after =
+  let b = thirdParties before in
+  let a = thirdParties after in
+  map (\d -> change "third-party" d 1) (filter (\d -> not (elem d b)) a)
+  ++ map (\d -> change "third-party" d (0 - 1)) (filter (\d -> not (elem d a)) b)
+
+-- A count of an earlier and a later record, if it moved.
+moved : Text -> Int -> Int -> List Json
+moved key before after = if after == before then [] else [change "measure" key (after - before)]
+
+measureChanges : Json -> Json -> List Json
+measureChanges before after =
+  moved "bytes" (asInt (path ["observation", "bytes", "total"] before)) (asInt (path ["observation", "bytes", "total"] after))
+  ++ moved "requests" (length (asList (path ["observation", "requests"] before))) (length (asList (path ["observation", "requests"] after)))
+  ++ moved "before-interaction" (early before) (early after)
+  ++ moved "obstacles" (asInt (field "obstacles" (readingValue "legibility" before))) (asInt (field "obstacles" (readingValue "legibility" after)))
+
+early : Json -> Int
+early r = length (filter (\q -> asBool (field "pre_interaction" q)) (asList (path ["observation", "requests"] r)))
+
+-- {"before": record, "after": record} gives {"page", "from", "to", "compared", "changes": [{kind, key, delta}]}.
+changesOf : Json -> Json
+changesOf input =
+  let b = field "before" input in
+  let a = field "after" input in
+  let same = asText (field "url" b) == asText (field "url" a) && asText (field "site" b) == asText (field "site" a) in
+  object [ entry "page" (field "url" a), entry "from" (field "cycle" b), entry "to" (field "cycle" a)
+         , entry "compared" (JBool same)
+         , entry "changes" (JList (if same then ruleChanges (asList (field "rules" b)) (asList (field "rules" a))
+                                                ++ domainChanges b a ++ measureChanges b a else [])) ]

@@ -199,6 +199,31 @@ def main():
     check("a record whose beacon could not be reached says so, and is not taken as seeded",
           [c for c in unseeded["checks"] if c["check"] == "beacon"][0]["detail"].startswith("selection not beacon-seeded"))
 
+    # ---- what changed on a page, from one record of it to a later one
+    later = copy.deepcopy(record)
+    later["cycle"] = "2024-11"
+    later["rules"] = [dict(r, fail=r["fail"] + (1 if r["criterion"] == "image-alt" else 0),
+                           review=max(0, r["review"] - (1 if r["criterion"] == "text-contrast" else 0))) for r in later["rules"]]
+    later["observation"]["bytes"]["total"] -= 100
+    later["readings"] = [dict(x, value={**x["value"], "domains": x["value"]["domains"]
+                                         + [{"domain": "tracker.example", "party": "third", "requests": 1, "bytes": 1, "pre_interaction": 1}]})
+                         if x["name"] == "dependencies" else x for x in later["readings"]]
+    out = core.call("changesOf", {"before": record, "after": later})
+    got = {(c["kind"], c["key"]): c["delta"] for c in out["changes"]}
+    want = {("fail", "image-alt"): 1, ("third-party", "tracker.example"): 1, ("measure", "bytes"): -100}
+    if any(r["criterion"] == "text-contrast" and r["review"] > 0 for r in record["rules"]):
+        want[("review", "text-contrast")] = -1
+    check("changes between two records of a page are the typed differences, +n and -n, and nothing else",
+          out["compared"] and got == want, f"{got} != {want}")
+    check("no change between a record and itself", core.call("changesOf", {"before": record, "after": record})["changes"] == [])
+    other = {**later, "url": record["url"] + "-other"}
+    check("two different pages are not compared", core.call("changesOf", {"before": record, "after": other})["compared"] is False)
+    import subprocess
+    text = json.dumps({"before": record, "after": later}, ensure_ascii=False).encode("utf-8")
+    js = subprocess.run(["node", str(ROOT / "plie" / "run.mjs"), str(ROOT / "record" / "gen" / "record.js"), "changesOf"],
+                        input=text, capture_output=True).stdout.decode("utf-8").strip()
+    check("the JavaScript fold gives the same changes, byte for byte", js == core.run("changesOf", {"before": record, "after": later}))
+
     # ---- records of relevé 0.10
     with tempfile.TemporaryDirectory() as d:
         corpus = Path(d, "c")

@@ -398,7 +398,10 @@ authority (RFC 3161) and published in an append-only list, and the pages observe
 in an order given by a public beacon (drand) whose round is fixed after the candidates
 were dated. `python -m record verify BUNDLE --roots roots.json` checks all of it, each check
 named; `record/verifier.html` does the same in a browser, offline, and says which checks
-only the command line makes. What judges and checks is written once, in plié (`plie/`,
+only the command line makes. `python -m record changes BEFORE AFTER` gives what changed on a
+page between two of its records, as signed differences (a rule's marks, third parties
+come or gone, bytes, requests before any interaction, legibility's obstacles): derived
+from the records the member holds, never stored. What judges and checks is written once, in plié (`plie/`,
 `record/*.plie`), and runs the same in Haskell and in JavaScript. BOUNDARY.md says what of
 RADAR is open, here, and what the Bureau keeps closed.
 

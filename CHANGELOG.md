@@ -25,6 +25,9 @@ Criteria stay at v10.
   beacon; the round taken is drand quicknet's first after that date, its BLS signature
   checked; the order it gives is the one the selector reads. Without a round, the record
   says "selection not beacon-seeded".
+- **What changed on a page** (`record/Changes.plie`, `python -m record changes`): two
+  records of one page compared as signed differences, derived from what the member
+  holds, never kept.
 - **The owner's mandate**: a record observed under it says so, and so does the report.
 - **The observer** keeps each request's status and moment and counts the accessibility tree.
 - **"Sealed" is "chained"**: `releve verify` and the service say what the free chain is.
