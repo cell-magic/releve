@@ -27,7 +27,7 @@ jobs:
         with:
           ghc-version: "9.6"
           cabal-version: "3.10"
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - run: cabal update
@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - run: python tests/boundary.py
@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - run: pip install -r observe/requirements.txt reuse && playwright install --with-deps chromium && sudo apt-get install -y -qq libnss3-tools
@@ -73,7 +73,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - run: pip install -r observe/requirements.txt && playwright install --with-deps chromium
@@ -88,7 +88,7 @@ jobs:
         with:
           ghc-version: "9.6"
           cabal-version: "3.10"
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - run: cabal update && cabal install --install-method=copy --installdir=dist --overwrite-policy=always
@@ -107,7 +107,7 @@ jobs:
         with:
           ghc-version: "9.6"
           cabal-version: "3.10"
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - uses: actions/setup-node@v4
