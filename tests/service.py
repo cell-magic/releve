@@ -118,6 +118,10 @@ for path, lang in (("/", "en"), ("/fr/", "fr")):
 head = urlopen(Request(f"http://127.0.0.1:{door}/", method="HEAD"))
 check("answers a request for the headers alone with the headers alone", head.status == 200 and int(head.headers["Content-Length"]) > 0 and head.read() == b"")
 
+code, heads, guide = ask(door, path="/guide")
+check("renders the criteria guide once at setup, with no cookie and no script",
+      code == 200 and "The criteria" in guide and "set-cookie" not in heads and "<script" not in guide)
+
 code, heads, first = ask(door, f"http://localhost:{open_}/one", "fr")
 check("answers an address with its report, in the language asked for",
       code == 200 and '<html lang="fr">' in first and "Méthode" in first and "pas d'attribut alt" in first and "set-cookie" not in heads)
@@ -291,7 +295,7 @@ check("dates the record by the authority named, and sets its sky above the date"
 serve.AUTHORITY = serve.SKY = None
 
 # With the report, the drafts drawn from the same record: a file to keep, the record dated within it.
-draft = re.search(r'<a download="statements-[^"]+\.html" href="data:text/html;base64,([^"]+)">Download the drafts</a>', text)
+draft = re.search(r'<a download="statements-[^"]+\.html" href="data:text/html;base64,([^"]+)">Download the templates</a>', text)
 drafts = base64.b64decode(draft.group(1)).decode("utf-8") if draft else ""
 check("hands over the draft statements of the record, dated as the record is",
       "<h2>Accessibility statement</h2>" in drafts and "<h2>Eco-design declaration</h2>" in drafts and "The record is dated " in drafts)

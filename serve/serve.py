@@ -62,6 +62,7 @@ from receipt import bundle, sampler  # noqa: E402  (the page as served, and its 
 import sky  # noqa: E402  (the sky of a record, beside this file)
 
 AUTHORITY = SKY = FROM = None   # set by setup()
+GUIDE = {}                       # the criteria guide, per language, rendered once at setup
 PAUSE = 10        # seconds between two visits to one site, at least
 WAITING = 4       # requests that may wait their turn
 PATIENCE = 90     # seconds a request waits for its answer
@@ -78,11 +79,13 @@ WORDS = {
         "go": "Run report", "language": "Report language",
         "sky": "The sky of this record", "skyis": "Each dot of these clouds is placed by the authority’s signed reply: sky {code}. A record changed, or dated otherwise, has another sky.",
         "verify": "How to verify a record",
-        "keep": "Following this page over time", "keepit": "This service keeps nothing. To follow this page over time, keep its record: "
-        "hand it back with the next request, and the report will say what was mended, what is new and what stands.",
+        "keep": "Following this page or adding pages of the site", "keepit": "This service keeps nothing. Keep this record (.gz) and hand it back with the next request: "
+        "on the same address, it records what was mended, what is new and what stands; on another page of the same site (up to 25 pages), it pools the questions shared by a template and completes the statement templates.",
         "download": "Download the record", "file": ".gz file", "again": "Report on another page",
-        "drafts": "Draft statements", "draftsare": "An accessibility statement and an eco-design declaration, drafted from this record, for the owner to complete and publish.",
-        "getdrafts": "Download the drafts",
+        "drafts": "Pre-filled statement templates", "draftsare": "An accessibility statement and an eco-design declaration, pre-filled from this record, for the owner to review, complete and publish.",
+        "getdrafts": "Download the templates",
+        "updated": "the record and the statement templates below are updated.",
+        "guide": "The criteria, and what each is for",
         "html": ".html file",
         "served": "The page as it was served", "servedis": "The page the robot was served, held whole in a signed bundle, with the receipt that "
         "replays it. The verifier checks both in a browser, offline. The record carries the receipt’s head, dated with the rest.",
@@ -117,11 +120,13 @@ WORDS = {
         "go": "Obtenir l’état des lieux", "language": "Langue du rapport",
         "sky": "Le ciel de ce relevé", "skyis": "Chaque point de ces nuages est placé par la réponse signée de l’autorité : ciel {code}. Un relevé modifié, ou daté autrement, a un autre ciel.",
         "verify": "Vérifier un relevé",
-        "keep": "Suivre cette page dans le temps", "keepit": "Ce service ne conserve rien. Pour suivre cette page dans le temps, gardez son relevé : "
-        "joignez-le à votre prochaine demande, et le rapport dira ce qui a été corrigé, ce qui est nouveau et ce qui persiste.",
+        "keep": "Suivre cette page ou compléter le site", "keepit": "Ce service ne conserve rien. Gardez ce relevé (.gz) et joignez-le à votre prochaine demande : "
+        "sur la même adresse, il consigne ce qui a été corrigé, ce qui est nouveau et ce qui persiste ; sur une autre page du même site (jusqu'à 25 pages), il mutualise les questions de gabarit et complète les trames de déclaration.",
         "download": "Télécharger le relevé", "file": "fichier .gz", "again": "Un autre état des lieux",
-        "drafts": "Projets de déclarations", "draftsare": "Une déclaration d’accessibilité et une déclaration d’écoconception, rédigées à partir de ce relevé, que le responsable complète et publie.",
-        "getdrafts": "Télécharger les projets",
+        "drafts": "Trames de déclaration pré-remplies", "draftsare": "Une déclaration d'accessibilité et une déclaration d'écoconception, pré-remplies à partir de ce relevé, que le responsable vérifie, complète et publie.",
+        "getdrafts": "Télécharger les trames",
+        "updated": "le relevé et les trames de déclaration ci-dessous sont à jour.",
+        "guide": "Les critères, et à quoi chacun sert",
         "html": "fichier .html",
         "served": "La page telle qu’elle a été servie", "servedis": "La page servie au robot, gardée entière dans un paquet signé, avec le reçu "
         "qui la rejoue. Le vérificateur contrôle l’un et l’autre dans un navigateur, hors ligne. Le relevé porte l’empreinte du reçu, datée avec le reste.",
@@ -218,7 +223,8 @@ STYLE = ("*{box-sizing:border-box}html{color:#1a1a1a;background:#fff}body{margin
          "a{color:#1f3a8a}:focus-visible{outline:2px solid #1f3a8a;outline-offset:2px}"
          "fieldset{min-width:0;margin:.5rem 0 0;padding:.5rem .75rem;border:1px solid #c8cacd}legend{padding:0 .25rem;font-weight:600}"
          "fieldset input[type=radio],fieldset label{display:inline;margin:.5rem .25rem 0 0}fieldset label{margin-right:1rem}"
-         "fieldset label[for^=n-],fieldset label[for^=dn-]{display:block}fieldset input[type=text]{width:100%;padding:.3rem;color:inherit;background:#fff;border:1px solid #5c6066}")
+         "fieldset label[for^=n-],fieldset label[for^=dn-]{display:block}fieldset input[type=text]{width:100%;padding:.3rem;color:inherit;background:#fff;border:1px solid #5c6066}"
+         "details.pli{margin:.75rem 0;border-top:1px solid #c8cacd;padding-top:.5rem}details.pli>summary{cursor:pointer;padding:.25rem 0}")
 
 
 def shut(url, local, known={}):
@@ -471,7 +477,10 @@ def drafted(record, lang):
         corpus = Path(d, "c")
         corpus.write_bytes(unpacked(record))
         code, out, _ = releve("statement", lang, corpus)
-        return out if code == 0 else b""
+        if code != 0:
+            return b""
+        return (out.replace(b"Draft statements \xc2\xb7 ", b"Pre-filled statement templates \xc2\xb7 ")
+                   .replace(b"Projets de d\xc3\xa9clarations \xc2\xb7 ", b"Trames de d\xc3\xa9claration pr\xc3\xa9-remplies \xc2\xb7 "))
 
 
 def offered(lang, name, kind, data, words):
@@ -479,6 +488,116 @@ def offered(lang, name, kind, data, words):
     w = WORDS[lang]
     return (f'<a download="{name}" href="data:{kind};base64,{base64.b64encode(data).decode("ascii")}">{w[words[0]]}</a>'
             f' · {w[words[1]]}, {len(data) // 1024 + 1}&nbsp;k{"B" if lang == "en" else "o"}')
+
+
+def smart_adjust(body, lang, record=None):
+    """Ensure the interactive report presents its footprint and reading measures above the manual questionnaires,
+    and folds whole-page review checklists, non-applicable criteria, and unanswered declaration families into
+    native <details class="pli"> disclosures. Idempotent if the kernel has already emitted <details class="pli">."""
+    fr = lang == "fr"
+    if fr:
+        body = body.replace("<h1>État des lieux · ", "<h1>Relevé · ", 1)
+        body = re.sub(
+            r"<p><strong>(\d+) contrôle(s?) passe(?:nt)? · ",
+            lambda m: f"<p><strong>Sur cette page\xa0: {m.group(1)} point{m.group(2)} sans écart · ",
+            body,
+            count=1,
+        )
+        body = body.replace(
+            "Déclarés une fois par le responsable pour tout le relevé. Les textes officiels prévalent.",
+            "Les réponses saisies pré-remplissent la trame déclarative de l'éditeur. Les textes officiels prévalent.",
+            1,
+        )
+    else:
+        body = body.replace("<h1>Report · ", "<h1>Record · ", 1)
+        body = re.sub(
+            r"<p><strong>(\d+) check(s?) pass(?:es)? · ",
+            lambda m: f"<p><strong>On this page: {m.group(1)} point{m.group(2)} without discrepancy · ",
+            body,
+            count=1,
+        )
+        body = body.replace(
+            "Declared once by the owner for the whole record. The official texts prevail.",
+            "Recorded answers pre-fill the publisher's statement template. The official texts prevail.",
+            1,
+        )
+    obs = None
+    if record:
+        for line in unpacked(record).decode("utf-8", "replace").splitlines():
+            if '"observed":' in line:
+                obs = json.loads(line).get("event", {}).get("observed") or obs
+    if obs:
+        res = (obs.get("network") or {}).get("resources") or []
+        pre_hosts = {urllib.parse.urlsplit(r.get("url", "")).hostname for r in res if r.get("third") and r.get("pre")} - {None, ""}
+        if pre_hosts:
+            if fr:
+                body = re.sub(r"(· \d+ hôtes tiers)", rf"\1 ({len(pre_hosts)} sollicités avant toute interaction)", body, count=1)
+            else:
+                body = re.sub(r"(· \d+ third-party hosts)", rf"\1 ({len(pre_hosts)} contacted before any interaction)", body, count=1)
+        imgs = [s for s in (obs.get("surfaces") or []) if s.get("kind") == "img"]
+        if imgs:
+            m_cnt = sum(1 for s in imgs if s.get("manifest") is True)
+            o_cnt = sum(1 for s in imgs if s.get("origin"))
+            prov = (f"<p>{m_cnt} sur {len(imgs)} images portent un manifeste de provenance (C2PA)\xa0; {o_cnt} déclarent une origine synthétique.</p>\n"
+                    if fr else f"<p>{m_cnt} of {len(imgs)} images carry a provenance manifest (C2PA); {o_cnt} state a synthetic origin.</p>\n")
+            body = re.sub(r"(<h2>(?:Empreinte|Footprint)</h2>\n<p>.*?</p>\n)", rf"\1{prov}", body, count=1)
+    if '<details class="pli"' in body:
+        return body
+    # 1. Promote Empreinte / Footprint and La lecture / The reading above Questions ouvertes / Open questions
+    fp_re = re.compile(r"(<h2>(?:Empreinte|Footprint)</h2>\n.*?)(?=<h2 id=\"declarations\">|<h2>(?:Ce qui n'a pas été regardé|What was not looked at)</h2>|\Z)", re.S)
+    q_re = re.compile(r"<h2>(?:Questions ouvertes|Open questions|Allègements|Lighter options) \(\d+\)</h2>")
+    m_fp, m_q = fp_re.search(body), q_re.search(body)
+    if m_fp and m_q and m_fp.start() > m_q.start():
+        vitals = m_fp.group(1)
+        body = body[:m_fp.start()] + body[m_fp.end():]
+        m_q = q_re.search(body)
+        if m_q:
+            body = body[:m_q.start()] + vitals + body[m_q.start():]
+    # 2. Fold whole-page review checklists (", à relire" / ", for review") inside Questions ouvertes
+    rev_re = re.compile(r"(<h3>[^<]*(?:, à relire|, for review)</h3>\n.*?)(?=<p><button type=\"submit\">|<h2>)", re.S)
+    m_rev = rev_re.search(body)
+    if m_rev:
+        chunk = m_rev.group(1)
+        n_q = chunk.count("<fieldset>")
+        if n_q:
+            lbl = f"À relire sur la page entière ({n_q})" if fr else f"Page-wide questions ({n_q})"
+            body = body[:m_rev.start()] + f'<details class="pli"><summary>{lbl}</summary>\n{chunk}</details>\n' + body[m_rev.end():]
+    # 3. Fold non-applicable ("sans objet :" / "not applicable:") items in Critère par critère
+    crit_re = re.compile(r"(<h2>(?:Critère par critère|Criterion by criterion)</h2>\n)<ul>\n(.*?)\n</ul>", re.S)
+    m_crit = crit_re.search(body)
+    if m_crit:
+        items = m_crit.group(2).splitlines()
+        active = [x for x in items if " · sans objet\xa0:" not in x and " · sans objet :" not in x and " · not applicable: " not in x]
+        na = [x for x in items if x not in active]
+        if na:
+            lbl = f"Sans objet sur cette page ({len(na)})" if fr else f"Not applicable on this page ({len(na)})"
+            rep = (m_crit.group(1) + "<ul>\n" + "\n".join(active) + "\n</ul>\n"
+                   + f'<details class="pli"><summary>{lbl}</summary>\n<ul>\n' + "\n".join(na) + "\n</ul></details>")
+            body = body[:m_crit.start()] + rep + body[m_crit.end():]
+    # 4. Fold unanswered declaration families inside Déclarations
+    decl_re = re.compile(r'(<h2 id="declarations">.*?<p><strong>.*?</strong></p>\n)(.*?)(<p><button type="submit">(?:Envoyer les déclarations|Submit declarations)</button></p>)', re.S)
+    m_decl = decl_re.search(body)
+    if m_decl:
+        def fold_fam(m):
+            title, ul = m.group(1), m.group(2)
+            total = ul.count("<li>")
+            done = ul.count(" checked>")
+            open_n = total - done
+            if fr:
+                stat = f"{open_n} ouverte{'s' if open_n > 1 else ''}" + (f", {done} déclarée{'s' if done > 1 else ''}" if done else "")
+            else:
+                stat = f"{open_n} open" + (f", {done} answered" if done else "")
+            attr = " open" if done else ""
+            return f'<details class="pli"{attr}><summary><strong>{title}</strong> · {stat}</summary>\n<h3>{title}</h3>\n<ul>\n{ul}\n</ul></details>'
+        folded = re.sub(r"<h3>([^<]+)</h3>\n<ul>\n(.*?)\n</ul>", fold_fam, m_decl.group(2), flags=re.S)
+        body = body[:m_decl.start()] + m_decl.group(1) + folded + m_decl.group(3) + body[m_decl.end():]
+    if fr:
+        body = body.replace(">Envoyer les réponses</button>", ">Consigner les réponses</button>")
+        body = body.replace(">Envoyer les déclarations</button>", ">Consigner les déclarations</button>")
+    else:
+        body = body.replace(">Submit answers</button>", ">Record the answers</button>")
+        body = body.replace(">Submit declarations</button>", ">Record the declarations</button>")
+    return body
 
 
 def given_back(lang, report, record, url, said="", served=None):
@@ -489,7 +608,7 @@ def given_back(lang, report, record, url, said="", served=None):
     title = re.search(r"<title>(.*?)</title>", report, re.S).group(1)
     body = report[report.index("<main>") + 6:report.index("</main>")]
     kept = base64.b64encode(record).decode("ascii")
-    body = body.replace("</h1>", "</h1>\n" + said, 1).replace("<!-- sky -->", skyline(record, lang), 1)
+    body = smart_adjust(body.replace("</h1>", "</h1>\n" + said, 1).replace("<!-- sky -->", skyline(record, lang), 1), lang, record)
     if 'type="radio"' in body:
         body = (f'<form method="post" action="{PREFIX}/answer" enctype="multipart/form-data">\n<input type="hidden" name="lang" value="{lang}">\n'
                 f'<input type="hidden" name="kept" value="{kept}">\n{body}</form>\n')
@@ -539,11 +658,24 @@ class Door(BaseHTTPRequestHandler):
                     self.send_header(k, v)
                 self.end_headers()
                 return self.command == "HEAD" or self.wfile.write(out)
+        if path in ("/guide", "/fr/guide"):
+            lang = "fr" if path == "/fr/guide" else "en"
+            out = GUIDE.get(lang, b"")
+            if not out:
+                return self.answer(404, lang, "relevé", '<h1>relevé</h1>\n<p><a href="' + PREFIX + '/">relevé</a></p>')
+            self.send_response(200)
+            for k, v in [("Content-Type", "text/html; charset=utf-8"), ("Content-Length", str(len(out))), ("Cache-Control", "no-store"),
+                         ("Referrer-Policy", "no-referrer"), ("X-Content-Type-Options", "nosniff"), ("X-Robots-Tag", "noindex"),
+                         ("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'")]:
+                self.send_header(k, v)
+            self.end_headers()
+            return self.command == "HEAD" or self.wfile.write(out)
         if path not in ("/", "/fr/"):
             return self.answer(404, "en", "relevé", '<h1>relevé</h1>\n<p><a href="' + PREFIX + '/">relevé</a></p>')
         lang = "fr" if path == "/fr/" else "en"
         w = WORDS[lang]
-        self.answer(200, lang, w["title"], f'<h1>{w["title"]}</h1>\n<p>{w["lead"]}</p>\n{form(lang)}')
+        glink = f'<p class="meta"><a href="{PREFIX}/guide">{w["guide"]}</a></p>' if lang == "en" else f'<p class="meta"><a href="{PREFIX}/fr/guide">{w["guide"]}</a></p>'
+        self.answer(200, lang, w["title"], f'<h1>{w["title"]}</h1>\n<p>{w["lead"]}</p>\n{form(lang)}\n{glink}')
 
     do_HEAD = do_GET  # the same answer, without its body
 
@@ -574,7 +706,8 @@ class Door(BaseHTTPRequestHandler):
                             for k, v in fields.items() if k and k.startswith("d-") and v in (b"yes", b"no", b"n/a")}
                 report, record, count, url = answer(held, given, lang, declared)
                 w = WORDS[lang]
-                said = f'<p><strong>{escape(w["recorded"].format(w["answers"][0] if count == 1 else w["answers"][1].format(count)) if count else w["unanswered"])}</strong></p>\n'
+                said = (f'<p><strong>{escape(w["recorded"].format(w["answers"][0] if count == 1 else w["answers"][1].format(count)) if count else w["unanswered"])}'
+                        + (f' — {w["updated"]}' if count else '') + '</strong></p>\n')
             else:
                 url = (fields.get("url") or b"").decode("utf-8", "replace").strip()
                 if len(url) > 2000 or observer.place(url) is None:
@@ -605,7 +738,7 @@ class Door(BaseHTTPRequestHandler):
 
 def setup(contact, local=False, shells=(), static=None, prefix="", counts=None, authority=None, skyfile=None, seen_from=None):
     """Everything the door needs, set once before it opens."""
-    global AUTHORITY, BENCH, FROM, MEMORY, PREFIX, RELEVE, SHELLS, SKY, STATIC, TALLY, VERIFIER
+    global AUTHORITY, BENCH, FROM, GUIDE, MEMORY, PREFIX, RELEVE, SHELLS, SKY, STATIC, TALLY, VERIFIER
     AUTHORITY, FROM = authority, seen_from
     SKY = None
     if skyfile:
@@ -613,6 +746,11 @@ def setup(contact, local=False, shells=(), static=None, prefix="", counts=None, 
         SKY["drawing"] = (Path(skyfile).parent / SKY["svg"]).read_text(encoding="utf-8")
     VERIFIER = (ROOT / "receipt" / "verifier.html").read_bytes()
     RELEVE = shutil.which(os.environ.get("RELEVE", "releve")) or sys.exit("serve: releve not found; build it, or name it in RELEVE")
+    GUIDE.clear()
+    for glang in ("en", "fr"):
+        code, out, _ = releve("guide", glang)
+        if code == 0:
+            GUIDE[glang] = out
     MEMORY = "/dev/shm" if os.access("/dev/shm", os.W_OK) else None  # records pass through memory, not through a disk
     PREFIX = prefix.rstrip("/")
     SHELLS = {k: Path(v).read_text(encoding="utf-8") for k, v in (x.split("=", 1) for x in shells)}
