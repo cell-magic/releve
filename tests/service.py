@@ -295,7 +295,7 @@ check("dates the record by the authority named, and sets its sky above the date"
 serve.AUTHORITY = serve.SKY = None
 
 # With the report, the drafts drawn from the same record: a file to keep, the record dated within it.
-draft = re.search(r'<a download="statements-[^"]+\.html" href="data:text/html;base64,([^"]+)">Download the templates</a>', text)
+draft = re.search(r'<a download="statements-[^"]+\.html" href="data:text/html;base64,([^"]+)">Download the drafts</a>', text)
 drafts = base64.b64decode(draft.group(1)).decode("utf-8") if draft else ""
 check("hands over the draft statements of the record, dated as the record is",
       "<h2>Accessibility statement</h2>" in drafts and "<h2>Eco-design declaration</h2>" in drafts and "The record is dated " in drafts)

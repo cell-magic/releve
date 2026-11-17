@@ -82,10 +82,10 @@ WORDS = {
         "keep": "Following this page or adding pages of the site", "keepit": "This service keeps nothing. Keep this record (.gz) and hand it back with the next request: "
         "on the same address, it records what was mended, what is new and what stands; on another page of the same site (up to 25 pages), it pools the questions shared by a template and completes the statement templates.",
         "download": "Download the record", "file": ".gz file", "again": "Report on another page",
-        "drafts": "Pre-filled statement templates", "draftsare": "An accessibility statement and an eco-design declaration, pre-filled from this record, for the owner to review, complete and publish.",
-        "getdrafts": "Download the templates",
+        "drafts": "Draft statements", "draftsare": "An accessibility statement and an eco-design declaration, drafted from this record, for the owner to review, complete and publish.",
+        "getdrafts": "Download the drafts",
         "updated": "the record and the statement templates below are updated.",
-        "guide": "The criteria, and what each is for",
+        "guide": "Read the criteria, and what each is for",
         "html": ".html file",
         "served": "The page as it was served", "servedis": "The page the robot was served, held whole in a signed bundle, with the receipt that "
         "replays it. The verifier checks both in a browser, offline. The record carries the receipt’s head, dated with the rest.",
@@ -588,7 +588,7 @@ def smart_adjust(body, lang, record=None):
             else:
                 stat = f"{open_n} open" + (f", {done} answered" if done else "")
             attr = " open" if done else ""
-            return f'<details class="pli"{attr}><summary><strong>{title}</strong> · {stat}</summary>\n<h3>{title}</h3>\n<ul>\n{ul}\n</ul></details>'
+            return f'<details class="pli"{attr}><summary>{title} · {stat}.</summary>\n<h3>{title}</h3>\n<ul>\n{ul}\n</ul></details>'
         folded = re.sub(r"<h3>([^<]+)</h3>\n<ul>\n(.*?)\n</ul>", fold_fam, m_decl.group(2), flags=re.S)
         body = body[:m_decl.start()] + m_decl.group(1) + folded + m_decl.group(3) + body[m_decl.end():]
     if fr:
@@ -608,7 +608,9 @@ def given_back(lang, report, record, url, said="", served=None):
     title = re.search(r"<title>(.*?)</title>", report, re.S).group(1)
     body = report[report.index("<main>") + 6:report.index("</main>")]
     kept = base64.b64encode(record).decode("ascii")
-    body = smart_adjust(body.replace("</h1>", "</h1>\n" + said, 1).replace("<!-- sky -->", skyline(record, lang), 1), lang, record)
+    body = body.replace("</h1>", "</h1>\n" + said, 1).replace("<!-- sky -->", skyline(record, lang), 1)
+    if SHELLS:
+        body = smart_adjust(body, lang, record)
     if 'type="radio"' in body:
         body = (f'<form method="post" action="{PREFIX}/answer" enctype="multipart/form-data">\n<input type="hidden" name="lang" value="{lang}">\n'
                 f'<input type="hidden" name="kept" value="{kept}">\n{body}</form>\n')
@@ -674,8 +676,7 @@ class Door(BaseHTTPRequestHandler):
             return self.answer(404, "en", "relevé", '<h1>relevé</h1>\n<p><a href="' + PREFIX + '/">relevé</a></p>')
         lang = "fr" if path == "/fr/" else "en"
         w = WORDS[lang]
-        glink = f'<p class="meta"><a href="{PREFIX}/guide">{w["guide"]}</a></p>' if lang == "en" else f'<p class="meta"><a href="{PREFIX}/fr/guide">{w["guide"]}</a></p>'
-        self.answer(200, lang, w["title"], f'<h1>{w["title"]}</h1>\n<p>{w["lead"]}</p>\n{form(lang)}\n{glink}')
+        self.answer(200, lang, w["title"], f'<h1>{w["title"]}</h1>\n<p>{w["lead"]}</p>\n{form(lang)}')
 
     do_HEAD = do_GET  # the same answer, without its body
 
@@ -707,7 +708,7 @@ class Door(BaseHTTPRequestHandler):
                 report, record, count, url = answer(held, given, lang, declared)
                 w = WORDS[lang]
                 said = (f'<p><strong>{escape(w["recorded"].format(w["answers"][0] if count == 1 else w["answers"][1].format(count)) if count else w["unanswered"])}'
-                        + (f' — {w["updated"]}' if count else '') + '</strong></p>\n')
+                        + (f' — {w["updated"]}' if count and SHELLS else '') + '</strong></p>\n')
             else:
                 url = (fields.get("url") or b"").decode("utf-8", "replace").strip()
                 if len(url) > 2000 or observer.place(url) is None:
