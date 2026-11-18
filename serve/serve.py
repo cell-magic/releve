@@ -571,6 +571,28 @@ def zones(body, fr):
     return body
 
 
+def effort_summary(body, fr):
+    """The open questions counted by the effort each asks, so a reader sees the shape of the work
+    before the list: how many are light, moderate, heavy. Reads only what the report already states."""
+    sec = re.search(r"(<h2>(?:Questions ouvertes|Open questions) \(\d+\)</h2>)(.*?)(?=<h2>|\Z)", body, re.S)
+    if not sec:
+        return body
+    keys = ([("correction légère", "légère", "légères"), ("correction moyenne", "moyenne", "moyennes"),
+             ("correction lourde", "lourde", "lourdes")] if fr
+            else [("light fix", "light", "light"), ("moderate fix", "moderate", "moderate"), ("heavy fix", "heavy", "heavy")])
+    counts = [0, 0, 0]
+    for m in re.finditer(r"<h3>.*?</h3>\n<p class=\"meta\">([^<]*)</p>\n<ul>\n(.*?)\n</ul>", sec.group(2), re.S):
+        for i, (key, _, _) in enumerate(keys):
+            if key in m.group(1):
+                counts[i] += m.group(2).count("<li>")
+                break
+    if not any(counts):
+        return body
+    parts = [f"{n} {many if n != 1 else one}" for n, (_, one, many) in zip(counts, keys) if n]
+    summary = ("Par effort : " if fr else "By effort: ") + " · ".join(parts) + "."
+    return body[:sec.start()] + sec.group(1) + f'<p class="meta">{summary}</p>\n' + sec.group(2) + body[sec.end():]
+
+
 def trim(body, fr):
     """Cut the invented prose from the report a person reads: the per-criterion blurbs (the rule's
     references stay), the 'Holds here' wrappers (the statement itself becomes the question), and the
@@ -585,6 +607,7 @@ def trim(body, fr):
     body = re.sub(r" · en partie transparent \(opacité [\d,]+\)[^<]*", "", body)
     body = promote(body)
     body = drop(body, "La lecture" if fr else "The reading")
+    body = effort_summary(body, fr)
     body = zones(body, fr)
     for t in (["Méthode", "Critère par critère", "Ce qui n'a pas été regardé"] if fr
               else ["Method", "Criterion by criterion", "What was not looked at"]):
