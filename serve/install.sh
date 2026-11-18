@@ -82,7 +82,7 @@ say "2. relevé, built from $source"
 mkdir -p "$new"
 cp -a "$source" "$new/src"
 build=$(mktemp -d)
-ghc -O1 -i"$new/src/kernel/src" -i"$new/src/kernel/app" "$new/src/kernel/app/Main.hs" -outputdir "$build" -o "$new/releve" >/dev/null
+ghc -O1 -i"$new/src/kernel/src" -i"$new/src/kernel/app" -i"$new/src/plie/prelude" -i"$new/src/record/gen/hs" "$new/src/kernel/app/Main.hs" -outputdir "$build" -o "$new/releve" >/dev/null
 rm -rf "$build"
 "$new/releve" --version
 python3 -m venv "$new/venv"
