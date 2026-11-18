@@ -77,6 +77,14 @@ WORDS = {
         "what it shows is read by rule, and the report is the answer. Nothing is kept: no account, no cookie, no record of the address.",
         "address": "URL", "required": "Required · full address, with https://", "record": "Previous record, to compare", "optional": "Optional",
         "go": "Run report", "language": "Report language",
+        "claims": [
+            "Not AI — deterministic: the same page gives the same report.",
+            "Evidence, not opinion — every finding names the element, the value and the rule.",
+            "Dated and sealed — an outside authority time-stamps it (RFC 3161).",
+            "Nothing kept — no account, no cookie, no record of the address.",
+        ],
+        "copy": "Copy the receipt", "print": "Print / save as PDF",
+        "run": "Instrument execution: 0 cookies · 0 byte of the page kept · 0 trace of the address.",
         "sky": "The sky of this record", "skyis": "Each dot of these clouds is placed by the authority’s signed reply: sky {code}. A record changed, or dated otherwise, has another sky.",
         "verify": "How to verify a record",
         "keep": "Following this page or adding pages of the site", "keepit": "This service keeps nothing. Keep this record (.gz) and hand it back with the next request: "
@@ -118,6 +126,14 @@ WORDS = {
         "ce qu’elle montre est lu par des règles, et le rapport est la réponse. Rien n’est conservé : ni compte, ni cookie, ni trace de l’adresse.",
         "address": "URL", "required": "Requis · adresse complète, avec https://", "record": "Relevé précédent, pour comparer", "optional": "Facultatif",
         "go": "Obtenir l’état des lieux", "language": "Langue du rapport",
+        "claims": [
+            "Sans IA — déterministe : la même page donne le même rapport.",
+            "Des preuves, pas un avis — chaque constat nomme l’élément, la valeur et la règle.",
+            "Daté et scellé — une autorité extérieure l’horodate (RFC 3161).",
+            "Rien de conservé — ni compte, ni cookie, ni trace de l’adresse.",
+        ],
+        "copy": "Copier le cartouche", "print": "Imprimer / enregistrer en PDF",
+        "run": "Exécution de l'instrument : 0 cookie · 0 octet de la page conservé · 0 trace de l'adresse.",
         "sky": "Le ciel de ce relevé", "skyis": "Chaque point de ces nuages est placé par la réponse signée de l’autorité : ciel {code}. Un relevé modifié, ou daté autrement, a un autre ciel.",
         "verify": "Vérifier un relevé",
         "keep": "Suivre cette page ou compléter le site", "keepit": "Ce service ne conserve rien. Gardez ce relevé (.gz) et joignez-le à votre prochaine demande : "
@@ -171,6 +187,24 @@ REGIONS = {code: region for region, codes in [
     ("Oceania", "AS AU CK FJ FM GU KI MH MP NC NF NR NU NZ PF PG PN PW SB TK TO TV VU WF WS"),
 ] for code in codes.split()}
 FEW = 5           # a region counted fewer times than this in a week is not shown by its number
+
+# Accessibility-overlay vendors: a third-party script that claims to fix accessibility without changing
+# the page. The RGAA doctrine asks for native accessibility, not such a layer. Detecting one is a fact
+# about what the page loads, not a verdict on it.
+OVERLAYS = [("accessibe.com", "AccessiBe"), ("userway.org", "UserWay"), ("audioeye.com", "AudioEye"),
+            ("facil-iti.com", "Facil'iti"), ("equalweb.com", "EqualWeb")]
+
+
+def overlays(resources):
+    """The accessibility-overlay vendors a page loads, by name. A host matches its own domain or a
+    subdomain of it."""
+    found = set()
+    for r in resources:
+        host = urllib.parse.urlsplit(r.get("url", "")).hostname or ""
+        for base, name in OVERLAYS:
+            if host == base or host.endswith("." + base):
+                found.add(name)
+    return sorted(found)
 
 
 def region(accept):
@@ -471,6 +505,23 @@ def form(lang, heading=2):
             f'<p><button type="submit">{w["go"]}</button></p>\n</form>')
 
 
+def claims(lang):
+    """The four things that set the service apart, on the landing form before any report."""
+    return '<ul class="claims">' + "".join("<li>" + c + "</li>" for c in WORDS[lang]["claims"]) + "</ul>"
+
+
+def cartouche(lang, url, body):
+    """The receipt as three lines to paste into a PR, a ticket or a handover: the address, the verdict,
+    and the record's head to verify offline. Nothing is fetched; it is the report already in hand."""
+    verdict = re.search(r"<strong>(?:Sur cette page|On this page)[^<]*</strong>", body)
+    head = re.search(r"<code>([0-9a-f]{8})</code>", body)
+    v = re.sub(r"<[^>]+>", "", verdict.group(0)) if verdict else ""
+    h = head.group(1) if head else ""
+    if lang == "fr":
+        return f"Relevé · Bureau des Surfaces\n{url}\n{v}\nEmpreinte : {h} · vérifiable hors ligne : https://releve.bureaudessurfaces.fr/"
+    return f"Record · Bureau des Surfaces\n{url}\n{v}\nFingerprint: {h} · verifiable offline: https://releve.bureaudessurfaces.fr/"
+
+
 def drafted(record, lang):
     """The draft statements of a record, as a file to keep: drawn from the record alone, in memory."""
     with tempfile.TemporaryDirectory(dir=MEMORY, prefix="releve-") as d:
@@ -488,6 +539,64 @@ def offered(lang, name, kind, data, words):
     w = WORDS[lang]
     return (f'<a download="{name}" href="data:{kind};base64,{base64.b64encode(data).decode("ascii")}">{w[words[0]]}</a>'
             f' · {w[words[1]]}, {len(data) // 1024 + 1}&nbsp;k{"B" if lang == "en" else "o"}')
+
+
+def promote(body):
+    """The one-line verdict — how many checks pass, how many fixes and open questions — moved out of
+    the method drawer to the top of the report, where it answers the one question a reader asks."""
+    m = re.search(r"<p><strong>(?:Sur cette page|On this page)[^<]*</strong>.*?</p>", body, re.S)
+    if not m:
+        return body
+    verdict = m.group(0).replace("<p>", '<p class="verdict">', 1)
+    body = body[: m.start()] + body[m.end():]
+    at = body.find("</h1>")
+    if at < 0:
+        return verdict + "\n" + body
+    return body[: at + len("</h1>")] + "\n" + verdict + body[at + len("</h1>"):]
+
+
+def drop(body, heading):
+    """Cut a whole section, heading and all: the engine's own reading model, not a rule's words."""
+    return re.sub(r"<h2>" + re.escape(heading) + r"</h2>.*?(?=<h2>|\Z)", "", body, flags=re.S, count=1)
+
+
+def zones(body, fr):
+    """Two labels over the report's two halves: what the rules decided, and what they could not."""
+    if fr:
+        body = re.sub(r"(<h2>Empreinte</h2>\n)", r'\1<p class="zone">Ce que les règles ont tranché — daté par une autorité extérieure.</p>\n', body, count=1)
+        body = re.sub(r"(<h2>Questions ouvertes \(\d+\)</h2>\n)", r'\1<p class="zone">Ce qu’aucune règle ne peut trancher — à confirmer par un humain.</p>\n', body, count=1)
+    else:
+        body = re.sub(r"(<h2>Footprint</h2>\n)", r'\1<p class="zone">What the rules decided — dated by an outside authority.</p>\n', body, count=1)
+        body = re.sub(r"(<h2>Open questions \(\d+\)</h2>\n)", r'\1<p class="zone">What no rule can decide — to confirm by a person.</p>\n', body, count=1)
+    return body
+
+
+def trim(body, fr):
+    """Cut the invented prose from the report a person reads: the per-criterion blurbs (the rule's
+    references stay), the 'Holds here' wrappers (the statement itself becomes the question), and the
+    observer's own hesitation ('may be mid-animation'). The verdict is promoted to the top, the engine's
+    reading model is cut whole, and the method, the criteria list and the not-looked-at note fold into
+    closed drawers. Wording is borrowed from the rules, not written."""
+    body = re.sub(r"</h3>\n<p>(.*?) <span class=\"meta\">(.*?)</span></p>",
+                  lambda m: "</h3>\n<p class=\"meta\">" + m.group(2) + "</p>", body)
+    body = re.sub(r"<legend>Holds here: “(.*?)”?</legend>", r"<legend>\1</legend>", body)
+    body = re.sub(r"<legend>Tenu ici : «\s*(.*?)\s*»\s*?</legend>", r"<legend>\1</legend>", body)
+    body = re.sub(r" · partly transparent \(opacity [\d.]+\), may be mid-animation", "", body)
+    body = re.sub(r" · en partie transparent \(opacité [\d,]+\)[^<]*", "", body)
+    body = promote(body)
+    body = drop(body, "La lecture" if fr else "The reading")
+    body = zones(body, fr)
+    for t in (["Méthode", "Critère par critère", "Ce qui n'a pas été regardé"] if fr
+              else ["Method", "Criterion by criterion", "What was not looked at"]):
+        pat = re.compile(r"<h2>" + re.escape(t) + r"</h2>(.*?)(?=<h2>|\Z)", re.S)
+        body = pat.sub(lambda m, tt=t: '<details class="pli"><summary>' + tt + "</summary>\n" + m.group(1) + "</details>\n", body, count=1)
+    return body
+
+
+def panels(body):
+    """A report laid out horizontally: one panel per heading, the opening panel carrying the title and
+    the verdict. Each panel is a station of the ring, read down its own column, the ring read across."""
+    return "".join(f'<section class="station">{p}</section>\n' for p in re.split(r"(?=<h2[ >])", body) if p.strip())
 
 
 def smart_adjust(body, lang, record=None):
@@ -534,6 +643,11 @@ def smart_adjust(body, lang, record=None):
                 body = re.sub(r"(· \d+ hôtes tiers)", rf"\1 ({len(pre_hosts)} sollicités avant toute interaction)", body, count=1)
             else:
                 body = re.sub(r"(· \d+ third-party hosts)", rf"\1 ({len(pre_hosts)} contacted before any interaction)", body, count=1)
+        ov = overlays(res)
+        if ov:
+            over = (f'<p class="meta">Surcouche d’accessibilité tierce : {", ".join(ov)} — la doctrine RGAA demande une accessibilité native, non une surcouche.</p>\n'
+                    if fr else f'<p class="meta">Third-party accessibility overlay: {", ".join(ov)} — the RGAA doctrine asks for native accessibility, not an overlay.</p>\n')
+            body = re.sub(r"(<h2>(?:Empreinte|Footprint)</h2>\n)", rf"\1{over}", body, count=1)
         imgs = [s for s in (obs.get("surfaces") or []) if s.get("kind") == "img"]
         if imgs:
             m_cnt = sum(1 for s in imgs if s.get("manifest") is True)
@@ -542,7 +656,7 @@ def smart_adjust(body, lang, record=None):
                     if fr else f"<p>{m_cnt} of {len(imgs)} images carry a provenance manifest (C2PA); {o_cnt} state a synthetic origin.</p>\n")
             body = re.sub(r"(<h2>(?:Empreinte|Footprint)</h2>\n<p>.*?</p>\n)", rf"\1{prov}", body, count=1)
     if '<details class="pli"' in body:
-        return body
+        return trim(body, fr)
     # 1. Promote Empreinte / Footprint and La lecture / The reading above Questions ouvertes / Open questions
     fp_re = re.compile(r"(<h2>(?:Empreinte|Footprint)</h2>\n.*?)(?=<h2 id=\"declarations\">|<h2>(?:Ce qui n'a pas été regardé|What was not looked at)</h2>|\Z)", re.S)
     q_re = re.compile(r"<h2>(?:Questions ouvertes|Open questions|Allègements|Lighter options) \(\d+\)</h2>")
@@ -597,7 +711,7 @@ def smart_adjust(body, lang, record=None):
     else:
         body = body.replace(">Submit answers</button>", ">Record the answers</button>")
         body = body.replace(">Submit declarations</button>", ">Record the declarations</button>")
-    return body
+    return trim(body, fr)
 
 
 def given_back(lang, report, record, url, said="", served=None):
@@ -611,11 +725,12 @@ def given_back(lang, report, record, url, said="", served=None):
     body = body.replace("</h1>", "</h1>\n" + said, 1).replace("<!-- sky -->", skyline(record, lang), 1)
     if SHELLS:
         body = smart_adjust(body, lang, record)
-    if 'type="radio"' in body:
-        body = (f'<form method="post" action="{PREFIX}/answer" enctype="multipart/form-data">\n<input type="hidden" name="lang" value="{lang}">\n'
-                f'<input type="hidden" name="kept" value="{kept}">\n{body}</form>\n')
     name = "releve-" + re.sub(r"[^a-z0-9.-]+", "-", (observer.place(url) or ("", "page"))[1].lower()) + ".jsonl.gz"
     keep = f'<h2>{w["keep"]}</h2>\n<p>{w["keepit"]}</p>\n<p>{offered(lang, name, "application/gzip", record, ("download", "file"))}</p>\n'
+    keep += (f'<p class="meta">{w["run"]}</p>\n'
+             f'<div class="cartouche"><button type="button" class="copier" data-cartouche>{w["copy"]}</button>'
+             f'<button type="button" class="print" data-print>{w["print"]}</button>'
+             f'<template id="cartouche">{escape(cartouche(lang, url, body))}</template></div>\n')
     if served:
         receipt, wacz = served
         stem = name.replace(".jsonl.gz", "")
@@ -628,7 +743,11 @@ def given_back(lang, report, record, url, said="", served=None):
         keep += (f'<h2>{w["drafts"]}</h2>\n<p>{w["draftsare"]}</p>\n'
                  f'<p>{offered(lang, name.replace("releve-", "statements-").replace(".jsonl.gz", ".html"), "text/html", drafts, ("getdrafts", "html"))}</p>\n')
     keep += f'<h2>{w["again"]}</h2>\n{form(lang)}'
-    return unescape(title), body + keep
+    content = panels(body) + panels(keep)
+    if 'type="radio"' in content:
+        content = (f'<form method="post" action="{PREFIX}/answer" enctype="multipart/form-data">\n<input type="hidden" name="lang" value="{lang}">\n'
+                   f'<input type="hidden" name="kept" value="{kept}">\n{content}</form>\n')
+    return unescape(title), content
 
 
 class Door(BaseHTTPRequestHandler):
@@ -642,7 +761,7 @@ class Door(BaseHTTPRequestHandler):
         self.send_response(code)
         for k, v in [("Content-Type", "text/html; charset=utf-8"), ("Content-Length", str(len(out))), ("Cache-Control", "no-store"),
                      ("Referrer-Policy", "no-referrer"), ("X-Content-Type-Options", "nosniff"), ("X-Robots-Tag", "noindex"),
-                     ("Content-Security-Policy", "default-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; "
+                     ("Content-Security-Policy", "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; "
                                                  "form-action 'self'; base-uri 'none'; frame-ancestors 'none'"), *extra]:
             self.send_header(k, v)
         self.end_headers()
@@ -676,7 +795,7 @@ class Door(BaseHTTPRequestHandler):
             return self.answer(404, "en", "relevé", '<h1>relevé</h1>\n<p><a href="' + PREFIX + '/">relevé</a></p>')
         lang = "fr" if path == "/fr/" else "en"
         w = WORDS[lang]
-        self.answer(200, lang, w["title"], f'<h1>{w["title"]}</h1>\n<p>{w["lead"]}</p>\n{form(lang)}')
+        self.answer(200, lang, w["title"], panels(f'<h1>{w["title"]}</h1>\n<p>{w["lead"]}</p>\n{claims(lang)}\n{form(lang)}'))
 
     do_HEAD = do_GET  # the same answer, without its body
 
@@ -732,9 +851,9 @@ class Door(BaseHTTPRequestHandler):
     def refuse(self, lang, why):
         w = WORDS[lang]
         if why == "busy":
-            return self.answer(503, lang, w["title"], f'<h1>{w["title"]}</h1>\n<p>{w["busy"]}</p>\n{form(lang)}', [("Retry-After", "60")])
+            return self.answer(503, lang, w["title"], panels(f'<h1>{w["title"]}</h1>\n<p>{w["busy"]}</p>\n{form(lang)}'), [("Retry-After", "60")])
         said = w["why"].get(why) or next(re.sub(a, b, escape(why), count=1) for a, b in w["left"] if re.match(a, why))
-        self.answer(200, lang, w["no"], f'<h1>{w["no"]}</h1>\n<p>{said}</p>\n{form(lang)}')
+        self.answer(200, lang, w["no"], panels(f'<h1>{w["no"]}</h1>\n<p>{said}</p>\n{form(lang)}'))
 
 
 def setup(contact, local=False, shells=(), static=None, prefix="", counts=None, authority=None, skyfile=None, seen_from=None):
