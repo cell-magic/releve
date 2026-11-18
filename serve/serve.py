@@ -655,6 +655,14 @@ def smart_adjust(body, lang, record=None):
             prov = (f"<p>{m_cnt} sur {len(imgs)} images portent un manifeste de provenance (C2PA)\xa0; {o_cnt} déclarent une origine synthétique.</p>\n"
                     if fr else f"<p>{m_cnt} of {len(imgs)} images carry a provenance manifest (C2PA); {o_cnt} state a synthetic origin.</p>\n")
             body = re.sub(r"(<h2>(?:Empreinte|Footprint)</h2>\n<p>.*?</p>\n)", rf"\1{prov}", body, count=1)
+            stripped = [s for s in imgs if s.get("origin") and not s.get("manifest")]
+            if stripped:
+                n = len(stripped)
+                if fr:
+                    strip = f'<p class="meta">{n} image{"s" if n != 1 else ""} déclare{"nt" if n != 1 else ""} une origine synthétique sans manifeste C2PA lisible — article 50(2) du règlement sur l’IA.</p>\n'
+                else:
+                    strip = f'<p class="meta">{n} image{"s" if n != 1 else ""} declare{"s" if n == 1 else ""} a synthetic origin with no readable C2PA manifest — AI Act Art. 50(2).</p>\n'
+                body = re.sub(r"(<h2>(?:Empreinte|Footprint)</h2>\n)", rf"\1{strip}", body, count=1)
     if '<details class="pli"' in body:
         return trim(body, fr)
     # 1. Promote Empreinte / Footprint and La lecture / The reading above Questions ouvertes / Open questions
