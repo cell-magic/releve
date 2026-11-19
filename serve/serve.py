@@ -590,7 +590,7 @@ def effort_summary(body, fr):
         return body
     parts = [f"{n} {many if n != 1 else one}" for n, (_, one, many) in zip(counts, keys) if n]
     summary = ("Par effort : " if fr else "By effort: ") + " · ".join(parts) + "."
-    return body[:sec.start()] + sec.group(1) + f'<p class="meta">{summary}</p>\n' + sec.group(2) + body[sec.end():]
+    return body[:sec.start()] + sec.group(1) + f'\n<p class="meta">{summary}</p>\n' + sec.group(2) + body[sec.end():]
 
 
 def first_fix(body, fr):
