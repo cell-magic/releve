@@ -593,6 +593,88 @@ def effort_summary(body, fr):
     return body[:sec.start()] + sec.group(1) + f'<p class="meta">{summary}</p>\n' + sec.group(2) + body[sec.end():]
 
 
+def first_fix(body, fr):
+    """The kernel's own first line of its order of fixes, lifted out of the reading section before that
+    section is cut. None when no rule is broken: the list does not exist on a page with no correction."""
+    m = re.search(r"<p>(?:Ordre des corrections|Order of fixes)[^<]*</p>\s*<ol>\s*<li>(.*?)</li>", body, re.S)
+    return m.group(1).strip() if m else None
+
+
+def verdict_text(body):
+    """The verdict line's words, tags stripped — the report already states the four counts there."""
+    v = re.search(r'<p class="verdict">.*?</p>', body, re.S)
+    return re.sub(r"<[^>]+>", " ", v.group(0)) if v else ""
+
+
+def count_of(text, *pats):
+    for p in pats:
+        m = re.search(p, text)
+        if m:
+            return int(m.group(1))
+    return 0
+
+
+def meaning(body, fr):
+    """What the counts mean for a reader, said plainly: the rules' part is finished, and what remains is a
+    bounded human judgment. A template over the counts the report already states — no rule, no model, no
+    conformity claim, nothing about the engine."""
+    t = verdict_text(body)
+    fixes = count_of(t, r"(\d+) corrections?\b", r"(\d+) fixes?\b")
+    qs = count_of(t, r"(\d+) questions? ouvertes", r"(\d+) open questions")
+    light = count_of(t, r"(\d+) allègements?\b", r"(\d+) lighter options?")
+    if fr:
+        s = ("Aucune règle n’est enfreinte sur cette page." if not fixes
+             else (f"{fixes} règle est enfreinte sur cette page ; son remède est ci-dessous." if fixes == 1
+                   else f"{fixes} règles sont enfreintes sur cette page ; chacune vient avec son remède, la première est ci-dessous."))
+        if qs:
+            s += (" Reste 1 point à trancher par un humain, listé une fois plus bas." if qs == 1
+                  else f" Restent {qs} points à trancher par un humain, listés une fois plus bas.")
+        if light == 1:
+            s += " Par ailleurs 1 allègement : rien n’est enfreint, moins d’octets feraient autant."
+        elif light:
+            s += f" Par ailleurs {light} allègements : rien n’est enfreint, moins d’octets feraient autant."
+    else:
+        s = ("No rule is broken on this page." if not fixes
+             else (f"{fixes} rule is broken on this page; its remedy is below." if fixes == 1
+                   else f"{fixes} rules are broken on this page; each comes with its remedy, the first is below."))
+        if qs:
+            s += (" 1 point remains for a person to decide, listed once below." if qs == 1
+                  else f" {qs} points remain for a person to decide, listed once below.")
+        if light == 1:
+            s += " Also 1 lighter option: nothing is broken, fewer bytes would do the same."
+        elif light:
+            s += f" Also {light} lighter options: nothing is broken, fewer bytes would do the same."
+    return s
+
+
+def spine(body, fr, fix=None):
+    """The opening of the report, under the verdict: what the counts mean, and the one fix to make first.
+    Inserted whole after the verdict paragraph, the rest of the body left untouched."""
+    v = re.search(r'<p class="verdict">.*?</p>', body, re.S)
+    if not v:
+        return body
+    said = f'<p class="meaning">{meaning(body, fr)}</p>\n'
+    if fix:
+        said += (f'<p class="firstfix"><strong>Première correction :</strong> {fix}</p>\n' if fr
+                 else f'<p class="firstfix"><strong>First fix:</strong> {fix}</p>\n')
+    return body[:v.end()] + "\n" + said + body[v.end():]
+
+
+def registers_keep(body, fr):
+    """A line over each of the record's own sections saying who it is for, so a DPO, a buyer and an auditor
+    each find theirs without reading the others. Wording only; nothing is added to what the page serves."""
+    pairs = ([("Trames de déclaration pré-remplies", "Pour qui déclare — une fois pour tout le relevé."),
+              ("Suivre cette page ou compléter le site", "Pour qui archive — le relevé à garder et à rapporter."),
+              ("La page telle qu’elle a été servie", "Pour qui vérifie — la page servie et son reçu, hors ligne.")] if fr else
+             [("Draft statements", "For whoever declares — once for the whole record."),
+              ("Following this page or adding pages of the site", "For whoever archives — the record to keep and hand back."),
+              ("The page as it was served", "For whoever verifies — the page served and its receipt, offline.")])
+    for head, lbl in pairs:
+        body = re.sub(r"(<h2>" + re.escape(head) + r"</h2>\n)",
+                      lambda m, l=lbl: m.group(1) + f'<p class="zone">{l}</p>\n', body, count=1)
+    return body
+
+
 def trim(body, fr):
     """Cut the invented prose from the report a person reads: the per-criterion blurbs (the rule's
     references stay), the 'Holds here' wrappers (the statement itself becomes the question), and the
@@ -605,10 +687,12 @@ def trim(body, fr):
     body = re.sub(r"<legend>Tenu ici : «\s*(.*?)\s*»\s*?</legend>", r"<legend>\1</legend>", body)
     body = re.sub(r" · partly transparent \(opacity [\d.]+\), may be mid-animation", "", body)
     body = re.sub(r" · en partie transparent \(opacité [\d,]+\)[^<]*", "", body)
+    fix = first_fix(body, fr)
     body = promote(body)
     body = drop(body, "La lecture" if fr else "The reading")
     body = effort_summary(body, fr)
     body = zones(body, fr)
+    body = spine(body, fr, fix)
     for t in (["Méthode", "Critère par critère", "Ce qui n'a pas été regardé"] if fr
               else ["Method", "Criterion by criterion", "What was not looked at"]):
         pat = re.compile(r"<h2>" + re.escape(t) + r"</h2>(.*?)(?=<h2>|\Z)", re.S)
@@ -774,6 +858,8 @@ def given_back(lang, report, record, url, said="", served=None):
         keep += (f'<h2>{w["drafts"]}</h2>\n<p>{w["draftsare"]}</p>\n'
                  f'<p>{offered(lang, name.replace("releve-", "statements-").replace(".jsonl.gz", ".html"), "text/html", drafts, ("getdrafts", "html"))}</p>\n')
     keep += f'<h2>{w["again"]}</h2>\n{form(lang)}'
+    if SHELLS:
+        keep = registers_keep(keep, lang == "fr")
     content = panels(body) + panels(keep)
     if 'type="radio"' in content:
         content = (f'<form method="post" action="{PREFIX}/answer" enctype="multipart/form-data">\n<input type="hidden" name="lang" value="{lang}">\n'
