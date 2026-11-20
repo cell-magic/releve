@@ -144,7 +144,8 @@ button {
   display: flex;
   overflow-x: auto;
   overflow-y: hidden;
-  scroll-snap-type: x mandatory;
+  scroll-snap-type: x proximity;
+  scroll-behavior: smooth;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
 }
@@ -155,12 +156,19 @@ button {
 
 .panel {
   position: relative;
-  flex: 0 0 calc(100% - 66px);
+  flex: 0 0 auto;
+  width: min(42rem, 90vw);
   min-height: 100%;
   overflow-y: auto;
   scroll-snap-align: start;
-  scroll-snap-stop: always;
-  padding: 0 var(--r) var(--u) 66px;
+  padding: 0 44px 44px;
+  border-right: 1px solid var(--rule);
+}
+
+/* the number is a label, not an ornament: it sits in the head, at label size */
+.num {
+  margin-right: 11px;
+  color: var(--quiet);
 }
 
 .ordinal {
@@ -686,4 +694,159 @@ sup {
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+/* the gloss is the panel's own footnote now, at every width */
+.note {
+  margin: 22px 0 0;
+  max-width: 52ch;
+  color: var(--quiet);
+  font: 400 13px/22px 'IBM Plex Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
+/* the index: nine links, direct access, no travelling to get there */
+.rail .index {
+  display: flex;
+  gap: 0;
+  margin: 0 11px;
+}
+
+.rail .index button {
+  min-width: 22px;
+  justify-content: center;
+  color: var(--quiet);
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
+.rail .index button[aria-current='true'] {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 1099px) {
+  .rail .index {
+    display: none;
+  }
+}
+
+/* one number system at a time: the index carries position when it is visible,
+   the counter carries it when the index is gone. */
+@media (min-width: 1100px) {
+  .rail .counter.position {
+    display: none;
+  }
+}
+
+/* skip link, as the report shell has one */
+.skip {
+  position: absolute;
+  left: -100vw;
+}
+
+.skip:focus {
+  left: 11px;
+  top: 11px;
+  z-index: 20;
+  padding: 11px 22px;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  font: 400 12px/22px 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+/* a phone: one column, the page scrolls, nothing is clipped */
+@media (max-width: 640px) {
+  .app {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .band {
+    flex-direction: column;
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+
+  .panel {
+    flex: 0 0 auto;
+    width: 100%;
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+    padding: 0 22px 22px;
+  }
+
+  .rail {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    gap: 8px;
+    padding: 0 11px;
+    background: var(--paper);
+  }
+
+  .rail .dir,
+  .rail .index {
+    display: none;
+  }
+
+  .line {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+  }
+
+  .line .acts {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .plate-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+/* print: the nine panels stack, the chrome goes */
+@media print {
+  :root {
+    --paper: #fff;
+    --ink: #000;
+    --quiet: #444;
+    --rule: #000;
+    --rule-strong: #000;
+    --stand: #fff;
+    --on-stand: #000;
+    --found: #000;
+    --cost: #000;
+  }
+
+  .app {
+    height: auto;
+    display: block;
+    overflow: visible;
+  }
+
+  .band {
+    display: block;
+    overflow: visible;
+  }
+
+  .panel {
+    width: auto;
+    border: 0;
+    border-bottom: 1px solid #000;
+    padding: 0 0 22px;
+    margin: 0 0 22px;
+    overflow: visible;
+  }
+
+  .rail,
+  .line,
+  .scrim,
+  .skip {
+    display: none;
+  }
 }

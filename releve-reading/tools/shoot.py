@@ -24,8 +24,8 @@ MEASURE = r"""
     return {x: Math.round(b.x), y: Math.round(b.y), w: Math.round(b.width), h: Math.round(b.height)}; };
   const numW = el => { const r = document.createRange(); r.selectNodeContents(el);
     return Math.round(r.getBoundingClientRect().width); };
-  const o1 = p1.querySelector('.ordinal');
-  const bb = band.getBoundingClientRect(), o1r = o1.getBoundingClientRect();
+  const o1 = p1;
+  const bb = band.getBoundingClientRect();
   const clipped = [...document.querySelectorAll('.statement, .body, .line .seg, .line .acts button, .gloss')]
     .filter(e => e.scrollWidth > e.clientWidth + 1)
     .map(e => (e.textContent || '').trim().slice(0, 48));
@@ -36,15 +36,19 @@ MEASURE = r"""
     band: rect(band), bandDir: getComputedStyle(band).flexDirection,
     panel0: rect(p0), panelBasis: getComputedStyle(p0).flexBasis,
     peek: Math.round(bb.width - p0.getBoundingClientRect().width),
-    ordinal: rect(p0.querySelector('.ordinal')),
-    ordinalNumeralW: numW(p0.querySelector('.ordinal')),
-    ordinalFont: getComputedStyle(p0.querySelector('.ordinal')).fontSize,
-    peekOrdinalVisible: Math.round(Math.max(0, Math.min(o1r.right, bb.right) - Math.max(o1r.left, bb.left))),
-    peekOrdinalClippedPx: Math.round(Math.max(0, o1r.right - bb.right)),
+    ordinal: rect(p0.querySelector('.note')),
+    panelW: Math.round(p0.getBoundingClientRect().width),
+    nextVisible: Math.max(0, Math.round(bb.width - p0.getBoundingClientRect().width)),
+    indexDisplay: getComputedStyle(q('.rail .index')).display,
+    panelBorder: getComputedStyle(p0).borderRightWidth,
     panels: band.children.length,
     panelScrollOverflow: [...band.children].map(p => Math.round(p.scrollHeight - p.clientHeight)),
-    gloss: {h: rect(q('.gloss')).h, text: q('.gloss').textContent.trim(),
-            clipped: q('.gloss').scrollWidth > q('.gloss').clientWidth + 1},
+    gloss: (() => {
+      const g = q('.note');
+      if (!g) return 'missing';
+      const c = getComputedStyle(g);
+      return {h: rect(g).h, fontSize: c.fontSize, color: c.color};
+    })(),
     line: {h: rect(q('.line')).h, scrollW: q('.line').scrollWidth, clientW: q('.line').clientWidth},
     rail: {h: rect(q('.rail')).h, scrollW: q('.rail').scrollWidth, clientW: q('.rail').clientWidth},
     truncated: clipped,

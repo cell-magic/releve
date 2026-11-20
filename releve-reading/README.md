@@ -32,15 +32,20 @@ take `--rule` in dark and `--ink` in light.
 
 ## Layout regimes
 
-| Width / height | Where the gloss lives |
-|---|---|
-| ≥1100px | margin column, with `Seen by` above 1281px |
-| 561–1099px, normal height | the gloss rail under the band |
-| max-height 400px, or ≤560 wide and ≤520 tall | inline footnote under the fix; document scrolls, no rail |
+Panels are `min(42rem, 90vw)` wide with a 1px hairline on their right, so two
+columns are visible at 1440 and the strip keeps showing where it is — it never
+reads as a tunnel. Below 640px the axis becomes a column and the page scrolls,
+as the report shell does.
 
-Panel width is `calc(100% - 66px)` (44px under 400px wide) so the next panel's
-ordinal is the peek. The ordinal sits at the left of its own gutter, so the same
-element is legible on the current panel and on the one peeking in.
+The gloss is the panel's own footnote at every width: 13px mono in `--quiet`,
+under the fix, numbered with a sup. There is no rail that swaps it.
+
+The top rail carries `first · prev · next`, the index of nine numbers (the
+current one underlined, `aria-current`), then the plate and the two views. Above
+1100px the index carries the position and the `04 / 09` counter is hidden; below
+it the index hides and the counter returns. A vertical wheel turns the axis,
+unless the panel under the pointer scrolls first — the report shell's behaviour,
+transposed.
 
 ## Routes
 

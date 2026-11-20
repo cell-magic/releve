@@ -68,6 +68,37 @@ export default function App() {
     return () => el.removeEventListener('focusin', onFocus)
   }, [reading])
 
+  // a vertical wheel turns the axis, unless the panel under the pointer scrolls first
+  useEffect(() => {
+    const el = band.current
+    if (!el) return
+    const onWheel = (event: WheelEvent) => {
+      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return
+      const panel = (event.target as HTMLElement | null)?.closest('.panel') as HTMLElement | null
+      if (panel && panel.scrollHeight > panel.clientHeight) {
+        const atTop = panel.scrollTop === 0 && event.deltaY < 0
+        const atEnd = panel.scrollTop + panel.clientHeight >= panel.scrollHeight - 1 && event.deltaY > 0
+        if (!atTop && !atEnd) return
+      }
+      event.preventDefault()
+      el.scrollLeft += event.deltaY * (event.deltaMode === 1 ? 16 : 1)
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [reading])
+
+  // ?go=05 jumps to a finding, as the report's ?go=station does
+  useEffect(() => {
+    if (!reading) return
+    const match = /[?&]go=(\d{1,2})/.exec(window.location.search)
+    if (!match) return
+    const target = PANELS.findIndex((panel) => panel.ordinal === match[1].padStart(2, '0'))
+    const timer = window.setTimeout(() => {
+      if (target >= 0) go(target)
+    }, 0)
+    return () => window.clearTimeout(timer)
+  }, [go, reading])
+
   // arrows and Home move one panel, and only outside overlays and inputs
   useEffect(() => {
     if (!reading || trapped) return
@@ -114,7 +145,11 @@ export default function App() {
 
   return (
     <div className="app">
-      <nav className="rail" aria-label="Position" data-count={counter}>
+      <a className="skip" href="#findings">
+        Skip to the findings
+      </a>
+
+      <nav className="rail" aria-label="Position">
         {reading ? (
           <>
             <button className="first dir" type="button" onClick={() => go(0)}>
@@ -137,9 +172,23 @@ export default function App() {
               next
             </button>
             <span className="spacer" />
+
+            <div className="index" role="group" aria-label={counter}>
+              {PANELS.map((panel, i) => (
+                <button
+                  key={panel.ordinal}
+                  type="button"
+                  aria-current={i === index ? 'true' : undefined}
+                  onClick={() => go(i)}
+                >
+                  {panel.ordinal}
+                </button>
+              ))}
+            </div>
+
             {trapped ? (
               <>
-                <span className="counter" aria-label={counter}>
+                <span className="counter overlay" aria-label={counter}>
                   {overlay}
                 </span>
                 <button type="button" onClick={closeOverlay}>
@@ -148,7 +197,7 @@ export default function App() {
               </>
             ) : (
               <>
-                <span className="counter" aria-label={counter}>
+                <span className="counter position" aria-label={counter}>
                   {counter}
                 </span>
                 <button type="button" onClick={openPlate}>
@@ -175,49 +224,36 @@ export default function App() {
       </nav>
 
       {reading ? (
-        <>
-          <ol className="band" ref={band}>
-            {PANELS.map((panel, i) => (
-              <li
-                className="panel"
-                key={panel.ordinal}
-                aria-posinset={i + 1}
-                aria-setsize={TOTAL}
-                data-variant={panel.variant}
-              >
-                <span className="ordinal" aria-hidden="true">
+        <ol className="band" ref={band} id="findings" tabIndex={-1}>
+          {PANELS.map((panel, i) => (
+            <li
+              className="panel"
+              key={panel.ordinal}
+              aria-posinset={i + 1}
+              aria-setsize={TOTAL}
+              data-variant={panel.variant}
+            >
+              <p className="head">
+                <span className="num" aria-hidden="true">
                   {panel.ordinal}
                 </span>
-                <p className="head">
-                  {panel.variant === 'absent' ? 'absent · risk' : panel.variant}
-                  <span className="seenby-inline"> · seen by {SESSION.seenBy}</span>
-                </p>
-                <div className="panel-inner">
-                  <div className="finding">
-                    <p className="statement">{panel.statement}</p>
-                    <p className="body">{panel.consequence}</p>
-                    <p className="body">{panel.fix}</p>
-                  </div>
-                  <p className="gloss-src">
-                    <sup>1</sup>
-                    {panel.gloss}
-                  </p>
-                </div>
-                <div className="margin-col">
-                  <div className="seenby">Seen by: {SESSION.seenBy}</div>
-                  <p className="foot">
-                    <sup>1</sup>
-                    {panel.gloss}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ol>
+                {panel.variant === 'absent' ? 'absent · risk' : panel.variant}
+                <span className="seenby-inline"> · seen by {SESSION.seenBy}</span>
+              </p>
 
-          <div className="gloss" aria-hidden="true">
-            {current.gloss}
-          </div>
-        </>
+              <div className="finding">
+                <p className="statement">{panel.statement}</p>
+                <p className="body">{panel.consequence}</p>
+                <p className="body">{panel.fix}</p>
+              </div>
+
+              <p className="note">
+                <sup>1</sup>
+                {panel.gloss}
+              </p>
+            </li>
+          ))}
+        </ol>
       ) : view === 'record' ? (
         <RecordView state={state} />
       ) : (
