@@ -25,3 +25,9 @@ SPDX-License-Identifier = "MIT OR Apache-2.0"
 path = "record/bls/NOTICE"
 SPDX-FileCopyrightText = "The authors of the Rust crates named in it"
 SPDX-License-Identifier = "MIT AND BSD-3-Clause"
+
+# The reading surface's manifests and prose: JSON and markdown cannot carry a comment.
+[[annotations]]
+path = ["releve-reading/package.json", "releve-reading/package-lock.json", "releve-reading/tsconfig.json", "releve-reading/README.md", "releve-reading/.gitignore"]
+SPDX-FileCopyrightText = "2026 Anna Teterkina <anna@bureaudessurfaces.fr>"
+SPDX-License-Identifier = "EUPL-1.2"

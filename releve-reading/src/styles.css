@@ -1,0 +1,467 @@
+/* SPDX-FileCopyrightText: 2026 Anna Teterkina <anna@bureaudessurfaces.fr>
+   SPDX-License-Identifier: EUPL-1.2 */
+
+/* LIGHT — printed page. Authored independently of the dark palette;
+   this is not the inverse of anything. Five colours, no accents. */
+:root {
+  --paper: #ece9e2;
+  --ink: #1b1b19;
+  --quiet: #55534d;
+  --rule: #1b1b19;
+  --rule-strong: #1b1b19;
+  --rule-weight: 2px;
+  --stand: #1b1b19;
+  --on-stand: #ece9e2;
+  --ordinal: #1b1b19;
+  --found: #1b1b19;
+  --cost: #1b1b19;
+  --duration: #1b1b19;
+  --solid: #ece9e2;
+  --on-solid: #1b1b19;
+  --plate: #ffffff;
+  --plate-ink: #1c1813;
+  --hue: #0b5560;
+  --r: 44px;
+  --u: 22px;
+  color-scheme: light dark;
+}
+
+/* DARK — the same paper stock under a desk lamp. Authored on its own terms:
+   warm ground, lifted accents, hairlines that are felt rather than seen. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #1d1812;
+    --ink: #f1e9da;
+    --quiet: #a99a87;
+    --rule: #3a322a;
+    --rule-strong: #c9bfac;
+    --rule-weight: 2px;
+    --stand: #241e17;
+    --on-stand: #f1e9da;
+    --ordinal: #cfc8b8;
+    --found: #e2705a;
+    --cost: #d9a24a;
+    --duration: #8fae86;
+    --solid: #f1e9da;
+    --on-solid: #1d1812;
+    --plate: #ffffff;
+    --plate-ink: #1c1813;
+    --hue: #c9bfac;
+  }
+
+  .ordinal {
+    font-weight: 500;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 15px/22px Archivo, ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  background: var(--ink);
+  color: var(--paper);
+  outline: 2px solid var(--hue);
+  outline-offset: 2px;
+}
+
+/* shell */
+.app {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* rails */
+.rail {
+  flex: 0 0 auto;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 var(--u);
+  border-bottom: var(--rule-weight) solid var(--rule-strong);
+  font: 400 12px/22px 'IBM Plex Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
+.rail button {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 22px;
+}
+
+.rail button[disabled] {
+  color: var(--quiet);
+  cursor: default;
+}
+
+.rail .first::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: var(--ordinal);
+}
+
+.rail .spacer {
+  flex: 1;
+}
+
+.counter {
+  white-space: nowrap;
+}
+
+/* band */
+.band {
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.band::-webkit-scrollbar {
+  display: none;
+}
+
+.panel {
+  position: relative;
+  flex: 0 0 calc(100% - 66px);
+  min-height: 100%;
+  overflow-y: auto;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  padding: 0 var(--r) var(--u) 66px;
+}
+
+.ordinal {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 66px;
+  padding-left: 11px;
+  color: var(--ordinal);
+  font: 600 44px/44px 'IBM Plex Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums slashed-zero;
+  letter-spacing: -0.02em;
+}
+
+.head {
+  margin: 0;
+  color: var(--found);
+  font: 400 12px/44px 'IBM Plex Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
+.finding {
+  border: 1px solid var(--rule);
+  padding: var(--u);
+  margin-bottom: var(--u);
+  display: grid;
+  gap: var(--u);
+}
+
+.panel[data-variant='missing'] .finding {
+  border-style: dashed;
+}
+
+.panel[data-variant='absent'] .finding {
+  border-width: 2px;
+}
+
+.statement {
+  margin: 0;
+  font-weight: 500;
+}
+
+.body {
+  margin: 0;
+}
+
+.gloss-src {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* footnote numeral keeps its size: --quiet never carries text under 12px */
+sup {
+  font-size: inherit;
+  line-height: 0;
+  vertical-align: super;
+  margin-right: 2px;
+}
+
+.panel-inner {
+  max-width: 52ch;
+}
+
+/* the margin column: absent until there is room for it */
+.margin-col {
+  display: none;
+}
+
+.seenby,
+.seenby-inline {
+  color: var(--quiet);
+}
+
+.seenby {
+  font: 400 12px/22px 'IBM Plex Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums slashed-zero;
+  margin-bottom: 11px;
+}
+
+.foot {
+  margin: 0;
+  color: var(--quiet);
+  font: 400 13px/22px 'IBM Plex Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
+/* gloss rail: keeps its height when empty */
+.gloss {
+  flex: 0 0 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--u);
+  border-top: 1px solid var(--rule);
+  font: 400 12px/22px 'IBM Plex Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums slashed-zero;
+  overflow: hidden;
+}
+
+/* standing line */
+.line {
+  flex: 0 0 auto;
+  min-height: 44px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 11px;
+  padding: 0 var(--u);
+  border-top: var(--rule-weight) solid var(--rule-strong);
+  background: var(--stand);
+  color: var(--on-stand);
+  font: 400 12px/22px 'IBM Plex Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
+.line .segs,
+.line .acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 11px;
+}
+
+.line .acts {
+  margin-left: auto;
+}
+
+.line .seg,
+.line .act {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.line .sep {
+  white-space: pre;
+}
+
+.line button {
+  all: unset;
+  cursor: pointer;
+  min-height: 22px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.line :focus-visible {
+  background: var(--paper);
+  color: var(--ink);
+  outline: 2px solid var(--hue);
+  outline-offset: 2px;
+}
+
+/* mustard is money and nothing else */
+.line .tone-cost {
+  color: var(--cost);
+}
+
+/* the loudest element on the page: a warm slab, never a white one */
+.line .stop {
+  padding: 0 11px;
+  background: var(--solid);
+  color: var(--on-solid);
+}
+
+.line .stop:focus-visible {
+  background: var(--solid);
+  color: var(--on-solid);
+  outline: 2px solid var(--hue);
+  outline-offset: 2px;
+}
+
+/* narrow: gutter drops, ordinal steps down, the line wraps its right side */
+@media (max-width: 400px) {
+  .panel {
+    flex-basis: calc(100% - 44px);
+    padding-left: 44px;
+    padding-right: var(--u);
+  }
+
+  .ordinal {
+    width: 44px;
+    padding-left: 4px;
+    font-size: 33px;
+    letter-spacing: -0.02em;
+  }
+
+  .rail {
+    gap: 8px;
+    padding: 0 11px;
+  }
+
+  .line .acts {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+/* linearised: there is no travel, so the rail is the wrong instrument.
+   The gloss becomes its own footnote, under the fix it explains. */
+@media (max-height: 400px), (max-width: 560px) and (max-height: 520px) {
+  /* a document, not a frame: the page scrolls, nothing is clipped */
+  .app {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .band {
+    flex-direction: column;
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+
+  .panel {
+    flex: 0 0 auto;
+    width: 100%;
+    min-height: auto;
+    overflow: visible;
+  }
+
+  .rail {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--paper);
+  }
+
+  .line {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+  }
+
+  .gloss {
+    display: none;
+  }
+
+  .gloss-src {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: var(--u) 0 0;
+    padding: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+    border: 0;
+    color: var(--quiet);
+    font: 400 13px/22px 'IBM Plex Mono', ui-monospace, monospace;
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  .rail .dir {
+    display: none;
+  }
+
+  .margin-col {
+    display: none;
+  }
+}
+
+/* wide: the void becomes a margin column, as a broadsheet does it */
+@media (min-width: 1100px) {
+  .panel {
+    padding-right: calc(44px + 26ch + 22px);
+  }
+
+  .margin-col {
+    display: block;
+    position: absolute;
+    right: 44px;
+    top: 0;
+    width: 26ch;
+    border-left: 1px solid var(--rule);
+    padding-left: 11px;
+  }
+
+  .seenby-inline {
+    display: none;
+  }
+
+  .margin-col .seenby {
+    display: none;
+  }
+
+  .gloss {
+    display: none;
+  }
+}
+
+/* 1100–1280 holds the footnote only; seen by joins above 1280 */
+@media (min-width: 1281px) {
+  .margin-col .seenby {
+    display: block;
+  }
+}
