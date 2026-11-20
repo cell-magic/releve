@@ -7,7 +7,7 @@ import { COUNT_NOTE, COUNT_ROWS } from '../types'
  *  own numbers has no standing to report anyone else's. */
 export function HelpView() {
   return (
-    <main className="view">
+    <div className="station-view">
       <h1>Who answers</h1>
       <p>
         One person reads the page and writes the finding. A rule set decides what counts as found;
@@ -26,6 +26,6 @@ export function HelpView() {
           ))}
         </tbody>
       </table>
-    </main>
+    </div>
   )
 }

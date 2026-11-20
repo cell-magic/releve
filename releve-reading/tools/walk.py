@@ -84,9 +84,17 @@ async def main(url):
                 return res["result"].get("value")
 
             await ev(HELPERS)
-            check("nine panels", await ev("__panelCount()") == 9, str(await ev("__panelCount()")))
+            check("eleven stations on one axis", await ev("__panelCount()") == 11, str(await ev("__panelCount()")))
             check("counter reads 01 / 09", await ev("__counter()") == "01 / 09", str(await ev("__counter()")))
             check("no aria-live anywhere", await ev("__live()") == 0, str(await ev("__live()")))
+            check("nothing opens a window",
+                  await ev("document.querySelectorAll('a[target]').length") == 0)
+            check("no refund promised", await ev("document.body.textContent.includes('€6.00')") is False)
+            check("the gloss defines, it does not repeat the fix", await ev(
+                "(() => { const p = document.querySelector('.panel');"
+                " const f = p.querySelectorAll('.body')[1].textContent.trim();"
+                " const g = p.querySelector('.note').textContent.replace(/^1/, '').trim();"
+                " return f !== g; })()"))
 
             await ev("__key('ArrowRight')"); await asyncio.sleep(0.2)
             await ev("__key('ArrowRight')"); await asyncio.sleep(0.3)
@@ -129,15 +137,19 @@ async def main(url):
             check("state is left", await ev("__btn('left') !== undefined"))
             receipts = await ev("__receipts()") or []
             check("receipt printed on the line",
-                  any("€6.00" in r for r in receipts), str(receipts[:1]))
+                  any("No further charges." in r for r in receipts), str(receipts[:1]))
             check("undo present", await ev("!!document.querySelector('.receipt .undo')"))
             await ev("document.querySelector('.receipt .undo').click()"); await asyncio.sleep(0.4)
             check("undo reverses the stop", await ev("__btn('active') !== undefined"))
 
-            # record + count
+            # record + count are stations, not pages: the axis stays
             await ev("__btn('record').click()"); await asyncio.sleep(0.4)
-            check("record renders rows", (await ev("__rows('.table.record')") or 0) >= 3,
+            check("record stays on the ring", await ev("__panelCount()") == 11,
+                  str(await ev("__panelCount()")))
+            check("record renders rows", (await ev("__rows('.table.record')") or 0) >= 2,
                   str(await ev("__rows('.table.record')")))
+            check("path names the station", await ev("location.pathname") == "/record",
+                  str(await ev("location.pathname")))
             await ev("__btn('who answers').click()"); await asyncio.sleep(0.4)
             check("count renders five rows", await ev("__rows('.table.count')") == 5,
                   str(await ev("__rows('.table.count')")))

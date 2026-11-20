@@ -35,7 +35,7 @@ export function Plate({
 
       <div className="dialog-actions">
         <button type="button" onClick={onSend} disabled={state.sent}>
-          {state.sent ? 'Exported' : 'Export this plate'}
+          {state.sent ? 'Exported' : 'Export'}
         </button>
       </div>
     </Dialog>

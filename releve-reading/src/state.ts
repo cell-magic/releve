@@ -20,23 +20,23 @@ function reducer(state: State, action: Action): State {
       const receipt = {
         id: nextId++,
         at: NOW,
-        fact: 'Stopped. €6.00 returned for 18 unused days.',
+        fact: 'Stopped. No further charges.',
         undo: true,
       }
       return {
         ...state,
         session: 'left',
         receipts: [receipt, ...state.receipts],
-        record: [...state.record, { at: '14 March 2026', fact: 'Stopped. €6.00 returned.' }],
+        record: [...state.record, { at: '14 March 2026', fact: 'Stopped. No further charges.' }],
       }
     }
     case 'undo': {
-      // a stop and its refund both reverse; the receipt itself does not survive
+      // a stop reverses; no money moved, so nothing is returned
       return {
         ...state,
         session: 'active',
         receipts: state.receipts.filter((r) => r.id !== action.id),
-        record: [...state.record, { at: '14 March 2026', fact: 'Stop reversed. €6.00 re-charged.' }],
+        record: [...state.record, { at: '14 March 2026', fact: 'Stop reversed. The plan is active again.' }],
       }
     }
     case 'dormant': {

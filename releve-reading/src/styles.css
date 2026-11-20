@@ -739,6 +739,27 @@ sup {
   }
 }
 
+/* record and help are stations on the axis, not pages */
+.station-view {
+  padding-top: 11px;
+}
+
+.station-view h1 {
+  margin: 0 0 22px;
+  font: 500 22px/44px Archivo, ui-sans-serif, system-ui, sans-serif;
+}
+
+.station-view h2 {
+  margin: 22px 0 0;
+  font: 400 12px/44px 'IBM Plex Mono', ui-monospace, monospace;
+  letter-spacing: 0.04em;
+}
+
+.station-view p {
+  margin: 0 0 22px;
+  max-width: 52ch;
+}
+
 /* skip link, as the report shell has one */
 .skip {
   position: absolute;

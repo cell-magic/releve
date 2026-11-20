@@ -2,7 +2,7 @@
    SPDX-License-Identifier: EUPL-1.2 */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { PANELS, SESSION } from './fixtures'
+import { PANELS } from './fixtures'
 import { useSession } from './state'
 import { useRoute } from './router'
 import { Fork } from './components/Fork'
@@ -11,7 +11,10 @@ import { Plate } from './components/Plate'
 import { RecordView } from './components/RecordView'
 import { StandingLine } from './components/StandingLine'
 
-const TOTAL = PANELS.length
+const FINDINGS = PANELS.length
+const RECORD_AT = FINDINGS
+const HELP_AT = FINDINGS + 1
+const TOTAL = FINDINGS + 2 // nine findings, then the record and who answers, one axis
 
 export default function App() {
   const band = useRef<HTMLOListElement>(null)
@@ -20,7 +23,6 @@ export default function App() {
   const { route, navigate } = useRoute()
 
   const { view, overlay } = route
-  const reading = view === 'read'
   const trapped = overlay !== 'none'
 
   const go = useCallback((next: number) => {
@@ -53,7 +55,7 @@ export default function App() {
       el.removeEventListener('scroll', onScroll)
       window.clearTimeout(timer)
     }
-  }, [reading])
+  }, [])
 
   // focus inside a panel wins over a stale snap position
   useEffect(() => {
@@ -66,7 +68,7 @@ export default function App() {
     }
     el.addEventListener('focusin', onFocus)
     return () => el.removeEventListener('focusin', onFocus)
-  }, [reading])
+  }, [])
 
   // a vertical wheel turns the axis, unless the panel under the pointer scrolls first
   useEffect(() => {
@@ -85,11 +87,16 @@ export default function App() {
     }
     el.addEventListener('wheel', onWheel, { passive: false })
     return () => el.removeEventListener('wheel', onWheel)
-  }, [reading])
+  }, [])
+
+  // /record and /help are stations on this axis, never another page
+  useEffect(() => {
+    if (view === 'record') go(RECORD_AT)
+    else if (view === 'help') go(HELP_AT)
+  }, [go, view])
 
   // ?go=05 jumps to a finding, as the report's ?go=station does
   useEffect(() => {
-    if (!reading) return
     const match = /[?&]go=(\d{1,2})/.exec(window.location.search)
     if (!match) return
     const target = PANELS.findIndex((panel) => panel.ordinal === match[1].padStart(2, '0'))
@@ -97,11 +104,11 @@ export default function App() {
       if (target >= 0) go(target)
     }, 0)
     return () => window.clearTimeout(timer)
-  }, [go, reading])
+  }, [go])
 
-  // arrows and Home move one panel, and only outside overlays and inputs
+  // arrows and Home move one station, and only outside overlays and inputs
   useEffect(() => {
-    if (!reading || trapped) return
+    if (trapped) return
     const onKey = (event: KeyboardEvent) => {
       const active = document.activeElement
       const tag = active?.tagName ?? ''
@@ -125,14 +132,27 @@ export default function App() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [go, index, reading, trapped])
+  }, [go, index, trapped])
 
-  const current = PANELS[index]
-  const counter = `${current.ordinal} / ${String(TOTAL).padStart(2, '0')}`
+  // one position, named: a finding by its number, a station by its name
+  const counter =
+    index < FINDINGS
+      ? `${PANELS[index].ordinal} / ${String(FINDINGS).padStart(2, '0')}`
+      : index === RECORD_AT
+        ? 'record'
+        : 'who answers'
 
   const closeOverlay = () => navigate('/read/1')
   const openPlate = () => navigate('/plate/1')
   const openFork = () => navigate('/stop/1')
+  const openRecord = () => {
+    go(RECORD_AT)
+    navigate('/record')
+  }
+  const openHelp = () => {
+    go(HELP_AT)
+    navigate('/help')
+  }
 
   const onStop = () => {
     dispatch({ type: 'stop' })
@@ -150,115 +170,99 @@ export default function App() {
       </a>
 
       <nav className="rail" aria-label="Position">
-        {reading ? (
+        <button className="first dir" type="button" onClick={() => go(0)}>
+          first
+        </button>
+        <button className="dir" type="button" onClick={() => go(index - 1)} disabled={index === 0}>
+          prev
+        </button>
+        <button
+          className="dir"
+          type="button"
+          onClick={() => go(index + 1)}
+          disabled={index === TOTAL - 1}
+        >
+          next
+        </button>
+        <span className="spacer" />
+
+        <div className="index" role="group" aria-label={counter}>
+          {PANELS.map((panel, i) => (
+            <button
+              key={panel.ordinal}
+              type="button"
+              aria-current={i === index ? 'true' : undefined}
+              onClick={() => go(i)}
+            >
+              {panel.ordinal}
+            </button>
+          ))}
+        </div>
+
+        {trapped ? (
           <>
-            <button className="first dir" type="button" onClick={() => go(0)}>
-              first
+            <span className="counter overlay" aria-label={counter}>
+              {overlay}
+            </span>
+            <button type="button" onClick={closeOverlay}>
+              close
             </button>
-            <button
-              className="dir"
-              type="button"
-              onClick={() => go(index - 1)}
-              disabled={index === 0}
-            >
-              prev
-            </button>
-            <button
-              className="dir"
-              type="button"
-              onClick={() => go(index + 1)}
-              disabled={index === TOTAL - 1}
-            >
-              next
-            </button>
-            <span className="spacer" />
-
-            <div className="index" role="group" aria-label={counter}>
-              {PANELS.map((panel, i) => (
-                <button
-                  key={panel.ordinal}
-                  type="button"
-                  aria-current={i === index ? 'true' : undefined}
-                  onClick={() => go(i)}
-                >
-                  {panel.ordinal}
-                </button>
-              ))}
-            </div>
-
-            {trapped ? (
-              <>
-                <span className="counter overlay" aria-label={counter}>
-                  {overlay}
-                </span>
-                <button type="button" onClick={closeOverlay}>
-                  close
-                </button>
-              </>
-            ) : (
-              <>
-                <span className="counter position" aria-label={counter}>
-                  {counter}
-                </span>
-                <button type="button" onClick={openPlate}>
-                  plate
-                </button>
-              </>
-            )}
           </>
         ) : (
           <>
-            <button type="button" onClick={() => navigate('/read/1')}>
-              back to reading
+            <span className="counter position" aria-label={counter}>
+              {counter}
+            </span>
+            <button type="button" onClick={openPlate}>
+              plate
             </button>
-            <span className="spacer" />
-            <span className="counter">{view}</span>
           </>
         )}
-        <button type="button" onClick={() => navigate('/help')}>
+
+        <button type="button" onClick={openHelp}>
           who answers
         </button>
-        <button type="button" onClick={() => navigate('/record')}>
+        <button type="button" onClick={openRecord}>
           record
         </button>
       </nav>
 
-      {reading ? (
-        <ol className="band" ref={band} id="findings" tabIndex={-1}>
-          {PANELS.map((panel, i) => (
-            <li
-              className="panel"
-              key={panel.ordinal}
-              aria-posinset={i + 1}
-              aria-setsize={TOTAL}
-              data-variant={panel.variant}
-            >
-              <p className="head">
-                <span className="num" aria-hidden="true">
-                  {panel.ordinal}
-                </span>
-                {panel.variant === 'absent' ? 'absent · risk' : panel.variant}
-                <span className="seenby-inline"> · seen by {SESSION.seenBy}</span>
-              </p>
+      <ol className="band" ref={band} id="findings" tabIndex={-1}>
+        {PANELS.map((panel, i) => (
+          <li
+            className="panel"
+            key={panel.ordinal}
+            aria-posinset={i + 1}
+            aria-setsize={TOTAL}
+            data-variant={panel.variant}
+          >
+            <p className="head">
+              <span className="num" aria-hidden="true">
+                {panel.ordinal}
+              </span>
+              {panel.variant === 'absent' ? 'absent · risk' : panel.variant}
+            </p>
 
-              <div className="finding">
-                <p className="statement">{panel.statement}</p>
-                <p className="body">{panel.consequence}</p>
-                <p className="body">{panel.fix}</p>
-              </div>
+            <div className="finding">
+              <p className="statement">{panel.statement}</p>
+              <p className="body">{panel.consequence}</p>
+              <p className="body">{panel.fix}</p>
+            </div>
 
-              <p className="note">
-                <sup>1</sup>
-                {panel.gloss}
-              </p>
-            </li>
-          ))}
-        </ol>
-      ) : view === 'record' ? (
-        <RecordView state={state} />
-      ) : (
-        <HelpView />
-      )}
+            <p className="note">
+              <sup>1</sup>
+              {panel.gloss}
+            </p>
+          </li>
+        ))}
+
+        <li className="panel" aria-posinset={RECORD_AT + 1} aria-setsize={TOTAL}>
+          <RecordView state={state} />
+        </li>
+        <li className="panel" aria-posinset={HELP_AT + 1} aria-setsize={TOTAL}>
+          <HelpView />
+        </li>
+      </ol>
 
       <StandingLine
         session={state.session}

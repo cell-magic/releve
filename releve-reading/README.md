@@ -50,14 +50,15 @@ transposed.
 ## Routes
 
 `/read/:id` the strip · `/plate/:id` the plate overlay · `/stop/:id` the fork ·
-`/record` the account's own log · `/help` who answers, and the Count.
-`src/router.ts` parses them in twenty lines; overlays are routes, so Escape and
-the back button close them the same way.
+`/record` and `/help` scroll this same axis to their station — nothing opens
+another page or window, by policy. `src/router.ts` parses them in twenty lines;
+overlays are routes, so Escape and the back button close them the same way.
 
 `src/state.ts` is the session machine: `active`, `dormant`, `left`. Stop writes a
-receipt on the colophon (`14 March 2026, 10:42 · Stopped. €6.00 returned for 18
-unused days.` + Undo); Undo reverses the stop and its refund. Dormant is the same
-line minus the controls that would create something, never greyed.
+receipt on the colophon (`14 March 2026, 10:42 · Stopped. No further charges.` +
+Undo); Undo reverses the stop. No money is returned on a stop: the plan takes no
+refunds, and the paid period simply runs out. Dormant is the same line minus the
+controls that would create something, never greyed.
 
 ## Tools
 

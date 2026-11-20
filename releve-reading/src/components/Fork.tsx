@@ -9,8 +9,8 @@ export function Fork({ onClose, onStop }: { onClose: () => void; onStop: () => v
   return (
     <Dialog title="Stop" className="fork" onClose={onClose}>
       <p className="fork-line">
-        Stopping today: no further charges. €6.00 returned for 18 unused days. Everything stays
-        readable and exportable until 14 March 2028.
+        No further charges. The period you paid for runs to 14 April 2026, and nothing is returned
+        on it. Everything stays readable and exportable until 14 March 2028.
       </p>
       <div className="fork-actions">
         <button type="button" onClick={onClose}>
