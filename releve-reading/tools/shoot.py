@@ -189,6 +189,27 @@ async def main(url, outdir, label):
             print("--- panel3", json.dumps(results["panel3"]))
             await shot("panel3")
 
+            # the four surfaces that are not the strip: plate, fork, record, count
+            await c.send("Emulation.setDeviceMetricsOverride", width=1440, height=900,
+                         deviceScaleFactor=1, mobile=False)
+            base = url.rstrip("/")
+            for route, name in (("/plate/1", "plate"), ("/stop/1", "fork"),
+                                ("/record", "record"), ("/help", "help")):
+                await c.send("Page.navigate", url=base + route)
+                await asyncio.sleep(1.4)
+                await shot(name)
+
+            await c.send("Page.navigate", url=base + "/plate/1")
+            await asyncio.sleep(1.2)
+            await c.send("Emulation.setEmulatedMedia",
+                         features=[{"name": "prefers-color-scheme", "value": "dark"}])
+            await asyncio.sleep(0.4)
+            await shot("plate-dark")
+            await c.send("Emulation.setEmulatedMedia",
+                         features=[{"name": "prefers-color-scheme", "value": "light"}])
+            await c.send("Page.navigate", url=base + "/read/1")
+            await asyncio.sleep(0.8)
+
             (out / f"{label}-metrics.json").write_text(
                 json.dumps(results, indent=2), encoding="utf-8")
             print("wrote", out / f"{label}-metrics.json")

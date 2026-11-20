@@ -4,7 +4,7 @@
 /* LIGHT — printed page. Authored independently of the dark palette;
    this is not the inverse of anything. Five colours, no accents. */
 :root {
-  --paper: #ece9e2;
+  --paper: #f1e8e2;
   --ink: #1b1b19;
   --quiet: #55534d;
   --rule: #1b1b19;
@@ -273,9 +273,9 @@ sup {
   min-height: 44px;
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   gap: 0 11px;
-  padding: 0 var(--u);
+  padding: 11px var(--u);
   border-top: var(--rule-weight) solid var(--rule-strong);
   background: var(--stand);
   color: var(--on-stand);
@@ -363,6 +363,11 @@ sup {
   .line .acts {
     width: 100%;
     margin-left: 0;
+  }
+
+  .plate-row {
+    grid-template-columns: 1fr;
+    gap: 0;
   }
 }
 
@@ -464,4 +469,221 @@ sup {
   .margin-col .seenby {
     display: block;
   }
+}
+
+/* record and help take the band's place; the rails stay */
+.view {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 0 44px 44px;
+}
+
+.view h1 {
+  margin: 0 0 22px;
+  font: 500 22px/44px Archivo, ui-sans-serif, system-ui, sans-serif;
+}
+
+.view h2 {
+  margin: 44px 0 0;
+  font: 400 12px/44px 'IBM Plex Mono', ui-monospace, monospace;
+  letter-spacing: 0.04em;
+}
+
+.view p {
+  margin: 0 0 22px;
+  max-width: 62ch;
+}
+
+.view-note {
+  color: var(--quiet);
+  font: 400 12px/22px 'IBM Plex Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums slashed-zero;
+  max-width: 62ch;
+  margin: 0 0 11px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font: 400 12px/22px 'IBM Plex Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
+.table th {
+  text-align: left;
+  font-weight: 400;
+  padding: 11px 22px 11px 0;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+}
+
+.table td {
+  padding: 11px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.table.count td {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.table.record th {
+  width: 22ch;
+}
+
+/* overlays: the scrim covers the band and the gloss, the rails stay */
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 44px 22px;
+  background: color-mix(in srgb, var(--paper) 94%, transparent);
+}
+
+.dialog {
+  position: relative;
+  width: min(66ch, 100%);
+  max-height: calc(100dvh - 88px);
+  overflow-y: auto;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  padding-bottom: 22px;
+}
+
+.dialog-head {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  padding: 0 22px;
+  background: inherit;
+  border-bottom: 1px solid var(--rule);
+}
+
+.dialog-head h2 {
+  margin: 0;
+  font: 400 12px/44px 'IBM Plex Mono', ui-monospace, monospace;
+  letter-spacing: 0.04em;
+}
+
+.dialog-head button {
+  all: unset;
+  cursor: pointer;
+  font: 400 12px/44px 'IBM Plex Mono', ui-monospace, monospace;
+  color: var(--quiet);
+}
+
+.dialog-actions {
+  padding: 22px 22px 0;
+}
+
+.dialog-actions button {
+  all: unset;
+  cursor: pointer;
+  border: 1px solid var(--ink);
+  padding: 11px 22px;
+  font: 400 12px/22px 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+.dialog-actions button[disabled] {
+  color: var(--quiet);
+  border-color: var(--quiet);
+  cursor: default;
+}
+
+/* the plate is white in either scheme: light values pinned inside it */
+.dialog.plate {
+  --ink: #1b1b19;
+  --paper: #f1e8e2;
+  --quiet: #55534d;
+  --rule: #1b1b19;
+  --found: #1b1b19;
+  --cost: #1b1b19;
+  --hue: #0b5560;
+  background: var(--plate);
+  color: #1b1b19;
+}
+
+.plate-dl {
+  margin: 0;
+  padding: 0 22px;
+}
+
+.plate-row {
+  display: grid;
+  grid-template-columns: 11ch 1fr;
+  gap: 0 22px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.plate-row dt {
+  margin: 0;
+  color: var(--quiet);
+  font: 400 12px/22px 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+.plate-row dd {
+  margin: 0;
+}
+
+.stamp {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0 22px;
+  margin: 22px 22px 0;
+  padding-top: 11px;
+  border-top: 2px solid var(--ink);
+  font: 400 12px/22px 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+/* the fork: two outlined buttons, the null option first, no primary */
+.fork-line {
+  margin: 22px;
+  max-width: 52ch;
+}
+
+.fork-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 11px;
+  padding: 0 22px;
+}
+
+.fork-actions button {
+  all: unset;
+  cursor: pointer;
+  min-width: 66px;
+  padding: 11px 22px;
+  border: 1px solid var(--ink);
+  text-align: center;
+  font: 400 12px/22px 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+/* the colophon's left column: state, money, dates, then the receipts */
+.line .left {
+  flex: 1 1 340px;
+  min-width: 0;
+}
+
+.line .receipt {
+  margin: 0;
+  padding-top: 11px;
+  color: var(--on-stand);
+  font: 400 12px/22px 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+.line .receipt .undo,
+.line .state {
+  all: unset;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }

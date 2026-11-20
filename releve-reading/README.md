@@ -42,6 +42,31 @@ Panel width is `calc(100% - 66px)` (44px under 400px wide) so the next panel's
 ordinal is the peek. The ordinal sits at the left of its own gutter, so the same
 element is legible on the current panel and on the one peeking in.
 
+## Routes
+
+`/read/:id` the strip · `/plate/:id` the plate overlay · `/stop/:id` the fork ·
+`/record` the account's own log · `/help` who answers, and the Count.
+`src/router.ts` parses them in twenty lines; overlays are routes, so Escape and
+the back button close them the same way.
+
+`src/state.ts` is the session machine: `active`, `dormant`, `left`. Stop writes a
+receipt on the colophon (`14 March 2026, 10:42 · Stopped. €6.00 returned for 18
+unused days.` + Undo); Undo reverses the stop and its refund. Dormant is the same
+line minus the controls that would create something, never greyed.
+
+## Tools
+
+```sh
+python tools/shoot.py http://localhost:4173/ shots reading   # screenshots + acceptance metrics
+python tools/walk.py  http://localhost:4173/                 # 22 flow checks, real events
+python tools/sample.py shots/reading-light.png               # dominant colours, 3-bit buckets
+```
+
+`walk.py` is the one that matters: it drives the built app with dispatched keys
+and clicks and asserts focus lands on close, Tab is trapped in the plate and the
+fork only, Escape returns focus, a stop writes its receipt, Undo reverses it, and
+the record and count render.
+
 ## Data
 
 `src/fixtures.ts` holds the nine panels and the session. Every string is
