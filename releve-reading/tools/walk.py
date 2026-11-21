@@ -100,7 +100,7 @@ async def main(url):
                 "(() => { const b = document.querySelector('.scope-bar .verdict');"
                 " return !!b && /\\d+ blocking/.test(b.textContent); })()"))
             check("the contract names method and zero-AI", await ev(
-                "document.querySelector('.scope-bar .contract').textContent.includes('zero-AI')"))
+                "document.querySelector('.scope-bar .contract').textContent.includes('zero AI')"))
             check("the specimen states its class and its rule", await ev(
                 "(() => { const a = document.querySelector('.archetype');"
                 " return !!a.querySelector('h3') && !!a.querySelector('.rules table'); })()"))

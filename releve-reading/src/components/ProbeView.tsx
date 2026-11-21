@@ -8,9 +8,9 @@ import { useState } from 'react'
 export function ProbeView({ onSubmit }: { onSubmit: (url: string) => void }) {
   const [url, setUrl] = useState('')
   const presets = [
-    ['The Bare Concrete', 'clean code, fast load'],
-    ['The Overlay Alibi', 'masking legal defects'],
-    ['The 4 MB Brochure', 'heavy marketing bloatedness'],
+    ['The Clean Baseline', 'clean code, fast load'],
+    ['The Accessibility Overlay', 'widget over unresolved defects'],
+    ['The Oversized Page', 'heavy script payload'],
   ]
   return (
     <div className="station-view" data-station="probe">
