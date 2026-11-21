@@ -204,24 +204,118 @@ button {
   gap: var(--u);
 }
 
-.panel[data-variant='missing'] .finding {
-  border-style: dashed;
+/* state lives in the border weight, so it survives a grayscale print:
+   a blocking finding carries a 2px left rail, a passing one a plain hairline */
+.panel[data-variant='blocking'] .finding {
+  border-left: 2px solid var(--ink);
 }
 
-.panel[data-variant='absent'] .finding {
-  /* the third state reads as a second hairline, not as a heavier one: the screen
-     carries exactly two 2px rules (rail, colophon) and this is not one of them */
-  outline: 1px solid var(--rule);
-  outline-offset: 3px;
+.panel[data-variant='passing'] .finding {
+  border-color: var(--rule);
 }
 
-.statement {
+.defect-title {
   margin: 0;
-  font-weight: 500;
+  font: 500 14px/21px Archivo, ui-sans-serif, system-ui, sans-serif;
+  color: var(--ink);
 }
 
-.body {
+.defect-title .class {
+  font-weight: 600;
+}
+
+.defect-title .trig {
+  color: var(--quiet);
+}
+
+.defect-locator {
   margin: 0;
+  font: 400 12.5px/20px 'IBM Plex Mono', ui-monospace, monospace;
+  color: var(--ink);
+  opacity: 0.62;
+  overflow-wrap: anywhere;
+}
+
+.defect-evidence {
+  margin-top: 11px;
+}
+
+.defect-evidence summary {
+  font: 400 11px/20px 'IBM Plex Mono', ui-monospace, monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+.ev-body {
+  margin-top: 11px;
+  padding-top: 11px;
+  border-top: 1px solid var(--rule);
+}
+
+.ev-body pre {
+  margin: 0 0 11px;
+  font: 400 12px/1.6 'IBM Plex Mono', ui-monospace, monospace;
+  color: var(--ink);
+  opacity: 0.72;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.remediation {
+  margin: 0 0 11px;
+  font: 400 14px/21px Archivo, ui-sans-serif, system-ui, sans-serif;
+  color: var(--ink);
+}
+
+.dev-ticket {
+  padding: 0 11px;
+  border: 1px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  font: 400 11px/20px 'IBM Plex Mono', ui-monospace, monospace;
+  cursor: pointer;
+}
+
+.dev-ticket:hover,
+.dev-ticket:focus-visible {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* the verdict strip: the first two lines of the surface, and nothing before them */
+.scope-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 22px;
+  min-height: 30px;
+  padding: 4px 44px 4px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper);
+  font: 400 11px/21px 'IBM Plex Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums slashed-zero;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.scope-bar .verdict {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.scope-bar .verdict::before {
+  content: '\25A0';
+  margin-right: 6px;
+}
+
+.scope-bar .contract {
+  color: var(--quiet);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .gloss-src {
@@ -886,4 +980,23 @@ sup {
   .skip {
     display: none;
   }
+}
+
+.verifier-badge {
+  margin: 11px 0 0;
+}
+
+.verifier-badge a {
+  display: inline-block;
+  padding: 0 8px;
+  border: 1px solid var(--rule);
+  color: var(--ink);
+  text-decoration: none;
+  font: 400 11px/20px 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+.verifier-badge a:hover,
+.verifier-badge a:focus-visible {
+  background: var(--ink);
+  color: var(--paper);
 }

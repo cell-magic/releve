@@ -3,7 +3,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { source } from './api'
-import { downloadCsv } from './export'
+import { downloadCsv, downloadTicket } from './export'
 import { useSession } from './state'
 import { useRoute } from './router'
 import { Fork } from './components/Fork'
@@ -235,6 +235,16 @@ export default function App() {
         </button>
       </nav>
 
+      <div className="scope-bar">
+        <span className="verdict">
+          {PANELS.filter((p) => p.variant === 'blocking').length} blocking ·{' '}
+          {PANELS.filter((p) => p.variant === 'passing').length} passing · {reading.url}
+        </span>
+        <span className="contract">
+          k-center sample · deterministic rules · human audit where marked · zero-AI ·{' '}
+          {reading.observedAt}
+        </span>
+      </div>
       <ol className="band" ref={band} id="findings" tabIndex={-1}>
         {PANELS.map((panel, i) => (
           <li
@@ -248,19 +258,36 @@ export default function App() {
               <span className="num" aria-hidden="true">
                 {panel.ordinal}
               </span>
-              {panel.variant === 'absent' ? 'absent · risk' : panel.variant}
+              {panel.variant}
             </p>
 
             <div className="finding">
-              <p className="statement">{panel.statement}</p>
-              <p className="body">{panel.consequence}</p>
-              <p className="body">{panel.fix}</p>
+              <h3 className="defect-title">
+                <span className="class">{panel.defectClass}</span> —{' '}
+                <span className="comp">{panel.component}</span> —{' '}
+                <span className="trig">{panel.trigger}</span>
+              </h3>
+              <p className="defect-locator">{panel.locator}</p>
+              
+              <details className="defect-evidence" open={panel.variant === 'blocking'}>
+                <summary>Evidence and remedy</summary>
+                <div className="ev-body">
+                  <pre>
+                    <code>{panel.snippet.replace(/\\n/g, '\n')}</code>
+                  </pre>
+                  <p className="remediation">{panel.remediation}</p>
+                  {panel.variant === 'blocking' && (
+                    <button
+                      type="button"
+                      className="dev-ticket"
+                      onClick={() => downloadTicket(panel, reading.url, reading.observedAt)}
+                    >
+                      Take this one defect as a ticket
+                    </button>
+                  )}
+                </div>
+              </details>
             </div>
-
-            <p className="note">
-              <sup>1</sup>
-              {panel.gloss}
-            </p>
           </li>
         ))}
 

@@ -90,11 +90,27 @@ async def main(url):
             check("nothing opens a window",
                   await ev("document.querySelectorAll('a[target]').length") == 0)
             check("no refund promised", await ev("document.body.textContent.toLowerCase().includes('refund') && !document.body.textContent.includes('is not refunded')") is False)
-            check("the gloss defines, it does not repeat the fix", await ev(
+            check("the verdict leads the surface", await ev(
+                "(() => { const b = document.querySelector('.scope-bar .verdict');"
+                " return !!b && /\\d+ blocking/.test(b.textContent); })()"))
+            check("the contract names method and zero-AI", await ev(
+                "document.querySelector('.scope-bar .contract').textContent.includes('zero-AI')"))
+            check("a finding is a class, a component, a trigger", await ev(
+                "(() => { const t = document.querySelector('.defect-title');"
+                " return !!t.querySelector('.class') && !!t.querySelector('.comp') && !!t.querySelector('.trig'); })()"))
+            check("the locator is monospace and not the remedy", await ev(
                 "(() => { const p = document.querySelector('.panel');"
-                " const f = p.querySelectorAll('.body')[1].textContent.trim();"
-                " const g = p.querySelector('.note').textContent.replace(/^1/, '').trim();"
-                " return f !== g; })()"))
+                " const l = p.querySelector('.defect-locator');"
+                " const r = p.querySelector('.remediation');"
+                " return !!l && l.textContent.trim() !== r.textContent.trim(); })()"))
+            check("passing checks open collapsed", await ev(
+                "(() => { const p = document.querySelector(\".panel[data-variant='passing']\");"
+                " return !!p && p.querySelector('.defect-evidence').open === false; })()"))
+            check("blocking checks open expanded", await ev(
+                "(() => { const p = document.querySelector(\".panel[data-variant='blocking']\");"
+                " return !!p && p.querySelector('.defect-evidence').open === true; })()"))
+            check("one ticket button per blocking finding", await ev(
+                "document.querySelectorAll('.dev-ticket').length === document.querySelectorAll(\".panel[data-variant='blocking']\").length"))
 
             await ev("__key('ArrowRight')"); await asyncio.sleep(0.2)
             await ev("__key('ArrowRight')"); await asyncio.sleep(0.3)

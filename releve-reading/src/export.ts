@@ -8,14 +8,15 @@
  */
 import type { Panel } from './fixtures'
 
-const HEAD = ['number', 'state', 'statement', 'consequence', 'fix', 'gloss']
+const HEAD = ['number', 'state', 'class', 'component', 'trigger', 'locator', 'witness', 'remedy']
 
 const cell = (value: string) => '"' + value.replace(/"/g, '""') + '"'
 
 export function toCsv(findings: readonly Panel[]): string {
   const rows = [
     HEAD,
-    ...findings.map((f) => [f.ordinal, f.variant, f.statement, f.consequence, f.fix, f.gloss]),
+    ...findings.map((f) => [f.ordinal, f.variant, f.defectClass, f.component, f.trigger,
+      f.locator, f.snippet.replace(/\\n/g, ' / '), f.remediation]),
   ]
   return rows.map((row) => row.map(cell).join(',')).join('\r\n') + '\r\n'
 }
@@ -47,5 +48,56 @@ export function downloadCsv(findings: readonly Panel[], url: string, observedAt:
     setTimeout(() => URL.revokeObjectURL(href), 10_000)
   } catch {
     /* the reader still has the plate */
+  }
+}
+
+/** One defect as a ticket a developer can act on without this page. A ticket that
+ *  lists nine findings is a report, so this carries exactly one. */
+export function ticketFor(finding: Panel, url: string, observedAt: string): string {
+  return [
+    `# ${finding.defectClass} — ${finding.component}`,
+    '',
+    `- page: ${url}`,
+    `- observed: ${observedAt}`,
+    `- state: ${finding.variant}`,
+    `- trigger: ${finding.trigger}`,
+    `- where: \`${finding.locator}\``,
+    '',
+    '## Evidence',
+    '',
+    '```',
+    finding.snippet.replace(/\\n/g, '\n'),
+    '```',
+    '',
+    '## Remedy',
+    '',
+    finding.remediation,
+    '',
+    '## Done when',
+    '',
+    `The rule that raised this no longer reports \`${finding.locator}\` on ${url}.`,
+    '',
+  ].join('\n')
+}
+
+export function ticketName(finding: Panel, url: string): string {
+  const host = url.replace(/^https?:\/\//, '').replace(/[^a-z0-9.]+/gi, '-').replace(/-+$/, '')
+  return `releve-ticket-${finding.ordinal}-${host}.md`
+}
+
+export function downloadTicket(finding: Panel, url: string, observedAt: string): void {
+  try {
+    const blob = new Blob([ticketFor(finding, url, observedAt)], { type: 'text/markdown;charset=utf-8' })
+    const href = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = href
+    a.download = ticketName(finding, url)
+    a.rel = 'noopener'
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    setTimeout(() => URL.revokeObjectURL(href), 10_000)
+  } catch {
+    /* the finding stays on the page */
   }
 }

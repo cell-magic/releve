@@ -91,9 +91,27 @@ async def main(url):
                 print(ln)
             print("---- last row ----")
             print(lines[-1])
-            ok = len(lines) == 10 and lines[0].split(",")[0] == '"number"' and '"absent"' in body
+            ok = (len(lines) == 10 and lines[0].split(",")[0] == '"number"'
+                  and '"locator"' in lines[0] and '"blocking"' in body)
             print(("PASS" if ok else "FAIL") + "  nine findings under one header")
-            return 0 if ok else 1
+
+            await ev("[...document.querySelectorAll('.dev-ticket')][0].click(), true")
+            ticket = []
+            for _ in range(40):
+                ticket = [f for f in os.listdir(downloads) if f.endswith('.md')]
+                if ticket:
+                    break
+                await asyncio.sleep(0.25)
+            if not ticket:
+                print("FAIL  no ticket landed")
+                return 1
+            md = open(os.path.join(downloads, ticket[0]), encoding="utf-8").read()
+            print("PASS  ticket:", ticket[0], "|", len(md), "bytes")
+            print(md)
+            t_ok = (md.count('## ') == 3 and '## Evidence' in md and '## Remedy' in md
+                    and 'where:' in md and ticket[0].endswith('.md'))
+            print(("PASS" if t_ok else "FAIL") + "  one defect, with evidence and remedy")
+            return 0 if (ok and t_ok) else 1
     finally:
         proc.terminate()
 
