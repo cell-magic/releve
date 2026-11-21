@@ -971,6 +971,14 @@ sup {
 }
 
 /* print: the nine panels stack, the chrome goes */
+/* an unmounted kernel is stated, not dressed as a button */
+.action.is-todo,
+.verifier-badge[data-todo] span {
+  color: var(--quiet);
+  border-style: dashed;
+  cursor: default;
+}
+
 /* ---------- narrow: one column, thumb-sized, nothing clipped ---------- */
 
 @media (max-width: 640px) {

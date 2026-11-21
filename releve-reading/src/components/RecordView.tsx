@@ -11,8 +11,9 @@ export function RecordView({ state }: { state: State }) {
       <h1>Record</h1>
       <p className="view-note">Seen by: {SESSION.seenBy}</p>
       <p className="view-note">RADAR reads this page again on the first of each month; the next reading runs on 1 December 2026.</p>
-      <p className="verifier-badge">
-        <a href="/verifier.html">Verified locally — 0 bytes transmitted</a>
+      {/* TODO: mount the WASM kernel at /reading/verifier.html, then this becomes a link */}
+      <p className="verifier-badge" data-todo="wasm-kernel">
+        <span>Local verification — kernel not mounted in this build</span>
       </p>
       <table className="table record">
         <tbody>
