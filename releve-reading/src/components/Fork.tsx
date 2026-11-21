@@ -9,15 +9,15 @@ export function Fork({ onClose, onStop }: { onClose: () => void; onStop: () => v
   return (
     <Dialog title="Stop" className="fork" onClose={onClose}>
       <p className="fork-line">
-        No further charges. The period you paid for runs to 14 April 2026, and nothing is returned
-        on it. Everything stays readable and exportable until 14 March 2028.
+        Nothing further is charged. The period already paid for runs to 20 December 2026 and is not
+        refunded. The record stays readable and exportable until 21 November 2028.
       </p>
       <div className="fork-actions">
         <button type="button" onClick={onClose}>
           Keep reading
         </button>
         <button type="button" onClick={onStop}>
-          Stop and keep the record
+          End the subscription
         </button>
       </div>
     </Dialog>

@@ -28,8 +28,8 @@ export function Plate({
 
       {state.sent && (
         <p className="stamp">
-          <span>observed 14 March 2026, 10:42</span>
-          <span>one page, not a sample</span>
+          <span>observed 21 November 2026, 10:42</span>
+          <span>left the private area</span>
         </p>
       )}
 

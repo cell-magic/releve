@@ -8,6 +8,7 @@ import { useRoute } from './router'
 import { Fork } from './components/Fork'
 import { HelpView } from './components/HelpView'
 import { Plate } from './components/Plate'
+import { Timbre } from './components/Timbre'
 import { RecordView } from './components/RecordView'
 import { StandingLine } from './components/StandingLine'
 
@@ -170,6 +171,9 @@ export default function App() {
       </a>
 
       <nav className="rail" aria-label="Position">
+        <span className="mark" role="img" aria-label="Bureau des Surfaces">
+          <Timbre />
+        </span>
         <button className="first dir" type="button" onClick={() => go(0)}>
           first
         </button>

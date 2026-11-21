@@ -26,7 +26,7 @@ export const PANELS: readonly Panel[] = [
     ordinal: '01',
     variant: 'found',
     statement: '4 trackers start before the visitor has agreed to anything.',
-    consequence: 'Each request leaves before the page has asked.',
+    consequence: 'The refusal, when it comes, cannot recall what already left.',
     fix: 'Hold every request until the visitor answers.',
     gloss: 'A tracker is a script that reports the visitor elsewhere.',
   },
@@ -34,7 +34,7 @@ export const PANELS: readonly Panel[] = [
     ordinal: '02',
     variant: 'found',
     statement: 'Refusing cookies takes 3 clicks and accepting takes 1.',
-    consequence: 'The easy path is the one that leaves with data.',
+    consequence: 'A visitor who declines pays for the same page in clicks.',
     fix: 'Put refuse beside accept, at the same size, in one step.',
     gloss: 'Consent is a choice made before anything runs, not after.',
   },
@@ -53,13 +53,13 @@ export const PANELS: readonly Panel[] = [
     statement: '14 of 22 images carry no description.',
     consequence: 'A screen reader announces each one as "image".',
     fix: 'Write one line per image saying what it shows.',
-    gloss: 'Alt text says what an image shows, in one line.',
+    gloss: 'Alt text is what a screen reader reads instead.',
   },
   {
     ordinal: '05',
     variant: 'found',
     statement: 'The menu opens with a mouse and with nothing else.',
-    consequence: 'A visitor without a mouse cannot reach any other page.',
+    consequence: 'The homepage becomes the whole site for anyone on a keyboard.',
     fix: 'Let the Enter key open it, and mark where the focus is.',
     gloss: 'Focus is where the keyboard is; it must be visible.',
   },
@@ -69,14 +69,14 @@ export const PANELS: readonly Panel[] = [
     statement: '3 fields in the contact form have no name that software can read aloud.',
     consequence: 'The form is filled blind, one guess at a time.',
     fix: 'Tie each visible label to its field so it is spoken.',
-    gloss: 'A label is the name software reads aloud for a field.',
+    gloss: "A label is the field's own name, not its placeholder.",
   },
   {
     ordinal: '07',
     variant: 'found',
     statement:
       'The page sends visitor data to 7 other domains. The privacy notice is 1,400 words and names none of them.',
-    consequence: 'A reader cannot consent to a transfer the notice never mentions.',
+    consequence: 'The reader agrees in general and is transferred to 7 companies in particular.',
     fix: 'Name all 7 in the notice, or stop sending to the other 5.',
     gloss: 'A recipient is a domain that receives visitor data.',
   },
@@ -87,7 +87,7 @@ export const PANELS: readonly Panel[] = [
       'The chat window sends each message to 1 domain before it answers, and no line on the page says a machine replies.',
     consequence: 'From 2 August 2026 EU law applies to that conversation.',
     fix: 'Open the chat with one line: a machine is answering.',
-    gloss: 'A disclosure is the line that says a machine replies.',
+    gloss: 'A disclosure is met before the first reply, not after.',
   },
   {
     ordinal: '09',
@@ -96,7 +96,7 @@ export const PANELS: readonly Panel[] = [
       'No accessibility statement exists, and since 28 June 2025 EU law expects one from most pages that sell to consumers.',
     consequence: 'A reader who cannot use the page has nowhere to write.',
     fix: 'Publish one: what works, what fails, whom to write to.',
-    gloss: 'A statement says what works, what fails, whom to write to.',
+    gloss: "A statement is the page's account of its own failures.",
   },
 ]
 
@@ -111,7 +111,7 @@ export const SESSION: {
 } = {
   state: 'active',
   price: PRICE,
-  paidThrough: '14 April 2026',
-  nextCharge: '14 April 2026',
+  paidThrough: '20 December 2026',
+  nextCharge: '21 December 2026',
   seenBy: 'no one yet',
 }

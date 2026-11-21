@@ -119,12 +119,18 @@ button {
   cursor: default;
 }
 
-.rail .first::before {
-  content: '';
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  background: var(--ordinal);
+.rail .mark {
+  display: inline-flex;
+  align-items: center;
+  color: var(--ink);
+  margin-right: 13px;
+}
+
+.rail .mark svg {
+  height: 32px;
+  width: auto;
+  display: block;
+  fill: currentColor;
 }
 
 .rail .spacer {

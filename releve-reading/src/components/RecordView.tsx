@@ -22,7 +22,7 @@ export function RecordView({ state }: { state: State }) {
       </table>
       <p className="view-note">
         {left
-          ? 'Frozen. Export open until 14 March 2028; nothing is deleted before then.'
+          ? 'Frozen. Kept and exportable until 21 November 2028.'
           : 'Export always open, in open formats.'}
       </p>
     </div>

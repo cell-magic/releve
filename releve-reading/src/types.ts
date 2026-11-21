@@ -30,7 +30,7 @@ export type Action =
   | { type: 'resume' }
   | { type: 'send' }
 
-export const NOW = '14 March 2026, 10:42'
+export const NOW = '21 November 2026, 10:42'
 
 /** The plate's seven rows, in fixed order: scope, jurisdiction, composition,
  *  undeclared, closed, record, handling. */
@@ -53,4 +53,4 @@ export const COUNT_ROWS: readonly (readonly [string, string])[] = [
   ['Median time to a human reply', '4 hours'],
 ] as const
 
-export const COUNT_NOTE = 'The service’s own figures, 3,140 accounts. Unmeasured figures omitted.'
+export const COUNT_NOTE = '3,140 accounts. Unmeasured figures are omitted.'

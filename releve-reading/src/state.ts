@@ -7,7 +7,7 @@ import { NOW, type Action, type State } from './types'
 const initial: State = {
   session: 'active',
   receipts: [],
-  record: [{ at: '14 March 2026', fact: 'Page read. 11 checks run, 9 findings.' }],
+  record: [{ at: '21 November 2026', fact: 'Page read. 11 checks run, 9 findings.' }],
   sent: false,
 }
 
@@ -27,7 +27,7 @@ function reducer(state: State, action: Action): State {
         ...state,
         session: 'left',
         receipts: [receipt, ...state.receipts],
-        record: [...state.record, { at: '14 March 2026', fact: 'Stopped. No further charges.' }],
+        record: [...state.record, { at: '21 November 2026', fact: 'Stopped. The paid period ran to 20 December 2026.' }],
       }
     }
     case 'undo': {
@@ -36,7 +36,7 @@ function reducer(state: State, action: Action): State {
         ...state,
         session: 'active',
         receipts: state.receipts.filter((r) => r.id !== action.id),
-        record: [...state.record, { at: '14 March 2026', fact: 'Stop reversed. The plan is active again.' }],
+        record: [...state.record, { at: '21 November 2026', fact: 'Stop reversed. The plan is active again.' }],
       }
     }
     case 'dormant': {
@@ -48,7 +48,7 @@ function reducer(state: State, action: Action): State {
           { id: nextId++, at: NOW, fact: 'Dormant. No charge scheduled.', undo: false },
           ...state.receipts,
         ],
-        record: [...state.record, { at: '14 March 2026', fact: 'Went dormant. No charge scheduled.' }],
+        record: [...state.record, { at: '21 November 2026', fact: 'Dormant. Charges pause until resumed.' }],
       }
     }
     case 'resume': {
@@ -60,7 +60,7 @@ function reducer(state: State, action: Action): State {
           { id: nextId++, at: NOW, fact: 'Resumed. €10.00 per month again.', undo: false },
           ...state.receipts,
         ],
-        record: [...state.record, { at: '14 March 2026', fact: 'Resumed. €10.00 per month.' }],
+        record: [...state.record, { at: '21 November 2026', fact: 'Resumed. Next charge 21 December 2026.' }],
       }
     }
     case 'send': {
@@ -69,7 +69,7 @@ function reducer(state: State, action: Action): State {
         ...state,
         sent: true,
         receipts: [
-          { id: nextId++, at: NOW, fact: 'Plate exported. The stamp dates it.', undo: false },
+          { id: nextId++, at: NOW, fact: 'Plate exported.', undo: false },
           ...state.receipts,
         ],
       }

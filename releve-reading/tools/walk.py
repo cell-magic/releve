@@ -89,7 +89,7 @@ async def main(url):
             check("no aria-live anywhere", await ev("__live()") == 0, str(await ev("__live()")))
             check("nothing opens a window",
                   await ev("document.querySelectorAll('a[target]').length") == 0)
-            check("no refund promised", await ev("document.body.textContent.includes('€6.00')") is False)
+            check("no refund promised", await ev("document.body.textContent.toLowerCase().includes('refund') && !document.body.textContent.includes('is not refunded')") is False)
             check("the gloss defines, it does not repeat the fix", await ev(
                 "(() => { const p = document.querySelector('.panel');"
                 " const f = p.querySelectorAll('.body')[1].textContent.trim();"
@@ -107,7 +107,7 @@ async def main(url):
             check("plate dialog opens", await ev("!!document.querySelector('.dialog.plate')"))
             check("focus on close", await ev("document.activeElement.textContent.trim()") == "close",
                   str(await ev("document.activeElement.textContent.trim()")))
-            check("nine plate rows", await ev("document.querySelectorAll('.plate-row').length") == 7,
+            check("seven plate rows", await ev("document.querySelectorAll('.plate-row').length") == 7,
                   str(await ev("document.querySelectorAll('.plate-row').length")))
             check("no stamp before send", await ev("!document.querySelector('.stamp')"))
             await ev("""(() => {
@@ -132,7 +132,7 @@ async def main(url):
             # fork -> stop -> receipt -> undo
             await ev("__btn('active').click()"); await asyncio.sleep(0.4)
             check("fork opens from the state segment", await ev("!!document.querySelector('.dialog.fork')"))
-            await ev("__btn('stop and keep the record').click()"); await asyncio.sleep(0.5)
+            await ev("__btn('end the subscription').click()"); await asyncio.sleep(0.5)
             check("stop closes the fork", await ev("!document.querySelector('.dialog')"))
             check("state is left", await ev("__btn('left') !== undefined"))
             receipts = await ev("__receipts()") or []
