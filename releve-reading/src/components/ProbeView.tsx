@@ -30,7 +30,7 @@ export function ProbeView({ onSubmit }: { onSubmit: (url: string) => void }) {
           id="probe-url"
           type="text"
           inputMode="url"
-          placeholder="https://example.fr"
+          placeholder="example.fr"
           value={url}
           onChange={(event) => setUrl(event.target.value)}
           spellCheck={false}
