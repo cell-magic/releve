@@ -209,7 +209,10 @@ button {
 }
 
 .panel[data-variant='absent'] .finding {
-  border-width: 2px;
+  /* the third state reads as a second hairline, not as a heavier one: the screen
+     carries exactly two 2px rules (rail, colophon) and this is not one of them */
+  outline: 1px solid var(--rule);
+  outline-offset: 3px;
 }
 
 .statement {
@@ -293,6 +296,9 @@ sup {
   border-top: var(--rule-weight) solid var(--rule-strong);
   background: var(--stand);
   color: var(--on-stand);
+  /* the line is always ink under paper, so the money keeps one colour in both
+     schemes instead of inheriting the page's ink and vanishing into the ground */
+  --cost: #d9a24a;
   font: 400 12px/22px 'IBM Plex Mono', ui-monospace, monospace;
   font-variant-numeric: tabular-nums slashed-zero;
 }
@@ -336,7 +342,11 @@ sup {
 }
 
 /* mustard is money and nothing else */
-.line .tone-cost {
+.line .tone-mark {
+  letter-spacing: 0.08em;
+}
+
+.tone-cost {
   color: var(--cost);
 }
 

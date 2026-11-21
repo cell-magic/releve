@@ -10,6 +10,7 @@ export function RecordView({ state }: { state: State }) {
     <div className="station-view">
       <h1>Record</h1>
       <p className="view-note">Seen by: {SESSION.seenBy}</p>
+      <p className="view-note">RADAR reads this page again on the first of each month; the next reading runs on 1 December 2026.</p>
       <table className="table record">
         <tbody>
           {state.record.map((row) => (

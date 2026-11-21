@@ -9,8 +9,9 @@ export function Fork({ onClose, onStop }: { onClose: () => void; onStop: () => v
   return (
     <Dialog title="Stop" className="fork" onClose={onClose}>
       <p className="fork-line">
-        Nothing further is charged. The period already paid for runs to 20 December 2026 and is not
-        refunded. The record stays readable and exportable until 21 November 2028.
+        RADAR stops reading this page. Nothing further is charged — the period already paid for runs
+        to 20 December 2026 and is not refunded — and the record stays readable and exportable until
+        21 November 2028.
       </p>
       <div className="fork-actions">
         <button type="button" onClick={onClose}>

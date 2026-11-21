@@ -4,8 +4,8 @@
 import { SESSION } from '../fixtures'
 import type { Receipt, SessionState } from '../types'
 
-/** The colophon. Its first segment is the state, and the state is also the way
- *  into the fork — the surface has no separate leaving control. */
+/** The colophon. The state is a fact, not a control: the only way out is the Stop
+ *  slab at the far right, so nothing on the line offers the same door twice. */
 export function StandingLine({
   session,
   receipts,
@@ -27,16 +27,20 @@ export function StandingLine({
     <div className="line">
       <div className="left">
         <div className="segs">
+          <span className="seg tone-mark">
+            RADAR
+            <span className="sep" aria-hidden="true">
+              {' · '}
+            </span>
+          </span>
           <span className="seg">
-            <button type="button" className="state" onClick={onOpenFork}>
-              {session}
-            </button>
+            {session}
             <span className="sep" aria-hidden="true">
               {' · '}
             </span>
           </span>
           <span className="seg tone-cost">
-            {SESSION.price}
+            {SESSION.price} per month
             <span className="sep" aria-hidden="true">
               {' · '}
             </span>

@@ -2,7 +2,8 @@
    SPDX-License-Identifier: EUPL-1.2 */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { PANELS } from './fixtures'
+import { source } from './api'
+import { downloadCsv } from './export'
 import { useSession } from './state'
 import { useRoute } from './router'
 import { Fork } from './components/Fork'
@@ -12,6 +13,8 @@ import { Timbre } from './components/Timbre'
 import { RecordView } from './components/RecordView'
 import { StandingLine } from './components/StandingLine'
 
+const reading = source.read()
+const PANELS = reading.findings
 const FINDINGS = PANELS.length
 const RECORD_AT = FINDINGS
 const HELP_AT = FINDINGS + 1
@@ -160,6 +163,7 @@ export default function App() {
     closeOverlay()
   }
   const onExport = () => {
+    downloadCsv(PANELS, reading.url, reading.observedAt)
     dispatch({ type: 'send' })
     openPlate()
   }

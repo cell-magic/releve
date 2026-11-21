@@ -129,18 +129,20 @@ async def main(url):
             check("export opens the plate with a stamp", await ev("!!document.querySelector('.stamp')"))
             await ev("__key('Escape')"); await asyncio.sleep(0.3)
 
-            # fork -> stop -> receipt -> undo
-            await ev("__btn('active').click()"); await asyncio.sleep(0.4)
-            check("fork opens from the state segment", await ev("!!document.querySelector('.dialog.fork')"))
+            # fork -> stop -> receipt -> undo. The state is a fact, not a door: the
+            # only control that opens the fork is the Stop slab.
+            check("state is not a control", await ev("__btn('active')") is None)
+            await ev("__btn('stop').click()"); await asyncio.sleep(0.4)
+            check("fork opens from the stop slab", await ev("!!document.querySelector('.dialog.fork')"))
             await ev("__btn('end the subscription').click()"); await asyncio.sleep(0.5)
             check("stop closes the fork", await ev("!document.querySelector('.dialog')"))
-            check("state is left", await ev("__btn('left') !== undefined"))
+            check("state is left", await ev("document.querySelector('.line .segs').textContent.toLowerCase().includes('left')"))
             receipts = await ev("__receipts()") or []
             check("receipt printed on the line",
                   any("No further charges." in r for r in receipts), str(receipts[:1]))
             check("undo present", await ev("!!document.querySelector('.receipt .undo')"))
             await ev("document.querySelector('.receipt .undo').click()"); await asyncio.sleep(0.4)
-            check("undo reverses the stop", await ev("__btn('active') !== undefined"))
+            check("undo reverses the stop", await ev("document.querySelector('.line .segs').textContent.toLowerCase().includes('active')"))
 
             # record + count are stations, not pages: the axis stays
             await ev("__btn('record').click()"); await asyncio.sleep(0.4)
