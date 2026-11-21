@@ -26,18 +26,10 @@ export function SpecimenView({
 
       <dl className="verdict">
         <div>
-          <dt>Surface</dt>
-          <dd className="mono">{url}</dd>
-        </div>
-        <div>
           <dt>State</dt>
           <dd>
             <span className="glyph" aria-hidden="true">■</span> {blocking.length} blocking
           </dd>
-        </div>
-        <div>
-          <dt>Observed</dt>
-          <dd className="mono">{observedAt} · EU egress</dd>
         </div>
         <div>
           <dt>Snapshot</dt>
@@ -46,7 +38,7 @@ export function SpecimenView({
       </dl>
 
       <section className="archetype" aria-labelledby="archetype-name">
-        <p className="label">Deterministic class</p>
+        <p className="label">Class</p>
         <h3 id="archetype-name">{SPECIMEN.archetype.name}</h3>
         <p className="archetype-line">{SPECIMEN.archetype.line}</p>
         <details className="rules">
@@ -103,7 +95,7 @@ export function SpecimenView({
           setCopied(ok ? 'yes' : 'no')
         }}
       >
-        {copied === 'yes' ? 'Receipt copied' : copied === 'no' ? 'Copy blocked by the browser' : 'Copy forensic receipt'}
+        {copied === 'yes' ? 'Receipt copied' : copied === 'no' ? 'Copy blocked by the browser' : 'Copy receipt'}
       </button>
     </div>
   )

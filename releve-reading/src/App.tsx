@@ -140,7 +140,7 @@ export default function App() {
   return (
     <div className="app" data-station={station} data-overlay={overlay}>
       <a className="skip" href="#stations">
-        Skip to the stations
+        Skip to stations
       </a>
 
       <nav className="rail" aria-label="Ring stations">
@@ -211,7 +211,7 @@ export default function App() {
           {PANELS.filter((p) => p.variant === 'passing').length} passing · {reading.url}
         </span>
         <span className="contract">
-          k-center sample · deterministic rules · human audit where marked · zero-AI ·{' '}
+          k-center sample · deterministic · human audit where marked · zero-AI ·{' '}
           {reading.observedAt}
         </span>
       </div>

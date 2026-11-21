@@ -15,7 +15,7 @@ import socketserver
 import sys
 
 ROOT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "dist")
-MOUNT = "/reading"
+MOUNT = ""
 TYPES = {
     ".html": "text/html; charset=utf-8",
     ".js": "text/javascript; charset=utf-8",

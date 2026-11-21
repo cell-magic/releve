@@ -10,8 +10,8 @@ export function HelpView() {
     <div className="station-view">
       <h1>Who answers</h1>
       <p>
-        One person reads the page and writes the finding. A rule set decides what counts as found;
-        no model takes part in the reading. A reply comes within a working day.
+        One person reads the page. A rule set decides what counts as found; no model reads it.
+        Reply within a working day.
       </p>
 
       <h2>Count</h2>

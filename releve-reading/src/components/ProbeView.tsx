@@ -8,9 +8,9 @@ import { useState } from 'react'
 export function ProbeView({ onSubmit }: { onSubmit: (url: string) => void }) {
   const [url, setUrl] = useState('')
   const presets = [
-    ['The Bare Concrete', 'zero blocking, lean transfer'],
-    ['The Overlay Alibi', 'overlay script over 8 blocking defects'],
-    ['The 4 MB Brochure', 'enterprise script weight on a brochure'],
+    ['The Bare Concrete', 'lean transfer'],
+    ['The Overlay Alibi', 'overlay script'],
+    ['The 4 MB Brochure', 'enterprise script weight'],
   ]
   return (
     <div className="station-view" data-station="probe">
@@ -36,10 +36,10 @@ export function ProbeView({ onSubmit }: { onSubmit: (url: string) => void }) {
           spellCheck={false}
           autoComplete="url"
         />
-        <button type="submit">Run deterministic probe</button>
+        <button type="submit">Run probe</button>
       </form>
       <p className="scope-line">
-        Public URL only. Fixed k-center sample. No cookies, no tracking, no LLM inference.
+        Public URLs only. No tracking, no inference.
       </p>
 
       <p className="label">Specimens</p>

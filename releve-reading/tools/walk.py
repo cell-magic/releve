@@ -20,7 +20,7 @@ window.__btn = label => [...document.querySelectorAll('button')]
   .find(b => (b.textContent || '').trim().toLowerCase() === label.toLowerCase());
 window.__key = (key, opts = {}) => document.dispatchEvent(new KeyboardEvent('keydown', {key, bubbles: true, ...opts}));
 window.__panelCount = () => document.querySelectorAll('.panel').length;
-window.__path = () => location.pathname.replace(/^\/reading/, "") || "/";
+window.__path = () => location.pathname.replace(/^\//, "/") || "/";
 window.__counter = () => (document.querySelector('.counter.position') || {}).textContent;
 window.__receipts = () => [...document.querySelectorAll('.receipt')].map(r => r.textContent.trim());
 window.__live = () => document.querySelectorAll('[aria-live]').length;
@@ -205,4 +205,4 @@ async def main(url):
 
 
 if __name__ == "__main__":
-    sys.exit(asyncio.run(main(sys.argv[1] if len(sys.argv) > 1 else "http://localhost:4173/reading/")))
+    sys.exit(asyncio.run(main(sys.argv[1] if len(sys.argv) > 1 else "http://localhost:4173/")))

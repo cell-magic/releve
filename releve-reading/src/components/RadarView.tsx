@@ -42,19 +42,19 @@ export function RadarView({ url, onWrap }: { url: string; onWrap: () => void }) 
         />
         <div className="radar-actions">
           <button type="submit" className="action">
-            Activate monthly radar — {PRICE}/mo
+            Activate radar — {PRICE}/mo
           </button>
           <button type="submit" className="action quiet">
-            Arm one free 30-day drift check
+            Arm free 30-day check
           </button>
         </div>
       </form>
 
       <ul className="contract-lines">
         <li>No account. No login. No dashboard.</li>
-        <li>Silent three-line email when stable; the full two-zone diff only on drift.</li>
-        <li>{PRICE}/month — one line item, no procurement committee.</li>
-        <li>One-click kill switch at the bottom of every email.</li>
+        <li>Silent email when stable; diff only on drift.</li>
+        <li>{PRICE}/month — one line item.</li>
+        <li>One-click kill switch in every email.</li>
       </ul>
 
       {state === 'closed' && (
@@ -65,7 +65,7 @@ export function RadarView({ url, onWrap }: { url: string; onWrap: () => void }) 
 
       <p className="wrap-cue">
         <button type="button" className="link" onClick={onWrap}>
-          Next — probe another surface
+          Next — probe another
         </button>
       </p>
     </div>

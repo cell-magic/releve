@@ -31,7 +31,7 @@ const overlayFor = (s: string | undefined): Overlay => (s && WORD[s]) || 'none'
 /** /probe · /specimen · /witness · /drift · /radar, and /<station>/<overlay> for
  *  the four dialogs, so a shared link keeps both the seat and the open sheet. */
 /** the surface lives at /reading/ on the report host; every path is relative to it */
-export const BASE = '/reading'
+export const BASE = ''
 
 const strip = (path: string) =>
   path.startsWith(BASE) ? path.slice(BASE.length) || '/' : path

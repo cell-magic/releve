@@ -131,7 +131,7 @@ export const SPECIMEN = {
   hash: '9f4a2c1e7b3d',
   archetype: {
     name: 'The Overlay Alibi',
-    line: 'An accessibility overlay runs alongside 8 blocking accessibility defects.',
+    line: 'Accessibility overlay over blocking defects.',
     rule: 'overlay script present AND blocking accessibility defects > 0',
   },
   rules: [
@@ -143,7 +143,7 @@ export const SPECIMEN = {
   ],
   energy: { bytes: '1.42 MB', nodes: '1 284', scripts: '9', delta: '+142 KB since 21 October' },
   perception: { overlays: '1 overlay, 1 chat widget', landmarks: 'main landmark missing', targets: '6 controls under 24px' },
-  boundary: 'Automated DOM and CSS scope only. A full RGAA 5 declaration still needs a human pass.',
+  boundary: 'Automated DOM/CSS scope only.',
 } as const
 
 export type Tick = { label: string; state: 'stable' | 'drift' | 'blocking'; note: string; detail: string }

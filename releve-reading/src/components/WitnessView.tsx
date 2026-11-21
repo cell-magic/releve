@@ -36,11 +36,11 @@ export function WitnessView({
             setCopied(ok ? 'yes' : 'no')
           }}
         >
-          {copied === 'yes' ? 'Brief copied' : copied === 'no' ? 'Copy blocked by the browser' : 'Copy 4-line brief'}
+          {copied === 'yes' ? 'Brief copied' : copied === 'no' ? 'Copy blocked by the browser' : 'Copy brief'}
         </button>
         {/* TODO: mount the WASM kernel at /reading/verifier.html, then this becomes a link */}
         <span className="action is-todo" data-todo="wasm-kernel" aria-disabled="true">
-          Verify in this tab — kernel not mounted in this build
+          Local verify — no kernel in this build
         </span>
       </div>
 
@@ -90,8 +90,8 @@ export function WitnessView({
       </details>
 
       <p className="bounded">
-        Scope limited to this flow? <button type="button" className="link">Export one developer ticket</button>{' '}
-        or request a bounded fix-and-verify pass.
+        One flow only? <button type="button" className="link">Export ticket</button>{' '}
+        or request a bounded pass.
       </p>
     </div>
   )
