@@ -211,7 +211,7 @@ export default function App() {
           {PANELS.filter((p) => p.variant === 'passing').length} passing · {reading.url}
         </span>
         <span className="contract">
-          k-center sample · deterministic · human audit where marked · zero-AI ·{' '}
+          fixed sample · strictly rule-based · human check where marked · zero AI ·{' '}
           {reading.observedAt}
         </span>
       </div>

@@ -8,9 +8,9 @@ import { useState } from 'react'
 export function ProbeView({ onSubmit }: { onSubmit: (url: string) => void }) {
   const [url, setUrl] = useState('')
   const presets = [
-    ['The Bare Concrete', 'lean transfer'],
-    ['The Overlay Alibi', 'overlay script'],
-    ['The 4 MB Brochure', 'enterprise script weight'],
+    ['The Bare Concrete', 'clean code, fast load'],
+    ['The Overlay Alibi', 'masking legal defects'],
+    ['The 4 MB Brochure', 'heavy marketing bloatedness'],
   ]
   return (
     <div className="station-view" data-station="probe">
@@ -39,7 +39,7 @@ export function ProbeView({ onSubmit }: { onSubmit: (url: string) => void }) {
         <button type="submit">Run probe</button>
       </form>
       <p className="scope-line">
-        Public URLs only. No tracking, no inference.
+        Public URLs only. We don't save your data. We don't use AI.
       </p>
 
       <p className="label">Specimens</p>

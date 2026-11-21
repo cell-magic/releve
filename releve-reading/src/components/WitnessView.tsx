@@ -90,8 +90,8 @@ export function WitnessView({
       </details>
 
       <p className="bounded">
-        One flow only? <button type="button" className="link">Export ticket</button>{' '}
-        or request a bounded pass.
+        Just need this specific thing fixed? <button type="button" className="link">Export a task</button>{' '}
+        or ask us to do it.
       </p>
     </div>
   )

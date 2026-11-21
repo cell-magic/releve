@@ -64,20 +64,20 @@ export function SpecimenView({
 
       <dl className="ledger">
         <div>
-          <dt>Law — RGAA 5 / Art. 50</dt>
+          <dt>Legal Exposure — RGAA 5 & AI Act</dt>
           <dd>
             {blocking.length} blocking. <span className="boundary">{SPECIMEN.boundary}</span>
           </dd>
         </div>
         <div>
-          <dt>Energy — RGESN / weight</dt>
+          <dt>Carbon & Speed — RGESN</dt>
           <dd className="mono">
             {SPECIMEN.energy.bytes} · {SPECIMEN.energy.nodes} nodes · {SPECIMEN.energy.scripts}{' '}
             third-party scripts · {SPECIMEN.energy.delta}
           </dd>
         </div>
         <div>
-          <dt>Perception — machine legibility</dt>
+          <dt>Structure — Screen Readers & Keyboards</dt>
           <dd>
             {SPECIMEN.perception.overlays} · {SPECIMEN.perception.landmarks} ·{' '}
             {SPECIMEN.perception.targets}

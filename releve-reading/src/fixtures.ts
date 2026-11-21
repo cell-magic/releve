@@ -131,19 +131,19 @@ export const SPECIMEN = {
   hash: '9f4a2c1e7b3d',
   archetype: {
     name: 'The Overlay Alibi',
-    line: 'Accessibility overlay over blocking defects.',
+    line: 'A quick-fix widget trying to hide real accessibility failures.',
     rule: 'overlay script present AND blocking accessibility defects > 0',
   },
   rules: [
-    ['The Overlay Alibi', 'accessibility overlay script AND blocking accessibility defects'],
-    ['The Silent Automaton', 'chat or synthetic endpoint AND no Art. 50(5) disclosure node'],
-    ['The 4 MB Brochure', 'transfer > 1.8 MB OR DOM nodes > 1500 OR third-party scripts > 8'],
-    ['The Ghost Landmark', 'no <main> landmark OR focus order broken OR targets under 24px'],
-    ['The Bare Concrete', 'zero blocking defects AND transfer < 400 KB AND landmarks valid'],
+    ['The Overlay Alibi', 'A quick-fix widget trying to hide real accessibility failures.'],
+    ['The Silent Automaton', 'A chatbot that doesn\'t tell you it\'s a bot. Fails the AI Act.'],
+    ['The 4 MB Brochure', 'A simple site carrying way too much marketing weight.'],
+    ['The Ghost Landmark', 'Looks fine, but completely unusable for anyone not using a mouse.'],
+    ['The Bare Concrete', 'Fast, clean, and actually compliant. Very rare.'],
   ],
   energy: { bytes: '1.42 MB', nodes: '1 284', scripts: '9', delta: '+142 KB since 21 October' },
   perception: { overlays: '1 overlay, 1 chat widget', landmarks: 'main landmark missing', targets: '6 controls under 24px' },
-  boundary: 'Automated DOM/CSS scope only.',
+  boundary: 'Automated check only. A full legal declaration still needs a human pass.',
 } as const
 
 export type Tick = { label: string; state: 'stable' | 'drift' | 'blocking'; note: string; detail: string }
