@@ -561,13 +561,28 @@ def drop(body, heading):
 
 
 def zones(body, fr):
-    """Two labels over the report's two halves: what the rules decided, and what they could not."""
+    """One label over what the rules could not decide, and one over what the page loads: the two halves a
+    reader needs to tell apart."""
     if fr:
-        body = re.sub(r"(<h2>Empreinte</h2>\n)", r'\1<p class="zone">Ce que les règles ont tranché — daté par une autorité extérieure.</p>\n', body, count=1)
-        body = re.sub(r"(<h2>Questions ouvertes \(\d+\)</h2>\n)", r'\1<p class="zone">Ce qu’aucune règle ne peut trancher — à confirmer par un humain.</p>\n', body, count=1)
+        if "Ce que la page charge pour s’afficher." not in body:
+            body = re.sub(r"(<h2[^>]*>Empreinte</h2>\n)",
+                          r'\1<p class="zone">Ce que la page charge pour s’afficher.</p>\n', body, count=1)
+        if "Ce qu’aucune règle ne peut trancher — à confirmer par un humain." not in body:
+            body = re.sub(r"(<h2>Questions ouvertes \(\d+\)</h2>\n)",
+                          r'\1<p class="zone">Ce qu’aucune règle ne peut trancher — à confirmer par un humain.</p>\n', body, count=1)
+        if "Ce que vous seuls pouvez affirmer." not in body:
+            body = re.sub(r'(<h2 id="declarations">Déclarations</h2>\n)',
+                          r'\1<p class="zone">Ce que vous seuls pouvez affirmer.</p>\n', body, count=1)
     else:
-        body = re.sub(r"(<h2>Footprint</h2>\n)", r'\1<p class="zone">What the rules decided — dated by an outside authority.</p>\n', body, count=1)
-        body = re.sub(r"(<h2>Open questions \(\d+\)</h2>\n)", r'\1<p class="zone">What no rule can decide — to confirm by a person.</p>\n', body, count=1)
+        if "What the page loads to appear." not in body:
+            body = re.sub(r"(<h2[^>]*>Footprint</h2>\n)",
+                          r'\1<p class="zone">What the page loads to appear.</p>\n', body, count=1)
+        if "What no rule can decide — to confirm by a person." not in body:
+            body = re.sub(r"(<h2>Open questions \(\d+\)</h2>\n)",
+                          r'\1<p class="zone">What no rule can decide — to confirm by a person.</p>\n', body, count=1)
+        if "What only you can state." not in body:
+            body = re.sub(r'(<h2 id="declarations">Declarations</h2>\n)',
+                          r'\1<p class="zone">What only you can state.</p>\n', body, count=1)
     return body
 
 
@@ -575,7 +590,7 @@ def effort_summary(body, fr):
     """The open questions counted by the effort each asks, so a reader sees the shape of the work
     before the list: how many are light, moderate, heavy. Reads only what the report already states."""
     sec = re.search(r"(<h2>(?:Questions ouvertes|Open questions) \(\d+\)</h2>)(.*?)(?=<h2>|\Z)", body, re.S)
-    if not sec:
+    if not sec or "Par effort" in sec.group(2) or "By effort" in sec.group(2):
         return body
     keys = ([("correction légère", "légère", "légères"), ("correction moyenne", "moyenne", "moyennes"),
              ("correction lourde", "lourde", "lourdes")] if fr
@@ -614,50 +629,159 @@ def count_of(text, *pats):
     return 0
 
 
-def meaning(body, fr):
-    """What the counts mean for a reader, said plainly: the rules' part is finished, and what remains is a
-    bounded human judgment. A template over the counts the report already states — no rule, no model, no
-    conformity claim, nothing about the engine."""
+def counts_of(body):
+    """The four numbers the report's own line already states: points kept, fixes, open questions,
+    lighter options. Read from that line, never counted again from the page."""
     t = verdict_text(body)
-    fixes = count_of(t, r"(\d+) corrections?\b", r"(\d+) fixes?\b")
-    qs = count_of(t, r"(\d+) questions? ouvertes", r"(\d+) open questions")
-    light = count_of(t, r"(\d+) allègements?\b", r"(\d+) lighter options?")
+    return (count_of(t, r"(\d+) points? sans écart", r"(\d+) points? without discrepancy"),
+            count_of(t, r"(\d+) corrections?\b", r"(\d+) fixes?\b"),
+            count_of(t, r"(\d+) questions? ouvertes", r"(\d+) open questions"),
+            count_of(t, r"(\d+) allègements?", r"(\d+) lighter options?"))
+
+
+def opening(kept, fixes, qs, light, fr):
+    """The receipt's first three lines, said to the person who asked: what was found, in the words of
+    someone who has never read a rule, and the three numbers that answer 'is this page in trouble?'.
+    A template over the counts above — no impact claim, no score, no grade."""
     if fr:
-        s = ("Aucune règle n’est enfreinte sur cette page." if not fixes
-             else (f"{fixes} règle est enfreinte sur cette page ; son remède est ci-dessous." if fixes == 1
-                   else f"{fixes} règles sont enfreintes sur cette page ; chacune vient avec son remède, la première est ci-dessous."))
-        if qs:
-            s += (" Reste 1 point à trancher par un humain, listé une fois plus bas." if qs == 1
-                  else f" Restent {qs} points à trancher par un humain, listés une fois plus bas.")
-        if light == 1:
-            s += " Par ailleurs 1 allègement : rien n’est enfreint, moins d’octets feraient autant."
-        elif light:
-            s += f" Par ailleurs {light} allègements : rien n’est enfreint, moins d’octets feraient autant."
+        say = ("Rien à corriger. " + ("Rien à répondre." if not qs else f"{qs} réponses manquent.") if not fixes
+               else "Un point à corriger. Son remède est écrit." if fixes == 1
+               else f"{fixes} points à corriger. Leurs remèdes sont écrits.")
+        if fixes:
+            sub = ("Chacun vient avec son remède, écrit en clair. Copiez le reçu pour qui fait votre site : "
+                   "il n’y a rien à expliquer.")
+        elif qs:
+            sub = ("Aucune règle n’est enfreinte ici. Ce qui reste, aucun robot ne peut le voir : si une image "
+                   "est décorative, si un texte est dans la bonne langue. Répondez à ce que vous savez ; "
+                   "le reste peut attendre.")
+        else:
+            sub = "Aucune règle n’est enfreinte, et rien n’attend de vous sur cette page."
+        chips = [(kept, "points qui tiennent"), (fixes, "à corriger"), (qs, "à trancher par vous")]
+        if light:
+            chips.append((light, "à alléger" if light == 1 else "à alléger"))
     else:
-        s = ("No rule is broken on this page." if not fixes
-             else (f"{fixes} rule is broken on this page; its remedy is below." if fixes == 1
-                   else f"{fixes} rules are broken on this page; each comes with its remedy, the first is below."))
-        if qs:
-            s += (" 1 point remains for a person to decide, listed once below." if qs == 1
-                  else f" {qs} points remain for a person to decide, listed once below.")
-        if light == 1:
-            s += " Also 1 lighter option: nothing is broken, fewer bytes would do the same."
-        elif light:
-            s += f" Also {light} lighter options: nothing is broken, fewer bytes would do the same."
-    return s
+        say = ("Nothing to fix. " + ("Nothing to answer." if not qs else f"{qs} questions left.") if not fixes
+               else "One point to fix. Its remedy is written." if fixes == 1
+               else f"{fixes} points to fix. Their remedies are written.")
+        if fixes:
+            sub = ("Each comes with its remedy, in plain words. Copy the receipt for whoever builds your site: "
+                   "there is nothing to explain.")
+        elif qs:
+            sub = ("No rule is broken here. What remains, a machine cannot see: whether an image is "
+                   "decorative, whether a passage is in the right language. Answer what you know; "
+                   "the rest can wait.")
+        else:
+            sub = "Nothing is broken, and nothing waits on you here."
+        chips = [(kept, "checks passed"), (fixes, "to fix"), (qs, "to confirm")]
+        if light:
+            chips.append((light, "to trim"))
+    return say, sub, chips
 
 
-def spine(body, fr, fix=None):
-    """The opening of the report, under the verdict: what the counts mean, and the one fix to make first.
-    Inserted whole after the verdict paragraph, the rest of the body left untouched."""
-    v = re.search(r'<p class="verdict">.*?</p>', body, re.S)
-    if not v:
+def hero(body, fr, fix=None):
+    """The report opens as a receipt, not as a form: the page named, one sentence saying what was found,
+    three numbers, the one fix to start with, and the two things a person does next. The engine's line
+    and the rules' method stay in the panel, quietly, where a record belongs."""
+    h1 = re.search(r"<h1>(.*?)</h1>", body, re.S)
+    if not h1:
         return body
-    said = f'<p class="meaning">{meaning(body, fr)}</p>\n'
+    kept, fixes, qs, light = counts_of(body)
+    say, sub, chips = opening(kept, fixes, qs, light, fr)
+    where = re.sub(r"<[^>]+>", "", h1.group(1)).split("·", 1)
+    where = re.sub(r"^https?://", "", (where[1] if len(where) > 1 else where[0]).strip())
+    top = (f'<p class="top"><span class="mark">{"Relevé" if fr else "Record"}</span>'
+           f'<span class="dot" aria-hidden="true">·</span><span class="where">{escape(where)}</span></p>\n')
+    lead = (top + f'<h1 class="say">{escape(say)}</h1>\n<p class="sub">{sub}</p>\n'
+            + '<ul class="tally">' + "".join(f"<li><b>{n}</b> {w}</li>" for n, w in chips) + "</ul>\n")
     if fix:
-        said += (f'<p class="firstfix"><strong>Première correction :</strong> {fix}</p>\n' if fr
-                 else f'<p class="firstfix"><strong>First fix:</strong> {fix}</p>\n')
-    return body[:v.end()] + "\n" + said + body[v.end():]
+        lead += (f'<p class="firstfix"><span class="lbl">{"Commencez par" if fr else "Start with"}</span> {fix}'
+                 f' <a href="#r2" data-go="r2">{"tous les remèdes" if fr else "every remedy"} →</a></p>\n')
+    lead += (f'<div class="do"><button type="button" class="copier" data-cartouche>'
+             f'{"Copier le reçu" if fr else "Copy the receipt"}</button>'
+             f'<button type="button" class="print" data-print>'
+             f'{"Imprimer / PDF" if fr else "Print / PDF"}</button>'
+             f'<p class="hint">{"Adresse, verdict, empreinte : trois lignes à coller dans un ticket." if fr else "Address, verdict, fingerprint: three lines to paste into a ticket."}</p></div>\n'
+             f'<nav class="index"></nav>\n')
+    body = body[:h1.start()] + lead + body[h1.end():]
+    body = re.sub(r'<p class="meaning">.*?</p>\s*', "", body, count=1, flags=re.S)
+    body = re.sub(r'<p class="firstfix">.*?</p>\s*', "", body, count=1, flags=re.S)
+    body = body.replace("<p>Observation automatisée", '<p class="note">Observation automatisée', 1)
+    body = body.replace("<p>An automated observation", '<p class="note">An automated observation', 1)
+    v = re.search(r'<p class="verdict">.*?</p>\n?', body, re.S)
+    if v:
+        line = v.group(0)
+        body = body[:v.start()] + body[v.end():]
+        at = body.find('<details class="pli">')
+        if at >= 0:
+            body = body[:at] + line + body[at:]
+        else:
+            body += line
+    return body
+
+
+def relabel(body, fr):
+    """The report's own section names, in the words a visitor uses: 'what the page weighs', 'for you to
+    settle', 'keep this record'. Counts in parentheses are kept. The legal words are left alone."""
+    pairs = ([("Corrections", "À corriger"), ("Questions ouvertes", "À trancher par vous"),
+              ("Allègements", "Moins lourd"), ("Empreinte", "Le poids de la page"),
+              ("Suivre cette page ou compléter le site", "Garder ce relevé"),
+              ("Un autre état des lieux", "Vérifier une autre page")] if fr else
+             [("Fixes", "To fix"), ("Corrections", "To fix"), ("Open questions", "For you to settle"),
+              ("Lighter options", "Lighter"), ("Footprint", "What the page weighs"),
+              ("Following this page or adding pages of the site", "Keep this record"),
+              ("Another reading", "Check another page"), ("Report on another page", "Check another page")])
+    for old, new in sorted(pairs, key=lambda p: -len(p[0])):
+        body = re.sub(r"<h2([^>]*)>" + re.escape(old) + r"( \(\d+\))?</h2>",
+                      lambda m, n=new: f"<h2{m.group(1)}>{n}{m.group(2) or ''}</h2>", body, count=1)
+    return body
+
+
+def move_after(body, moving, anchor):
+    """Put a whole section after another one: the report's order is the order a person reads it, not the
+    order the kernel emits it."""
+    sec = re.compile(r"<h2[^>]*>" + re.escape(moving) + r"[^<]*</h2>.*?(?=<h2|\Z)", re.S)
+    m = sec.search(body)
+    if not m:
+        return body
+    chunk = m.group(0)
+    rest = body[:m.start()] + body[m.end():]
+    a = re.compile(r"<h2[^>]*>" + re.escape(anchor) + r"[^<]*</h2>.*?(?=<h2|\Z)", re.S).search(rest)
+    if not a:
+        return body
+    return rest[:a.end()] + chunk + rest[a.end():]
+
+
+def questions_plainly(body, fr):
+    """The questions panel, opened with one line of instruction, its families folded into drawers that say
+    how many questions each holds — the first one open, so the panel reads as a short list of topics. The
+    rule references and the radio buttons stay exactly as the kernel wrote them."""
+    head = "À trancher par vous" if fr else "For you to settle"
+    sec = re.search(r"(<h2[^>]*>" + re.escape(head) + r" \(\d+\)</h2>\n)(.*?)(?=<h2|\Z)", body, re.S)
+    if not sec:
+        return body
+    inner = sec.group(2)
+    if "Répondez à ce que vous savez" in body or "Answer what you know" in body:
+        return body
+    cut = inner.find('<details class="pli">')
+    before, after = (inner[:cut], inner[cut:]) if cut >= 0 else (inner, "")
+    tell = ('<p class="tell">Répondez à ce que vous savez. Ce qui reste vide reste une question — rien ne se bloque.</p>\n'
+            if fr else '<p class="tell">Answer what you know. Whatever stays empty stays a question — nothing is blocked.</p>\n')
+    if "<h3>" in before:
+        at = before.find("<h3>")
+        before = before[:at] + tell + before[at:]
+    else:
+        before += tell
+    nth = [0]
+
+    def fold(m):
+        nth[0] += 1
+        title, refs, items = m.group(1), m.group(2), m.group(3)
+        count = items.count("<li>")
+        q = f"{count} question" + ("s" if count > 1 else "")
+        return (f'<details class="pli"{" open" if nth[0] == 1 else ""}><summary>{title} · {q}</summary>\n'
+                f"<h3>{title}</h3>\n{refs}<ul>\n{items}\n</ul></details>")
+    before = re.sub(r'<h3>([^<]+)</h3>\n(<p class="meta">[^<]*</p>\n)<ul>\n(.*?)\n</ul>', fold, before, flags=re.S)
+    return body[:sec.start()] + sec.group(1) + before + after + body[sec.end():]
 
 
 def registers_keep(body, fr):
@@ -683,16 +807,20 @@ def trim(body, fr):
     closed drawers. Wording is borrowed from the rules, not written."""
     body = re.sub(r"</h3>\n<p>(.*?) <span class=\"meta\">(.*?)</span></p>",
                   lambda m: "</h3>\n<p class=\"meta\">" + m.group(2) + "</p>", body)
-    body = re.sub(r"<legend>Holds here: “(.*?)”?</legend>", r"<legend>\1</legend>", body)
-    body = re.sub(r"<legend>Tenu ici : «\s*(.*?)\s*»\s*?</legend>", r"<legend>\1</legend>", body)
-    body = re.sub(r" · partly transparent \(opacity [\d.]+\), may be mid-animation", "", body)
-    body = re.sub(r" · en partie transparent \(opacité [\d,]+\)[^<]*", "", body)
+    body = re.sub(r"<legend>Holds here: “(.*?)”.*?</legend>", r"<legend>\1</legend>", body)
+    body = re.sub(r"<legend>Tenu ici.*?«\s*(.*?)\s*».*?</legend>", r"<legend>\1</legend>", body)
+    body = re.sub(r" · partly transparent \(opacity [\d.]+\)[,;]?[^<]*", "", body)
+    body = re.sub(r" · en partie transparent \(opacité [\d,]+\),?[^<]*", "", body)
     fix = first_fix(body, fr)
     body = promote(body)
     body = drop(body, "La lecture" if fr else "The reading")
     body = effort_summary(body, fr)
     body = zones(body, fr)
-    body = spine(body, fr, fix)
+    body = relabel(body, fr)
+    body = hero(body, fr, fix)
+    body = questions_plainly(body, fr)
+    body = move_after(body, "Le poids de la page" if fr else "What the page weighs",
+                      "À trancher par vous" if fr else "For you to settle")
     for t in (["Méthode", "Critère par critère", "Ce qui n'a pas été regardé"] if fr
               else ["Method", "Criterion by criterion", "What was not looked at"]):
         pat = re.compile(r"<h2>" + re.escape(t) + r"</h2>(.*?)(?=<h2>|\Z)", re.S)
@@ -700,10 +828,33 @@ def trim(body, fr):
     return body
 
 
-def panels(body):
+def panels(body, prefix="", index=False):
     """A report laid out horizontally: one panel per heading, the opening panel carrying the title and
-    the verdict. Each panel is a station of the ring, read down its own column, the ring read across."""
-    return "".join(f'<section class="station">{p}</section>\n' for p in re.split(r"(?=<h2[ >])", body) if p.strip())
+    the verdict. Each panel is a station of the ring, read down its own column, the ring read across.
+    The first panel also carries the contents: the ring is a ring even before it is scrolled."""
+    parts = [p for p in re.split(r"(?=<h2[ >])", body) if p.strip()]
+    out = []
+    for i, p in enumerate(parts, 1):
+        mark = f' id="{prefix}{i}"' if prefix else ""
+        out.append(f'<section class="station"{mark}>{p}</section>\n')
+    if index and len(parts) > 1:
+        fr = "Relevé" in body
+        items = []
+        for i, p in enumerate(parts, 1):
+            if i == 1:
+                continue
+            t = re.search(r"<h2[^>]*>(.*?)</h2>", p, re.S)
+            if not t:
+                continue
+            label = re.sub(r"<[^>]+>", "", t.group(1)).strip()
+            items.append(f'<li><a href="#{prefix}{i}" data-go="{prefix}{i}">'
+                         f'<span class="n">{i - 1:02d}</span>{label}</a></li>')
+        if items:
+            nav = (f'<nav class="index" aria-label="{"Sommaire" if fr else "Contents"}"><ul>'
+                   + "".join(items) + "</ul></nav>")
+            out[0] = out[0].replace('<nav class="index"></nav>', nav, 1)
+    out[0] = out[0].replace('<nav class="index"></nav>', "", 1)
+    return "".join(out)
 
 
 def smart_adjust(body, lang, record=None):
@@ -843,9 +994,10 @@ def given_back(lang, report, record, url, said="", served=None):
     name = "releve-" + re.sub(r"[^a-z0-9.-]+", "-", (observer.place(url) or ("", "page"))[1].lower()) + ".jsonl.gz"
     keep = f'<h2>{w["keep"]}</h2>\n<p>{w["keepit"]}</p>\n<p>{offered(lang, name, "application/gzip", record, ("download", "file"))}</p>\n'
     keep += (f'<p class="meta">{w["run"]}</p>\n'
-             f'<div class="cartouche"><button type="button" class="copier" data-cartouche>{w["copy"]}</button>'
-             f'<button type="button" class="print" data-print>{w["print"]}</button>'
-             f'<template id="cartouche">{escape(cartouche(lang, url, body))}</template></div>\n')
+             # The receipt's two actions stand in the first panel, under the numbers; here the template
+             # alone, which those buttons read. A second pair of the same buttons, under another word,
+             # read as a second thing to do.
+             f'<template id="cartouche">{escape(cartouche(lang, url, body))}</template>\n')
     if served:
         receipt, wacz = served
         stem = name.replace(".jsonl.gz", "")
@@ -860,7 +1012,7 @@ def given_back(lang, report, record, url, said="", served=None):
     keep += f'<h2>{w["again"]}</h2>\n{form(lang)}'
     if SHELLS:
         keep = registers_keep(keep, lang == "fr")
-    content = panels(body) + panels(keep)
+    content = panels(body, "r", True) + panels(keep, "k")
     if 'type="radio"' in content:
         content = (f'<form method="post" action="{PREFIX}/answer" enctype="multipart/form-data">\n<input type="hidden" name="lang" value="{lang}">\n'
                    f'<input type="hidden" name="kept" value="{kept}">\n{content}</form>\n')
