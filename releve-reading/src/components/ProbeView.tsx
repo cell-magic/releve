@@ -8,9 +8,9 @@ import { useState } from 'react'
 export function ProbeView({ onSubmit }: { onSubmit: (url: string) => void }) {
   const [url, setUrl] = useState('')
   const presets = [
-    ['The Clean Baseline', 'clean code, fast load'],
-    ['The Accessibility Overlay', 'widget over unresolved defects'],
-    ['The Oversized Page', 'heavy script payload'],
+    ['Nothing Flagged', 'works without a mouse'],
+    ['The Corner Button', 'sits over errors it does not fix'],
+    ['The 4 MB Front Page', 'loads megabytes of background code'],
   ]
   return (
     <div className="station-view" data-station="probe">
@@ -39,7 +39,7 @@ export function ProbeView({ onSubmit }: { onSubmit: (url: string) => void }) {
         <button type="submit">Run probe</button>
       </form>
       <p className="scope-line">
-        Public URLs only. We don't save your data. We don't use AI.
+        Public URLs only. Nothing is saved once the tab closes. No AI runs anywhere in the check.
       </p>
 
       <p className="label">Specimens</p>

@@ -90,8 +90,7 @@ export function WitnessView({
       </details>
 
       <p className="bounded">
-        Just need this specific thing fixed? <button type="button" className="link">Export a task</button>{' '}
-        or ask us to do it.
+        <button type="button" className="link">Download the fix brief</button> or commission a single-issue correction.
       </p>
     </div>
   )

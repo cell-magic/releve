@@ -51,8 +51,8 @@ export function RadarView({ url, onWrap }: { url: string; onWrap: () => void }) 
       </form>
 
       <ul className="contract-lines">
-        <li>No account. No login. No dashboard.</li>
-        <li>We only email you if something breaks. No weekly digests.</li>
+        <li>There is no account and no dashboard.</li>
+        <li>Emails send only when errors appear. No weekly digests.</li>
         <li>{PRICE}/month. A flat, boring expense.</li>
         <li>Cancel anytime from the bottom of any email.</li>
       </ul>
