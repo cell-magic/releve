@@ -3,114 +3,100 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { source } from './api'
-import { downloadCsv, downloadTicket } from './export'
+import { downloadCsv } from './export'
 import { useSession } from './state'
-import { useRoute } from './router'
+import { STATIONS, STATION_NAMES, parse, useRoute } from './router'
+import type { Station } from './router'
+import { Dialog } from './components/Dialog'
 import { Fork } from './components/Fork'
 import { HelpView } from './components/HelpView'
 import { Plate } from './components/Plate'
 import { Timbre } from './components/Timbre'
 import { RecordView } from './components/RecordView'
 import { StandingLine } from './components/StandingLine'
+import { ProbeView } from './components/ProbeView'
+import { SpecimenView } from './components/SpecimenView'
+import { WitnessView } from './components/WitnessView'
+import { DriftView } from './components/DriftView'
+import { RadarView } from './components/RadarView'
 
 const reading = source.read()
 const PANELS = reading.findings
-const FINDINGS = PANELS.length
-const RECORD_AT = FINDINGS
-const HELP_AT = FINDINGS + 1
-const TOTAL = FINDINGS + 2 // nine findings, then the record and who answers, one axis
+const TOTAL = STATIONS.length
 
 export default function App() {
   const band = useRef<HTMLOListElement>(null)
-  const [index, setIndex] = useState(0)
+  const last = useRef<Station | null>(null)
+  const sent = useRef(0)
+  const [index, setIndex] = useState(() => STATIONS.indexOf(parse(window.location.pathname).station))
   const { state, dispatch } = useSession()
   const { route, navigate } = useRoute()
 
-  const { view, overlay } = route
+  const { station, overlay } = route
   const trapped = overlay !== 'none'
 
-  const go = useCallback((next: number) => {
-    const el = band.current
-    if (!el) return
-    const clamped = Math.max(0, Math.min(TOTAL - 1, next))
-    const panel = el.children[clamped] as HTMLElement | undefined
-    if (!panel) return
-    el.scrollTo({ left: panel.offsetLeft, behavior: 'instant' })
-    setIndex(clamped)
-  }, [])
+  // the ring: index and URL are two views of one position
+  const go = useCallback(
+    (next: number, push = true) => {
+      const clamped = Math.max(0, Math.min(TOTAL - 1, next))
+      const el = band.current
+      const panel = el?.children[clamped] as HTMLElement | undefined
+      if (el && panel) el.scrollTo({ left: panel.offsetLeft, behavior: 'instant' })
+      sent.current = Date.now()
+      setIndex(clamped)
+      if (push) navigate('/' + STATIONS[clamped])
+    },
+    [navigate],
+  )
 
-  // settle: the strip is static after first paint, only the index moves
+  // a station named in the URL wins over a stale snap position
+  useEffect(() => {
+    const target = STATIONS.indexOf(station)
+    if (target < 0) return
+    setIndex(target)
+    const el = band.current
+    const panel = el?.children[target] as HTMLElement | undefined
+    if (el && panel && Math.abs(el.scrollLeft - panel.offsetLeft) > 1) {
+      el.scrollTo({ left: panel.offsetLeft, behavior: 'instant' })
+    }
+  }, [station])
+
+  // settle after a trackpad swipe, then write the position into the URL
   useEffect(() => {
     const el = band.current
     if (!el) return
     let timer = 0
     const settle = () => {
+      // a rotation just wrote itself into the track: its scroll event is not a swipe
+      if (Date.now() - sent.current < 500) return
       const first = el.children[0] as HTMLElement | undefined
       if (!first) return
       const width = first.offsetWidth || 1
-      setIndex(Math.max(0, Math.min(TOTAL - 1, Math.round(el.scrollLeft / width))))
+      const next = Math.max(0, Math.min(TOTAL - 1, Math.round(el.scrollLeft / width)))
+      setIndex(next)
+      navigate('/' + STATIONS[next])
     }
     const onScroll = () => {
       window.clearTimeout(timer)
-      timer = window.setTimeout(settle, 120)
+      timer = window.setTimeout(settle, 140)
     }
     el.addEventListener('scroll', onScroll, { passive: true })
     return () => {
       el.removeEventListener('scroll', onScroll)
       window.clearTimeout(timer)
     }
-  }, [])
+  }, [navigate])
 
-  // focus inside a panel wins over a stale snap position
+  // focus lands on the station heading when the position changes, never on boot
   useEffect(() => {
-    const el = band.current
-    if (!el) return
-    const onFocus = (event: FocusEvent) => {
-      const panel = (event.target as HTMLElement | null)?.closest('.panel')
-      if (!panel) return
-      el.scrollLeft = (panel as HTMLElement).offsetLeft
-    }
-    el.addEventListener('focusin', onFocus)
-    return () => el.removeEventListener('focusin', onFocus)
-  }, [])
+    const previous = last.current
+    last.current = station
+    if (!previous || previous === station) return
+    const heading = document.querySelector(`[data-station="${station}"] h2`) as HTMLElement | null
+    heading?.focus({ preventScroll: true })
+  }, [station])
 
-  // a vertical wheel turns the axis, unless the panel under the pointer scrolls first
-  useEffect(() => {
-    const el = band.current
-    if (!el) return
-    const onWheel = (event: WheelEvent) => {
-      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return
-      const panel = (event.target as HTMLElement | null)?.closest('.panel') as HTMLElement | null
-      if (panel && panel.scrollHeight > panel.clientHeight) {
-        const atTop = panel.scrollTop === 0 && event.deltaY < 0
-        const atEnd = panel.scrollTop + panel.clientHeight >= panel.scrollHeight - 1 && event.deltaY > 0
-        if (!atTop && !atEnd) return
-      }
-      event.preventDefault()
-      el.scrollLeft += event.deltaY * (event.deltaMode === 1 ? 16 : 1)
-    }
-    el.addEventListener('wheel', onWheel, { passive: false })
-    return () => el.removeEventListener('wheel', onWheel)
-  }, [])
-
-  // /record and /help are stations on this axis, never another page
-  useEffect(() => {
-    if (view === 'record') go(RECORD_AT)
-    else if (view === 'help') go(HELP_AT)
-  }, [go, view])
-
-  // ?go=05 jumps to a finding, as the report's ?go=station does
-  useEffect(() => {
-    const match = /[?&]go=(\d{1,2})/.exec(window.location.search)
-    if (!match) return
-    const target = PANELS.findIndex((panel) => panel.ordinal === match[1].padStart(2, '0'))
-    const timer = window.setTimeout(() => {
-      if (target >= 0) go(target)
-    }, 0)
-    return () => window.clearTimeout(timer)
-  }, [go])
-
-  // arrows and Home move one station, and only outside overlays and inputs
+  // arrows rotate the ring; 1..5 jump; nothing fires inside a field
   useEffect(() => {
     if (trapped) return
     const onKey = (event: KeyboardEvent) => {
@@ -129,35 +115,16 @@ export default function App() {
       } else if (event.key === 'ArrowLeft') {
         event.preventDefault()
         go(index - 1)
-      } else if (event.key === 'Home') {
+      } else if (/^[1-5]$/.test(event.key)) {
         event.preventDefault()
-        go(0)
+        go(Number(event.key) - 1)
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [go, index, trapped])
 
-  // one position, named: a finding by its number, a station by its name
-  const counter =
-    index < FINDINGS
-      ? `${PANELS[index].ordinal} / ${String(FINDINGS).padStart(2, '0')}`
-      : index === RECORD_AT
-        ? 'record'
-        : 'who answers'
-
-  const closeOverlay = () => navigate('/read/1')
-  const openPlate = () => navigate('/plate/1')
-  const openFork = () => navigate('/stop/1')
-  const openRecord = () => {
-    go(RECORD_AT)
-    navigate('/record')
-  }
-  const openHelp = () => {
-    go(HELP_AT)
-    navigate('/help')
-  }
-
+  const closeOverlay = () => navigate('/' + station)
   const onStop = () => {
     dispatch({ type: 'stop' })
     closeOverlay()
@@ -165,16 +132,18 @@ export default function App() {
   const onExport = () => {
     downloadCsv(PANELS, reading.url, reading.observedAt)
     dispatch({ type: 'send' })
-    openPlate()
+    navigate(`/${station}/plate`)
   }
 
+  const counter = `${String(index + 1).padStart(2, '0')} / 0${TOTAL}`
+
   return (
-    <div className="app">
-      <a className="skip" href="#findings">
-        Skip to the findings
+    <div className="app" data-station={station} data-overlay={overlay}>
+      <a className="skip" href="#stations">
+        Skip to the stations
       </a>
 
-      <nav className="rail" aria-label="Position">
+      <nav className="rail" aria-label="Ring stations">
         <span className="mark" role="img" aria-label="Bureau des Surfaces">
           <Timbre />
         </span>
@@ -194,22 +163,23 @@ export default function App() {
         </button>
         <span className="spacer" />
 
-        <div className="index" role="group" aria-label={counter}>
-          {PANELS.map((panel, i) => (
+        <div className="index" role="group" aria-label={`Station ${index + 1} of ${TOTAL}: ${STATION_NAMES[station]}`}>
+          {STATIONS.map((name, i) => (
             <button
-              key={panel.ordinal}
+              key={name}
               type="button"
               aria-current={i === index ? 'true' : undefined}
+              tabIndex={i === index ? 0 : -1}
               onClick={() => go(i)}
             >
-              {panel.ordinal}
+              {String(i + 1).padStart(2, '0')}
             </button>
           ))}
         </div>
 
         {trapped ? (
           <>
-            <span className="counter overlay" aria-label={counter}>
+            <span className="counter overlay" aria-label={overlay}>
               {overlay}
             </span>
             <button type="button" onClick={closeOverlay}>
@@ -221,16 +191,16 @@ export default function App() {
             <span className="counter position" aria-label={counter}>
               {counter}
             </span>
-            <button type="button" onClick={openPlate}>
+            <button type="button" onClick={() => navigate(`/${station}/plate`)}>
               plate
             </button>
           </>
         )}
 
-        <button type="button" onClick={openHelp}>
+        <button type="button" onClick={() => navigate(`/${station}/help`)}>
           who answers
         </button>
-        <button type="button" onClick={openRecord}>
+        <button type="button" onClick={() => navigate(`/${station}/record`)}>
           record
         </button>
       </nav>
@@ -245,64 +215,33 @@ export default function App() {
           {reading.observedAt}
         </span>
       </div>
-      <ol className="band" ref={band} id="findings" tabIndex={-1}>
-        {PANELS.map((panel, i) => (
-          <li
-            className="panel"
-            key={panel.ordinal}
-            aria-posinset={i + 1}
-            aria-setsize={TOTAL}
-            data-variant={panel.variant}
-          >
-            <p className="head">
-              <span className="num" aria-hidden="true">
-                {panel.ordinal}
-              </span>
-              {panel.variant}
-            </p>
 
-            <div className="finding">
-              <h3 className="defect-title">
-                <span className="class">{panel.defectClass}</span> —{' '}
-                <span className="comp">{panel.component}</span> —{' '}
-                <span className="trig">{panel.trigger}</span>
-              </h3>
-              <p className="defect-locator">{panel.locator}</p>
-              
-              <details className="defect-evidence" open={panel.variant === 'blocking'}>
-                <summary>Evidence and remedy</summary>
-                <div className="ev-body">
-                  <pre>
-                    <code>{panel.snippet.replace(/\\n/g, '\n')}</code>
-                  </pre>
-                  <p className="remediation">{panel.remediation}</p>
-                  {panel.variant === 'blocking' && (
-                    <button
-                      type="button"
-                      className="dev-ticket"
-                      onClick={() => downloadTicket(panel, reading.url, reading.observedAt)}
-                    >
-                      Take this one defect as a ticket
-                    </button>
-                  )}
-                </div>
-              </details>
-            </div>
-          </li>
-        ))}
+      <p className="sr-only" role="status" aria-live="polite">
+        Station {index + 1} of {TOTAL}: {STATION_NAMES[station]}
+      </p>
 
-        <li className="panel" aria-posinset={RECORD_AT + 1} aria-setsize={TOTAL}>
-          <RecordView state={state} />
+      <ol className="band" ref={band} id="stations" tabIndex={-1}>
+        <li className="panel station" aria-posinset={1} aria-setsize={TOTAL}>
+          <ProbeView onSubmit={() => go(1)} />
         </li>
-        <li className="panel" aria-posinset={HELP_AT + 1} aria-setsize={TOTAL}>
-          <HelpView />
+        <li className="panel station" aria-posinset={2} aria-setsize={TOTAL}>
+          <SpecimenView findings={PANELS} url={reading.url} observedAt={reading.observedAt} />
+        </li>
+        <li className="panel station" aria-posinset={3} aria-setsize={TOTAL}>
+          <WitnessView findings={PANELS} url={reading.url} observedAt={reading.observedAt} />
+        </li>
+        <li className="panel station" aria-posinset={4} aria-setsize={TOTAL}>
+          <DriftView />
+        </li>
+        <li className="panel station" aria-posinset={5} aria-setsize={TOTAL}>
+          <RadarView url={reading.url} onWrap={() => go(0)} />
         </li>
       </ol>
 
       <StandingLine
         session={state.session}
         receipts={state.receipts}
-        onOpenFork={openFork}
+        onOpenFork={() => navigate(`/${station}/stop`)}
         onDormant={() => dispatch({ type: 'dormant' })}
         onResume={() => dispatch({ type: 'resume' })}
         onExport={onExport}
@@ -313,6 +252,16 @@ export default function App() {
         <Plate state={state} onClose={closeOverlay} onSend={() => dispatch({ type: 'send' })} />
       )}
       {overlay === 'fork' && <Fork onClose={closeOverlay} onStop={onStop} />}
+      {overlay === 'record' && (
+        <Dialog title="Record" className="record" onClose={closeOverlay}>
+          <RecordView state={state} />
+        </Dialog>
+      )}
+      {overlay === 'help' && (
+        <Dialog title="Who answers" className="help" onClose={closeOverlay}>
+          <HelpView />
+        </Dialog>
+      )}
     </div>
   )
 }

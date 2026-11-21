@@ -20,10 +20,20 @@ export function Dialog({
   children: ReactNode
 }) {
   const ref = useRef<HTMLElement | null>(null)
+  const pressed = useRef(false)
   useFocusTrap(ref, trap, onClose)
 
   return (
-    <div className="scrim" onClick={onClose}>
+    <div
+      className="scrim"
+      onPointerDown={(event) => {
+        pressed.current = event.target === event.currentTarget
+      }}
+      onClick={(event) => {
+        // a sheet that mounts under the pointer must not eat the click that opened it
+        if (pressed.current && event.target === event.currentTarget) onClose()
+      }}
+    >
       <section
         ref={ref}
         className={`dialog ${className}`}

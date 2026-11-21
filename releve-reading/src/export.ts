@@ -101,3 +101,43 @@ export function downloadTicket(finding: Panel, url: string, observedAt: string):
     /* the finding stays on the page */
   }
 }
+
+/** The four lines someone pastes into Slack: surface, class, triggers, proof. */
+export function buildBrief(findings: readonly Panel[], url: string, observedAt: string, hash: string): string {
+  const blocking = findings.filter((f) => f.variant === 'blocking')
+  return [
+    `Surface: ${url} (scanned ${observedAt}, EU egress, hash ${hash})`,
+    `Class: ${blocking.length} blocking — ${blocking.slice(0, 3).map((f) => f.defectClass).join(', ')}`,
+    `Triggers: ${blocking.slice(0, 3).map((f) => f.locator).join('; ')}`,
+    `Reproducible locally, 0 bytes retained: https://releve.bureaudessurfaces.fr/witness`,
+  ].join('\n')
+}
+
+/** The receipt is a ticket stub, not a summary: same facts, monospace, one block. */
+export function buildReceipt(findings: readonly Panel[], url: string, observedAt: string, hash: string, archetype: string): string {
+  const blocking = findings.filter((f) => f.variant === 'blocking').length
+  return [
+    `RELEVÉ — ${url}`,
+    `${archetype} · ${blocking} blocking`,
+    `${observedAt} · EU egress · sha256:${hash}`,
+    `https://releve.bureaudessurfaces.fr/specimen`,
+  ].join('\n')
+}
+
+export async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch {
+    const area = document.createElement('textarea')
+    area.value = text
+    area.setAttribute('readonly', '')
+    area.style.position = 'fixed'
+    area.style.opacity = '0'
+    document.body.appendChild(area)
+    area.select()
+    const ok = document.execCommand('copy')
+    area.remove()
+    return ok
+  }
+}

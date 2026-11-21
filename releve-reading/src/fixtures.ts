@@ -123,3 +123,43 @@ export const SESSION = {
   paidThrough: '20 December 2026',
   nextCharge: '21 December 2026',
 }
+
+/** The specimen surface: one observation, stated as facts. A probe endpoint is not
+ *  mounted in this build, so this is the reading every station renders. */
+export const SPECIMEN = {
+  url: 'example.org/',
+  hash: '9f4a2c1e7b3d',
+  archetype: {
+    name: 'The Overlay Alibi',
+    line: 'An accessibility overlay runs alongside 8 blocking accessibility defects.',
+    rule: 'overlay script present AND blocking accessibility defects > 0',
+  },
+  rules: [
+    ['The Overlay Alibi', 'accessibility overlay script AND blocking accessibility defects'],
+    ['The Silent Automaton', 'chat or synthetic endpoint AND no Art. 50(5) disclosure node'],
+    ['The 4 MB Brochure', 'transfer > 1.8 MB OR DOM nodes > 1500 OR third-party scripts > 8'],
+    ['The Ghost Landmark', 'no <main> landmark OR focus order broken OR targets under 24px'],
+    ['The Bare Concrete', 'zero blocking defects AND transfer < 400 KB AND landmarks valid'],
+  ],
+  energy: { bytes: '1.42 MB', nodes: '1 284', scripts: '9', delta: '+142 KB since 21 October' },
+  perception: { overlays: '1 overlay, 1 chat widget', landmarks: 'main landmark missing', targets: '6 controls under 24px' },
+  boundary: 'Automated DOM and CSS scope only. A full RGAA 5 declaration still needs a human pass.',
+} as const
+
+export type Tick = { label: string; state: 'stable' | 'drift' | 'blocking'; note: string; detail: string }
+
+/** Twelve readings, one per month, ending on this one. */
+export const DRIFT: readonly Tick[] = [
+  { label: 'Dec', state: 'stable', note: 'hash unchanged', detail: 'no structural change' },
+  { label: 'Jan', state: 'stable', note: 'hash unchanged', detail: 'no structural change' },
+  { label: 'Feb', state: 'drift', note: '+1.1 MB GTM script', detail: 'script[src*="googletagmanager"] added to <head>' },
+  { label: 'Mar', state: 'stable', note: 'hash unchanged', detail: 'no structural change' },
+  { label: 'Apr', state: 'stable', note: 'hash unchanged', detail: 'no structural change' },
+  { label: 'May', state: 'drift', note: 'chat widget mounted', detail: 'iframe#intercom-widget added, no disclosure node' },
+  { label: 'Jun', state: 'stable', note: 'hash unchanged', detail: 'no structural change' },
+  { label: 'Jul', state: 'blocking', note: 'nav focus broken', detail: 'CMS update: div.nav replaces <nav>, Tab order lost' },
+  { label: 'Aug', state: 'stable', note: 'hash unchanged', detail: 'no structural change' },
+  { label: 'Sep', state: 'drift', note: 'overlay script added', detail: 'script[src*="accessibe"] added to <head>' },
+  { label: 'Oct', state: 'stable', note: 'hash unchanged', detail: 'no structural change' },
+  { label: 'Nov', state: 'blocking', note: '8 blocking defects', detail: 'this reading' },
+]
