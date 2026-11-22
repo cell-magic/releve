@@ -135,7 +135,6 @@ export default function App() {
     navigate(`/${station}/plate`)
   }
 
-  const counter = `${String(index + 1).padStart(2, '0')} / 0${TOTAL}`
 
   return (
     <div className="app" data-station={station} data-overlay={overlay}>
