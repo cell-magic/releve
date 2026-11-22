@@ -89,9 +89,7 @@ export function WitnessView({
         </ol>
       </details>
 
-      <p className="bounded">
-        <button type="button" className="link">Download the fix brief</button> or commission a single-issue correction.
-      </p>
+
     </div>
   )
 }

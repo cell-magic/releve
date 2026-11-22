@@ -211,7 +211,7 @@ export default function App() {
           {PANELS.filter((p) => p.variant === 'passing').length} passing · {reading.url}
         </span>
         <span className="contract">
-          fixed sample · strictly rule-based · human check where marked · zero AI ·{' '}
+          France egress point · checked {reading.observedAt} ·{' '}
           {reading.observedAt}
         </span>
       </div>

@@ -8,9 +8,9 @@ import { useState } from 'react'
 export function ProbeView({ onSubmit }: { onSubmit: (url: string) => void }) {
   const [url, setUrl] = useState('')
   const presets = [
-    ['Nothing Flagged', 'works without a mouse'],
-    ['The Corner Button', 'sits over errors it does not fix'],
-    ['The 4 MB Front Page', 'loads megabytes of background code'],
+    ['Works Without Mouse', 'traverses via Tab'],
+    ['Corner Button', 'sits over unresolvable errors'],
+    ['Four Megabyte Pull', 'forces 4MB of background code'],
   ]
   return (
     <div className="station-view" data-station="probe">
