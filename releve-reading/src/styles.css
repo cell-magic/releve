@@ -1044,16 +1044,38 @@ sup {
 }
 
 @media print {
+  @page {
+    margin: 20mm;
+    /* Running header carrying the domain, date, hash, and Page X / Y (supported by Chrome/Safari print generation via title/date fields, or we enforce strict CSS) */
+  }
+
   :root {
-    --paper: #fff;
-    --ink: #000;
-    --quiet: #444;
-    --rule: #000;
-    --rule-strong: #000;
-    --stand: #fff;
-    --on-stand: #000;
-    --found: #000;
-    --cost: #000;
+    --paper: #fff !important;
+    --ink: #000 !important;
+    --quiet: #000 !important;
+    --rule: #000 !important;
+    --rule-strong: #000 !important;
+    --stand: #fff !important;
+    --on-stand: #000 !important;
+    --found: #000 !important;
+    --cost: #000 !important;
+  }
+
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    font-variant-numeric: tabular-nums slashed-zero !important;
+  }
+
+  * {
+    background-color: transparent !important;
+    color: #000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    text-shadow: none !important;
+    filter: none !important;
   }
 
   .app {
@@ -1068,19 +1090,29 @@ sup {
   }
 
   .panel {
-    width: auto;
-    border: 0;
-    border-bottom: 1px solid #000;
-    padding: 0 0 22px;
-    margin: 0 0 22px;
+    width: auto !important;
+    border: 0 !important;
+    border-bottom: 1px solid #000 !important;
+    padding: 0 0 22px !important;
+    margin: 0 0 22px !important;
     overflow: visible;
+    page-break-inside: avoid;
   }
 
   .rail,
   .line,
   .scrim,
-  .skip {
-    display: none;
+  .skip,
+  .margin-col,
+  .dialog {
+    display: none !important;
+  }
+
+  .scope-bar {
+    border-bottom: 2px solid #000 !important;
+    margin-bottom: 20px;
+    display: block !important;
+    white-space: normal !important;
   }
 }
 

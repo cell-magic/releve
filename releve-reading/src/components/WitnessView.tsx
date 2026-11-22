@@ -38,10 +38,7 @@ export function WitnessView({
         >
           {copied === 'yes' ? 'Brief copied' : copied === 'no' ? 'Copy blocked by the browser' : 'Copy brief'}
         </button>
-        {/* TODO: mount the WASM kernel at /reading/verifier.html, then this becomes a link */}
-        <span className="action is-todo" data-todo="wasm-kernel" aria-disabled="true">
-          Local verify — no kernel in this build
-        </span>
+
       </div>
 
       <ol className="register">

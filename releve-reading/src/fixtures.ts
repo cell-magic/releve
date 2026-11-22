@@ -5,7 +5,7 @@
 // a class, the component it hits, the rule that makes it bite, the exact place, the
 // witness, and the remedy. No number here is scored or averaged.
 
-export type Variant = 'blocking' | 'passing'
+export type Variant = 'blocking' | 'passing' | 'opaq'
 
 export type Panel = {
   ordinal: string

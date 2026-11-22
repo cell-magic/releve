@@ -147,62 +147,11 @@ export default function App() {
         <span className="mark" role="img" aria-label="Bureau des Surfaces">
           <Timbre />
         </span>
-        <button className="first dir" type="button" onClick={() => go(0)}>
-          first
-        </button>
-        <button className="dir" type="button" onClick={() => go(index - 1)} disabled={index === 0}>
-          prev
-        </button>
-        <button
-          className="dir"
-          type="button"
-          onClick={() => go(index + 1)}
-          disabled={index === TOTAL - 1}
-        >
-          next
-        </button>
         <span className="spacer" />
-
-        <div className="index" role="group" aria-label={`Station ${index + 1} of ${TOTAL}: ${STATION_NAMES[station]}`}>
-          {STATIONS.map((name, i) => (
-            <button
-              key={name}
-              type="button"
-              aria-current={i === index ? 'true' : undefined}
-              tabIndex={i === index ? 0 : -1}
-              onClick={() => go(i)}
-            >
-              {String(i + 1).padStart(2, '0')}
-            </button>
-          ))}
-        </div>
-
-        {trapped ? (
-          <>
-            <span className="counter overlay" aria-label={overlay}>
-              {overlay}
-            </span>
-            <button type="button" onClick={closeOverlay}>
-              close
-            </button>
-          </>
-        ) : (
-          <>
-            <span className="counter position" aria-label={counter}>
-              {counter}
-            </span>
-            <button type="button" onClick={() => navigate(`/${station}/plate`)}>
-              plate
-            </button>
-          </>
-        )}
-
-        <button type="button" onClick={() => navigate(`/${station}/help`)}>
-          who answers
-        </button>
-        <button type="button" onClick={() => navigate(`/${station}/record`)}>
-          record
-        </button>
+        <button type="button" onClick={() => go(0)}>Reading</button>
+        <button type="button" onClick={() => go(3)}>Drift</button>
+        <button type="button" onClick={() => navigate(`/${station}/record`)}>Record</button>
+        <button type="button" onClick={() => { window.location.href = 'https://bureaudessurfaces.fr/' }}>Bureau</button>
       </nav>
 
       <div className="scope-bar">
@@ -211,8 +160,7 @@ export default function App() {
           {PANELS.filter((p) => p.variant === 'passing').length} passing · {reading.url}
         </span>
         <span className="contract">
-          France egress point · checked {reading.observedAt} ·{' '}
-          {reading.observedAt}
+          Observed from France · {reading.observedAt}
         </span>
       </div>
 
@@ -239,6 +187,7 @@ export default function App() {
       </ol>
 
       <StandingLine
+        station={station}
         session={state.session}
         receipts={state.receipts}
         onOpenFork={() => navigate(`/${station}/stop`)}

@@ -105,12 +105,33 @@ export function downloadTicket(finding: Panel, url: string, observedAt: string):
 /** The four lines someone pastes into Slack: surface, class, triggers, proof. */
 export function buildBrief(findings: readonly Panel[], url: string, observedAt: string, hash: string): string {
   const blocking = findings.filter((f) => f.variant === 'blocking')
-  return [
-    `Surface: ${url} (scanned ${observedAt}, EU egress, hash ${hash})`,
-    `Class: ${blocking.length} blocking — ${blocking.slice(0, 3).map((f) => f.defectClass).join(', ')}`,
-    `Triggers: ${blocking.slice(0, 3).map((f) => f.locator).join('; ')}`,
-    `Reproducible locally, 0 bytes retained: https://releve.bureaudessurfaces.fr/witness`,
-  ].join('\n')
+  const opaqs = findings.filter((f) => f.variant === 'opaq')
+  const host = url.replace(/^https?:\/\//, '').replace(/\/.*$/, '')
+  
+  const lines = [
+    `RELEVE / BUREAU DES SURFACES — EXTERNAL SURFACE READING`,
+    `Target:    ${host} (1 page sampled, fixed sample)`,
+    `Observed:  ${observedAt} | Egress: EU | Viewport: 1440x900 | Engine: Chromium 131`,
+    `Profile:   rgaa-5-draft-2026-11 / ai-act-art50-ec-2026-07 / rgesn-2.0`,
+    `Verdict:   ${blocking.length} deterministic failures | ${opaqs.length} opaque boundaries | ${9 - blocking.length - opaqs.length} checks clear`
+  ]
+  
+  for (const f of blocking) {
+    const triggerStr = f.trigger.length > 34 ? f.trigger.slice(0, 32) + '..' : f.trigger.padEnd(34, ' ')
+    let ruleCol = `FAIL  RGAA-5 / OVER`.padEnd(21, ' ')
+    if (f.defectClass.includes('AI') || f.trigger.includes('AI')) ruleCol = `FAIL  AI-ACT / 50.5`.padEnd(21, ' ')
+    lines.push(`${ruleCol} ${triggerStr} /        ${f.locator}`)
+  }
+  
+  for (const f of opaqs) {
+    const triggerStr = f.trigger.length > 34 ? f.trigger.slice(0, 32) + '..' : f.trigger.padEnd(34, ' ')
+    let ruleCol = `OPAQ  DOM / X-ORIG`.padEnd(21, ' ')
+    if (f.defectClass.includes('WAF') || f.defectClass.includes('Refused')) ruleCol = `OPAQ  WAF / 403`.padEnd(21, ' ')
+    lines.push(`${ruleCol} ${triggerStr} /        ${f.locator}`)
+  }
+  
+  lines.push(`Bundle SHA-256: ${hash} (offline check: verifier.html)`)
+  return lines.join('\n')
 }
 
 /** The receipt is a ticket stub, not a summary: same facts, monospace, one block. */

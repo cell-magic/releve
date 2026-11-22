@@ -34,25 +34,9 @@ export function DriftView() {
         ))}
       </div>
 
-      <table className="diff">
-        <caption>
-          {tick.label} — {tick.note}
-        </caption>
-        <thead>
-          <tr>
-            <th scope="col">Before</th>
-            <th scope="col">After</th>
-            <th scope="col">Witness</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td className="mono">previous reading</td>
-            <td className="mono">{tick.state === 'stable' ? 'unchanged' : tick.note}</td>
-            <td className="mono">{tick.detail}</td>
-          </tr>
-        </tbody>
-      </table>
+      <div className="diff" style={{ marginTop: '2rem' }}>
+        <p>Baseline recorded 21 Nov 2026. Monthly shifts appear here.</p>
+      </div>
     </div>
   )
 }

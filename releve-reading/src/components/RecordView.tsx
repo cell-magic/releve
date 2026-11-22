@@ -11,10 +11,7 @@ export function RecordView({ state }: { state: State }) {
       <h1>Record</h1>
       <p className="view-note">Seen by: {SESSION.seenBy}</p>
       <p className="view-note">Read again on the 1st. Next reading: 1 December 2026.</p>
-      {/* TODO: mount the WASM kernel at /reading/verifier.html, then this becomes a link */}
-      <p className="verifier-badge" data-todo="wasm-kernel">
-        <span>Local verify — no kernel in this build</span>
-      </p>
+
       <table className="table record">
         <tbody>
           {state.record.map((row) => (

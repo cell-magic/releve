@@ -7,6 +7,7 @@ import type { Receipt, SessionState } from '../types'
 /** The colophon. The state is a fact, not a control: the only way out is the Stop
  *  slab at the far right, so nothing on the line offers the same door twice. */
 export function StandingLine({
+  station,
   session,
   receipts,
   onOpenFork,
@@ -15,6 +16,7 @@ export function StandingLine({
   onExport,
   onUndo,
 }: {
+  station: string
   session: SessionState
   receipts: Receipt[]
   onOpenFork: () => void
@@ -26,6 +28,7 @@ export function StandingLine({
   return (
     <div className="line">
       <div className="left">
+        {station !== 'radar' && (
         <div className="segs">
           <span className="seg tone-mark">
             RADAR
@@ -53,6 +56,7 @@ export function StandingLine({
           </span>
           <span className="seg">next charge {SESSION.nextCharge}</span>
         </div>
+        )}
 
         {receipts.map((receipt) => (
           <p className="receipt" key={receipt.id}>
