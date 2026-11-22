@@ -10,7 +10,6 @@ const GLYPH = { stable: '—', drift: '▲', blocking: '■' } as const
  *  record of what changed after it was filed. */
 export function DriftView() {
   const [active, setActive] = useState(DRIFT.length - 1)
-  const tick = DRIFT[active]
 
   return (
     <div className="station-view" data-station="drift">
